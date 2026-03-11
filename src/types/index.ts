@@ -16,3 +16,245 @@ export interface KpiResumen {
   eficiencia: number;
   unidadesHoy: number;
 }
+
+// ─── Enumeraciones ───────────────────────────────────────────
+
+export type RolUsuario = "dueno" | "subjefe" | "operario";
+
+export type EstadoOrden =
+  | "pendiente"
+  | "en_proceso"
+  | "pausada"
+  | "completada"
+  | "cancelada";
+
+export type EtapaProduccion =
+  | "corte"
+  | "confeccion"
+  | "estampado"
+  | "acabado";
+
+export type TipoMaquina =
+  | "merrow"
+  | "cover"
+  | "plana"
+  | "corte"
+  | "peso"
+  | "plancha_dtf";
+
+export type NivelAlerta = "info" | "advertencia" | "critica";
+
+export type Temporada = "alta" | "baja";
+
+export type TipoTela =
+  | "micro"
+  | "mono"
+  | "licra"
+  | "algodon"
+  | "poliester"
+  | "otra";
+
+export type TipoProducto =
+  | "licra"
+  | "jogger"
+  | "vestido"
+  | "t_shirt"
+  | "short"
+  | "blusa"
+  | "otro";
+
+// ─── Entidades Base ──────────────────────────────────────────
+
+export interface Empleado {
+  id: string;
+  nombre: string;
+  apellido: string;
+  rol: RolUsuario;
+  /** Máquinas que el operario está certificado para usar */
+  maquinasHabilitadas: TipoMaquina[];
+  /** Etapas en las que tiene experiencia */
+  etapasEspecializacion: EtapaProduccion[];
+  eficienciaPromedio: number; // porcentaje 0-100
+  activo: boolean;
+  fechaIngreso: string; // ISO 8601
+  avatar?: string; // URL
+}
+
+export interface Maquina {
+  id: string;
+  codigo: string; // ej: "MERROW-01"
+  tipo: TipoMaquina;
+  nombre: string;
+  descripcion?: string;
+  capacidadPorHora: number; // piezas/hora estimadas
+  operarioAsignado?: string; // Empleado.id
+  estado: "activa" | "mantenimiento" | "inactiva";
+  ultimoMantenimiento?: string; // ISO 8601
+  horasUso: number; // total acumulado
+  ubicacion?: string; // ej: "Zona A - Fila 2"
+}
+
+export interface Insumo {
+  id: string;
+  nombre: string;
+  tipo: "tela" | "accesorio";
+  subtipo?: TipoTela | "zipper" | "goma" | "boton" | "hilo" | "otro";
+  unidad: "metros" | "unidades" | "rollos" | "kg";
+  stockActual: number;
+  stockMinimo: number;
+  proveedor?: string;
+}
+
+// ─── Orden de Producción ─────────────────────────────────────
+
+export interface LineaOrden {
+  productoTipo: TipoProducto;
+  descripcion: string;
+  cantidad: number; // piezas solicitadas
+  cantidadCompletada: number;
+  talla?: string; // ej: "S/M/L/XL"
+  color?: string;
+  insumos: Array<{
+    insumoId: string;
+    cantidadRequerida: number;
+    unidad: string;
+  }>;
+}
+
+export interface Orden {
+  id: string;
+  numero: string; // ej: "ORD-2026-0042"
+  cliente: string;
+  estado: EstadoOrden;
+  temporada: Temporada;
+  prioridad: "baja" | "normal" | "alta" | "urgente";
+  lineas: LineaOrden[];
+  /** Total de piezas sumando todas las líneas */
+  totalPiezas: number;
+  totalCompletadas: number;
+  fechaCreacion: string; // ISO 8601
+  fechaEntregaEstimada: string; // ISO 8601
+  /** Fecha calculada por el modelo de IA */
+  fechaEntregaPredicha?: string; // ISO 8601
+  fechaEntregaReal?: string; // ISO 8601
+  creadaPor: string; // Empleado.id
+  notas?: string;
+}
+
+// ─── Registro de Producción ──────────────────────────────────
+
+export interface RegistroProduccion {
+  id: string;
+  ordenId: string;
+  empleadoId: string;
+  maquinaId: string;
+  etapa: EtapaProduccion;
+  fecha: string; // ISO 8601 (solo fecha YYYY-MM-DD)
+  horaInicio: string; // HH:mm
+  horaFin?: string; // HH:mm
+  piezasProducidas: number;
+  piezasDefectuosas: number;
+  tiempoParadaMinutos: number; // tiempo no productivo
+  motivoParada?: string;
+  /** Eficiencia calculada: piezasProducidas / (capacidad * horas) */
+  eficienciaCalculada?: number; // 0-100
+  observaciones?: string;
+  sincronizado: boolean; // para offline-first
+}
+
+// ─── Predicción e IA ─────────────────────────────────────────
+
+export interface AlertaCuelloBottella {
+  maquinaId: string;
+  tipo: TipoMaquina;
+  nivel: NivelAlerta;
+  mensaje: string;
+  saturationPct: number; // 0-100
+  impactoEstimadoHoras: number;
+  timestamp: string; // ISO 8601
+}
+
+export interface RecomendacionPersonal {
+  id: string;
+  tipo: "movimiento" | "descanso" | "capacitacion" | "reasignacion";
+  empleadoId: string;
+  maquinaOrigenId?: string;
+  maquinaDestinoId?: string;
+  etapaOrigen?: EtapaProduccion;
+  etapaDestino?: EtapaProduccion;
+  justificacion: string;
+  gananciaTiempoEstimadaHoras: number;
+  prioridad: "baja" | "media" | "alta";
+  aceptada?: boolean;
+  timestamp: string; // ISO 8601
+}
+
+export interface PrediccionIA {
+  id: string;
+  ordenId: string;
+  modelVersion: string; // ej: "v1.2.3"
+  fechaGeneracion: string; // ISO 8601
+  // Estimación de tiempo de finalización
+  fechaFinalizacionEstimada: string; // ISO 8601
+  confianza: number; // 0-1
+  diasRestantesEstimados: number;
+  // Eficiencia general de la orden
+  eficienciaActual: number; // 0-100
+  tendenciaEficiencia: "mejorando" | "estable" | "empeorando";
+  // Cuellos de botella detectados
+  cuellosBotella: AlertaCuelloBottella[];
+  // Recomendaciones de personal
+  recomendaciones: RecomendacionPersonal[];
+  // Comparativa vs meta
+  metaProduccionDiaria: number; // piezas/día esperadas
+  produccionRealHoy: number;
+  // Factores de riesgo identificados
+  factoresRiesgo: string[];
+  // Proyección diaria para gráfica
+  proyeccionDiaria: Array<{
+    fecha: string;
+    metaAcumulada: number;
+    realAcumulada: number;
+    prediccionAcumulada: number;
+  }>;
+}
+
+// ─── Dashboard / Métricas ────────────────────────────────────
+
+export interface MetricasDashboard {
+  ordenesActivas: number;
+  piezasHoy: number;
+  metaHoy: number;
+  eficienciaGlobal: number;
+  operariosActivos: number;
+  maquinasEnUso: number;
+  alertasCriticas: number;
+  tendencia7Dias: Array<{
+    fecha: string;
+    produccion: number;
+    meta: number;
+    eficiencia: number;
+  }>;
+}
+
+// ─── Respuestas de API ───────────────────────────────────────
+
+export interface ApiResponse<T> {
+  data: T;
+  mensaje?: string;
+  timestamp: string;
+}
+
+export interface ApiError {
+  codigo: string;
+  mensaje: string;
+  detalles?: Record<string, string[]>;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  pagina: number;
+  porPagina: number;
+  totalPaginas: number;
+}
