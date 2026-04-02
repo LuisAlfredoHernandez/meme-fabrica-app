@@ -10,17 +10,10 @@ const C = {
     orange: "#f97316", emerald: "#34d399", red: "#f87171", slate: "#475569",
 };
 
-const ROLES = [
-    { id: "dueno", label: "Dueño", desc: "Acceso total al sistema", color: "#f97316" },
-    { id: "subjefe", label: "Jefe de Taller", desc: "Gestión de producción y operarios", color: "#818cf8" },
-    { id: "operario", label: "Operario", desc: "Captura de producción diaria", color: "#34d399" },
-];
-
 export default function LoginPage() {
     const [usuario, setUsuario] = useState("");
     const [password, setPassword] = useState("");
     const [verPass, setVerPass] = useState(false);
-    const [rolSel, setRolSel] = useState("operario");
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState("");
 
@@ -55,29 +48,6 @@ export default function LoginPage() {
                 </div>
 
                 <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-
-                    {/* Selector de rol */}
-                    <div className="p-5 border-b" style={{ borderColor: C.border }}>
-                        <p className="text-xs font-semibold mb-3" style={{ color: C.slate }}>Ingresar como</p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {ROLES.map(r => (
-                                <button key={r.id} onClick={() => setRolSel(r.id)}
-                                    className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all"
-                                    style={{
-                                        borderColor: rolSel === r.id ? r.color : C.border,
-                                        background: rolSel === r.id ? `${r.color}12` : "transparent",
-                                    }}>
-                                    <span className="w-2 h-2 rounded-full" style={{ background: r.color }} />
-                                    <span className="text-xs font-semibold" style={{ color: rolSel === r.id ? r.color : "#94a3b8" }}>
-                                        {r.label}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                        <p className="text-xs mt-2 text-center" style={{ color: C.slate }}>
-                            {ROLES.find(r => r.id === rolSel)?.desc}
-                        </p>
-                    </div>
 
                     {/* Formulario */}
                     <form onSubmit={handleLogin} className="p-5 space-y-4">
@@ -137,7 +107,7 @@ export default function LoginPage() {
                     {/* Footer de seguridad */}
                     <div className="px-5 py-3 border-t flex items-center gap-2" style={{ borderColor: C.border }}>
                         <Lock className="w-3 h-3" style={{ color: C.slate }} />
-                        <p className="text-xs" style={{ color: C.slate }}>Contraseñas cifradas con BCrypt · Sesión JWT</p>
+                        <a href="https://www.google.com/" className="text-xs" style={{ color: C.slate }}>Olvidaste la contraseña?</a>
                     </div>
                 </div>
 

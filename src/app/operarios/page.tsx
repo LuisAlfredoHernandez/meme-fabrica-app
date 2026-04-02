@@ -157,17 +157,17 @@ export default function OperariosPage() {
             <div className="p-6 space-y-5">
 
                 {/* KPIs */}
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     {[
-                        { label: "Total operarios", valor: operarios.length, color: "#fff" },
-                        { label: "Activos ahora", valor: activos, color: C.emerald },
-                        { label: "Ausentes", valor: ausentes, color: C.red },
-                        { label: "Eficiencia prom.", valor: `${Math.round(operarios.reduce((a, o) => a + o.eficiencia, 0) / operarios.length)}%`, color: C.orange },
+                        { label: "Total operarios", valor: operarios.length, color: "#fff", sub: "registrados" },
+                        { label: "Activos ahora", valor: activos, color: C.emerald, sub: "en turno" },
+                        { label: "Ausentes", valor: ausentes, color: C.red, sub: "hoy" },
                     ].map(k => (
                         <div key={k.label} className="rounded-xl px-4 py-3"
                             style={{ background: C.surface, border: `1px solid ${C.border}` }}>
                             <p className="text-xs mb-1" style={{ color: C.slate }}>{k.label}</p>
                             <p className="text-2xl font-black font-mono" style={{ color: k.color }}>{k.valor}</p>
+                            <p className="text-xs mt-0.5" style={{ color: C.slate }}>{k.sub}</p>
                         </div>
                     ))}
                 </div>

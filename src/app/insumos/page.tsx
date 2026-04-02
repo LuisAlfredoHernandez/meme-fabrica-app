@@ -2,6 +2,11 @@
 // ─────────────────────────────────────────────────────────────
 // app/insumos/page.tsx — RF6 · Gestión de insumos y materiales
 // ─────────────────────────────────────────────────────────────
+import {
+    Insumo,
+    INSUMOS_MOCK,
+    TipoInsumo,
+} from "@/features/insumos/services/insumos.service";
 import { useState } from "react";
 import { Plus, AlertTriangle, Search, Package, X, TrendingDown } from "lucide-react";
 
@@ -10,24 +15,6 @@ const C = {
     orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
     red: "#f87171", violet: "#818cf8", slate: "#475569",
 };
-
-type TipoInsumo = "tela" | "accesorio";
-
-interface Insumo {
-    id: string; nombre: string; tipo: TipoInsumo; subtipo: string;
-    unidad: string; stock: number; minimo: number; proveedor: string;
-    vinculadoA: string[];
-}
-
-const INSUMOS_MOCK: Insumo[] = [
-    { id: "i1", nombre: "Tela micro azul rey", tipo: "tela", subtipo: "micro", unidad: "metros", stock: 45, minimo: 20, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0042"] },
-    { id: "i2", nombre: "Tela licra negra", tipo: "tela", subtipo: "licra", unidad: "metros", stock: 12, minimo: 15, proveedor: "ImportaTex", vinculadoA: ["ORD-2026-0043"] },
-    { id: "i3", nombre: "Tela mono beige", tipo: "tela", subtipo: "mono", unidad: "metros", stock: 80, minimo: 10, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0044"] },
-    { id: "i4", nombre: "Zippers negros #5", tipo: "accesorio", subtipo: "zipper", unidad: "unidades", stock: 320, minimo: 100, proveedor: "AccesoriosDO", vinculadoA: ["ORD-2026-0042"] },
-    { id: "i5", nombre: "Gomas elásticas 2cm", tipo: "accesorio", subtipo: "goma", unidad: "metros", stock: 8, minimo: 20, proveedor: "ElásticosCaribeño", vinculadoA: ["ORD-2026-0043"] },
-    { id: "i6", nombre: "Hilo poliéster negro", tipo: "accesorio", subtipo: "hilo", unidad: "rollos", stock: 15, minimo: 8, proveedor: "HilosNatl", vinculadoA: ["ORD-2026-0042", "ORD-2026-0043"] },
-    { id: "i7", nombre: "Botones metálicos 18mm", tipo: "accesorio", subtipo: "boton", unidad: "unidades", stock: 0, minimo: 50, proveedor: "AccesoriosDO", vinculadoA: [] },
-];
 
 function stockStatus(stock: number, minimo: number) {
     if (stock === 0) return { color: C.red, label: "Agotado", bg: `${C.red}15` };
@@ -48,6 +35,15 @@ function ModalNuevoInsumo({ onClose }: { onClose: () => void }) {
                     <button onClick={onClose} style={{ color: C.slate }}><X className="w-5 h-5" /></button>
                 </div>
                 <div className="p-6 space-y-4">
+                    {/* Código autogenerado — guía al usuario */}
+                    <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                        style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.2)" }}>
+                        <span className="text-xs font-semibold" style={{ color: C.slate }}>Código asignado:</span>
+                        <span className="font-mono font-black text-sm" style={{ color: C.orange }}>
+                            {form.tipo === "tela" ? "TEL-00X" : "ACC-00X"}
+                        </span>
+                        <span className="text-xs ml-auto" style={{ color: C.slate }}>Se genera al guardar</span>
+                    </div>
                     <div className="space-y-1.5">
                         <label className="text-xs font-semibold" style={{ color: "#94a3b8" }}>Nombre del insumo</label>
                         <input value={form.nombre} onChange={e => set("nombre", e.target.value)}
@@ -219,7 +215,13 @@ export default function InsumosPage() {
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <Package className="w-4 h-4 shrink-0" style={{ color: C.slate }} />
-                                                <span className="text-sm font-semibold text-white">{ins.nombre}</span>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded"
+                                                            style={{ background: `${C.orange}18`, color: C.orange }}>{ins.codigo}</span>
+                                                        <span className="text-sm font-semibold text-white">{ins.nombre}</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
