@@ -1,15 +1,8 @@
-
 // ─────────────────────────────────────────────────────────────
-// features/insumos/services/insumos.service.ts — Mocks
+// features/insumos/services/insumos.service.ts — Mocks & Service
 // ─────────────────────────────────────────────────────────────
-
+import type { Insumo } from "@/types";
 export type TipoInsumo = "tela" | "accesorio";
-
-export interface Insumo {
-    id: string; codigo: string; nombre: string; tipo: TipoInsumo; subtipo: string;
-    unidad: string; stock: number; minimo: number; proveedor: string;
-    vinculadoA: string[];
-}
 
 export const INSUMOS_MOCK: Insumo[] = [
     { id: "i1", codigo: "TEL-001", nombre: "Tela micro azul rey", tipo: "tela", subtipo: "micro", unidad: "metros", stock: 45, minimo: 20, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0042"] },
@@ -20,3 +13,42 @@ export const INSUMOS_MOCK: Insumo[] = [
     { id: "i6", codigo: "ACC-003", nombre: "Hilo poliéster negro", tipo: "accesorio", subtipo: "hilo", unidad: "rollos", stock: 15, minimo: 8, proveedor: "HilosNatl", vinculadoA: ["ORD-2026-0042", "ORD-2026-0043"] },
     { id: "i7", codigo: "ACC-004", nombre: "Botones metálicos 18mm", tipo: "accesorio", subtipo: "boton", unidad: "unidades", stock: 0, minimo: 50, proveedor: "AccesoriosDO", vinculadoA: [] },
 ];
+
+// Simulamos la latencia de una llamada a la API
+const API_LATENCY = 500; // 0.5 segundos
+
+/**
+ * Servicio para la gestión de insumos.
+ * Imita las llamadas a una API REST utilizando los datos mockeados.
+ */
+export const insumosService = {
+  /**
+   * Obtiene todos los insumos disponibles.
+   * @returns Una promesa que resuelve con la lista de insumos.
+   */
+  getAll: (): Promise<Insumo[]> => {
+    console.log("Fetching all insumos from mock service...");
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log("Insumos fetched successfully.");
+        resolve(INSUMOS_MOCK);
+      }, API_LATENCY);
+    });
+  },
+
+  /**
+   * Obtiene un insumo por su ID.
+   * @param id - El ID del insumo a buscar.
+   * @returns Una promesa que resuelve con el insumo o undefined si no se encuentra.
+   */
+  getById: (id: string): Promise<Insumo | undefined> => {
+    console.log(`Fetching insumo with id: ${id}`);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const insumo = INSUMOS_MOCK.find((i) => i.id === id);
+        console.log(insumo ? `Found insumo: ${insumo.nombre}` : "Insumo not found.");
+        resolve(insumo);
+      }, API_LATENCY);
+    });
+  },
+};

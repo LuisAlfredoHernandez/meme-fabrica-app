@@ -97,12 +97,14 @@ export interface Maquina {
 export interface Insumo {
   id: string;
   nombre: string;
+  codigo:string;
   tipo: "tela" | "accesorio";
   subtipo?: TipoTela | "zipper" | "goma" | "boton" | "hilo" | "otro";
   unidad: "metros" | "unidades" | "rollos" | "kg";
-  stockActual: number;
-  stockMinimo: number;
+  stock: number;
+  minimo: number;
   proveedor?: string;
+  vinculadoA?:string[];
 }
 
 // ─── Orden de Producción ─────────────────────────────────────
