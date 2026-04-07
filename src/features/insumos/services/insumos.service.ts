@@ -36,6 +36,59 @@ export const insumosService = {
     });
   },
 
+/**
+   * Crea un nuevo insumo y lo añade a la lista.
+   * @param data - Los datos del nuevo insumo (sin el ID).
+   * @returns Una promesa que resuelve con el insumo creado.
+   */
+  
+create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
+    console.log("Creating new insumo...", data);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const nuevoInsumo: Insumo = {
+          ...data,
+          // Generamos un ID aleatorio o basado en timestamp para el mock
+          id: Math.random().toString(36).substr(2, 9),
+        };
+        
+        // Simulamos la persistencia en el mock
+        INSUMOS_MOCK.push(nuevoInsumo);
+        
+        console.log(`Insumo created successfully with ID: ${nuevoInsumo.id}`);
+        resolve(nuevoInsumo);
+      }, API_LATENCY);
+    });
+  },
+
+  /**
+   * Actualiza un insumo existente por su ID.
+   * @param id - El ID del insumo a actualizar.
+   * @param data - Los campos parciales a modificar.
+   * @returns Una promesa que resuelve con el insumo actualizado o lanza error si no existe.
+   */
+  update: (id: string, data: Partial<Insumo>): Promise<Insumo> => {
+    console.log(`Updating insumo with id: ${id}...`, data);
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const index = INSUMOS_MOCK.findIndex((i) => i.id === id);
+        
+        if (index === -1) {
+          console.error("Update failed: Insumo not found.");
+          reject(new Error("Insumo no encontrado"));
+          return;
+        }
+
+        // Combinamos los datos antiguos con los nuevos
+        const insumoActualizado = { ...INSUMOS_MOCK[index], ...data };
+        INSUMOS_MOCK[index] = insumoActualizado;
+
+        console.log(`Insumo ${id} updated successfully.`);
+        resolve(insumoActualizado);
+      }, API_LATENCY);
+    });
+  },
+
   /**
    * Obtiene un insumo por su ID.
    * @param id - El ID del insumo a buscar.
