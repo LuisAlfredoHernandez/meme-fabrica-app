@@ -34,13 +34,7 @@ export type EtapaProduccion =
   | "estampado"
   | "acabado";
 
-export type TipoMaquina =
-  | "merrow"
-  | "cover"
-  | "plana"
-  | "corte"
-  | "peso"
-  | "plancha_dtf";
+
 
 export type NivelAlerta = "info" | "advertencia" | "critica";
 
@@ -65,20 +59,57 @@ export type TipoProducto =
 
 // ─── Entidades Base ──────────────────────────────────────────
 
-export interface Empleado {
+export type TipoMaquina =
+  | "merrow"
+  | "cover"
+  | "plana"
+  | "corte"
+  | "peso"
+  | "plancha_dtf";
+
+interface HabilidadMaquinaria{
+  maquina: TipoMaquina;
+  nivelEficiencia: number; // porcentaje 0-100
+}
+
+interface HabilidadEtapa{
+  maquina: EtapaProduccion;
+  eficienciaPromedio: number; // porcentaje 0-100
+}
+
+interface Usuario {
   id: string;
   nombre: string;
   apellido: string;
   rol: RolUsuario;
-  /** Máquinas que el operario está certificado para usar */
-  maquinasHabilitadas: TipoMaquina[];
-  /** Etapas en las que tiene experiencia */
-  etapasEspecializacion: EtapaProduccion[];
-  eficienciaPromedio: number; // porcentaje 0-100
-  activo: boolean;
-  fechaIngreso: string; // ISO 8601
-  avatar?: string; // URL
 }
+
+type Status = "activo" | "inactivo";
+
+export interface Operario extends Usuario {
+  /** Máquinas que el operario está certificado para usar */
+  habilidades: HabilidadMaquinaria[];
+  estado: Status;
+  maquinaActual?:string;
+  ordenActual?: string;
+  /** Etapas en las que tiene experiencia */
+  // etapasEspecializacion: HabilidadEtapa[];
+}
+
+// export interface Empleado {
+//   id: string;
+//   nombre: string;
+//   apellido: string;
+//   rol: RolUsuario;
+//   /** Máquinas que el operario está certificado para usar */
+//   maquinasHabilitadas: TipoMaquina[];
+//   /** Etapas en las que tiene experiencia */
+//   etapasEspecializacion: EtapaProduccion[];
+//   eficienciaPromedio: number; // porcentaje 0-100
+//   activo: boolean;
+//   fechaIngreso: string; // ISO 8601
+//   avatar?: string; // URL
+// }
 
 export interface Maquina {
   id: string;
