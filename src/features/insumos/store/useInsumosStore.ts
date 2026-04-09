@@ -11,6 +11,7 @@ interface InsumosState {
     fetchInsumos: () => Promise<void>;
     createInsumo: (insumo: Omit<Insumo, "id">) => Promise<boolean>;
     updateInsumo: (id: string, data: Partial<Insumo>) => Promise<boolean>;
+    deleteInsumo: (id: string) => Promise<boolean>;
     reset: () => void;
   };
 }
@@ -77,6 +78,19 @@ export const useInsumosStore = create<InsumosState>()(
             const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
             set({ isLoading: false, error: errorMessage }, false, "insumos/update_error");
             return false;
+          }
+        },
+
+        deleteInsumo: async (id) => {
+          set({ isLoading: true, error: null }, false, "insumos/delete_start");
+          try {
+              await insumosService.delete(id);
+              set((state) => ({
+                  insumos: state.insumos.filter(i => i.id !== id),
+                  isLoading: false
+              }), false, "insumos/delete_success");
+          } catch (e) {
+              set({ isLoading: false, error: "insumos/delete_error" });
           }
         },
 

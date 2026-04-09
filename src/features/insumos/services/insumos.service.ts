@@ -85,6 +85,30 @@ create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
       }, API_LATENCY);
     });
   },
+  
+  delete: (id: string): Promise<boolean> => {
+      console.log(`Solicitando eliminación del insumo con ID: ${id}...`);
+      
+      return new Promise((resolve, reject) => {
+          setTimeout(() => {
+              // Buscamos el índice del elemento en nuestro "mock"
+              const index = INSUMOS_MOCK.findIndex(insumo => insumo.id === id);
+
+              if (index !== -1) {
+                  // Eliminamos el elemento del array global (persistencia simulada)
+                  
+                  // INSUMOS_MOCK.splice(index, 1);
+                  
+                  console.log(`Insumo ${id} eliminado correctamente del Mock.`);
+                  resolve(true);
+              } else {
+                  // Si por alguna razón el ID no existe
+                  console.error(`Error: Insumo con ID ${id} no encontrado.`);
+                  reject(new Error("El insumo que intentas eliminar no existe en el sistema."));
+              }
+          }, API_LATENCY);
+      });
+  },
 
   /**
    * Obtiene un insumo por su ID.
