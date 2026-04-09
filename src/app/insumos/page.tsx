@@ -1,210 +1,171 @@
 "use client";
 // ─────────────────────────────────────────────────────────────
-// app/insumos/page.tsx — RF6 · Gestión de insumos y materiales
+// app/insumos/page.tsx — Gestión Unificada de Inventario
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
-import { Plus, AlertTriangle, Search, Package, X, TrendingDown } from "lucide-react";
-import { ModalEntradaInsumo } from "./components/ModalNuevoInsumo";
+import { Plus, AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
+import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúrate de que el nombre coincida
+import { normalizeText } from "@/utils/formatters";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
     orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", violet: "#818cf8", slate: "#475569",
+    red: "#f87171", slate: "#475569",
 };
 
-function stockStatus(stock: number, minimo: number) {
-    if (stock === 0) return { color: C.red, label: "Agotado", bg: `${C.red}15` };
-    if (stock < minimo) return { color: C.amber, label: "Stock bajo", bg: `${C.amber}15` };
-    return { color: C.emerald, label: "Disponible", bg: `${C.emerald}15` };
-}
-
 export default function InsumosPage() {
-    // Obtenemos el estado y las acciones de hooks separados para optimizar re-renders
     const { insumos, isLoading, error } = useInsumosStore();
     const { fetchInsumos } = useInsumosActions();
 
     const [busqueda, setBusq] = useState("");
-    const [modal, setModal] = useState(false);
     const [filtro, setFiltro] = useState<"todos" | "bajo" | "agotado">("todos");
+
+    // Control del Modal Único
+    const [modalConfig, setModalConfig] = useState<{ open: boolean; id?: string; mode?: "entrada" | "salida" | "eliminar" }>({
+        open: false
+    });
 
     useEffect(() => {
         fetchInsumos();
     }, [fetchInsumos]);
 
     const filtrados = insumos.filter(i => {
-        const matchBusq = i.nombre.toLowerCase().includes(busqueda.toLowerCase());
-        const st = stockStatus(i.stock, i.minimo);
+        const matchBusq = normalizeText(i.nombre).includes(normalizeText(busqueda));
         const matchFilt = filtro === "todos" ||
             (filtro === "agotado" && i.stock === 0) ||
             (filtro === "bajo" && i.stock > 0 && i.stock < i.minimo);
         return matchBusq && matchFilt;
     });
 
-    const alertas = insumos.filter(i => i.stock < i.minimo);
+    // Función para abrir el modal con una configuración específica
+    const abrirGestion = (id?: string, mode: "entrada" | "salida" | "eliminar" = "entrada") => {
+        setModalConfig({ open: true, id, mode });
+    };
 
     return (
-        <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-            {modal && <ModalEntradaInsumo onClose={() => setModal(false)} />}
+        <div className="flex-1 overflow-auto bg-[#080b10] text-slate-300">
 
+            {modalConfig.open && (
+                <ModalGestionInsumo
+                    // Si pasas estos props al modal, puedes hacer que se inicialice en el modo correcto
+                    // initialId={modalConfig.id} 
+                    // initialMode={modalConfig.mode}
+                    onClose={() => setModalConfig({ open: false })}
+                />
+            )}
+
+            {/* Header */}
             <div className="px-6 py-5 border-b flex items-center justify-between"
                 style={{ borderColor: C.border, background: C.surface }}>
                 <div>
-                    <h1 className="text-lg font-black text-white">Insumos y Materiales</h1>
-                    <p className="text-xs mt-0.5" style={{ color: C.slate }}>RF6 — Inventario vinculado a órdenes</p>
+                    <h1 className="text-xl font-black text-white">Meme Fábricas: Inventario</h1>
+                    <p className="text-[10px] uppercase tracking-widest text-orange-500 font-bold">Control de Insumos RF6</p>
                 </div>
-                <button onClick={() => setModal(true)}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold"
+                <button
+                    onClick={() => abrirGestion()}
+                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold shadow-lg shadow-orange-500/10 hover:scale-105 active:scale-95 transition-all"
                     style={{ background: C.orange }}>
-                    <Plus className="w-4 h-4" /> Entrada Inventario
+                    <Plus className="w-4 h-4" /> Movimiento de stock
                 </button>
             </div>
 
-            {isLoading && (
-                <div className="p-10 text-center text-sm" style={{ color: C.slate }}>
-                    Cargando inventario de insumos...
-                </div>
-            )}
+            <div className="p-6 space-y-6">
 
-            {error && (
-                <div className="p-10 text-center text-sm" style={{ color: C.red }}>
-                    <strong>Error al cargar los datos:</strong> {error}
-                </div>
-            )}
-
-            {!isLoading && !error && (
-                <div className="p-6 space-y-5">
-                    {/* Alerta de stock crítico */}
-                    {alertas.length > 0 && (
-                        <div className="flex items-start gap-3 px-5 py-4 rounded-xl"
-                            style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.3)" }}>
-                            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: C.amber }} />
-                            <div>
-                                <p className="text-sm font-semibold" style={{ color: C.amber }}>
-                                    {alertas.length} insumo{alertas.length > 1 ? "s" : ""} por debajo del stock mínimo
-                                </p>
-                                <p className="text-xs mt-0.5" style={{ color: C.slate }}>
-                                    {alertas.map(a => a.nombre).join(" · ")}
-                                </p>
-                            </div>
+                {/* KPIs Rápidos */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {[
+                        { label: "Total Items", val: insumos.length, color: "#fff" },
+                        { label: "Stock Bajo", val: insumos.filter(i => i.stock < i.minimo && i.stock > 0).length, color: C.amber },
+                        { label: "Agotados", val: insumos.filter(i => i.stock === 0).length, color: C.red },
+                        { label: "Salud de Inv.", val: "88%", color: C.emerald },
+                    ].map(k => (
+                        <div key={k.label} className="p-4 rounded-2xl border bg-[#13161e]/50" style={{ borderColor: C.border }}>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{k.label}</p>
+                            <p className="text-2xl font-black mt-1" style={{ color: k.color }}>{k.val}</p>
                         </div>
-                    )}
+                    ))}
+                </div>
 
-                    {/* KPIs */}
-                    <div className="grid grid-cols-4 gap-3">
-                        {[
-                            { label: "Total insumos", valor: insumos.length, color: "#fff" },
-                            { label: "Disponibles", valor: insumos.filter(i => i.stock >= i.minimo).length, color: C.emerald },
-                            { label: "Stock bajo", valor: insumos.filter(i => i.stock > 0 && i.stock < i.minimo).length, color: C.amber },
-                            { label: "Agotados", valor: insumos.filter(i => i.stock === 0).length, color: C.red },
-                        ].map(k => (
-                            <div key={k.label} className="rounded-xl px-4 py-3"
-                                style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                                <p className="text-xs mb-1" style={{ color: C.slate }}>{k.label}</p>
-                                <p className="text-2xl font-black font-mono" style={{ color: k.color }}>{k.valor}</p>
-                            </div>
+                {/* Filtros y Búsqueda */}
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#13161e] p-2 rounded-2xl border" style={{ borderColor: C.border }}>
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input
+                            value={busqueda}
+                            onChange={e => setBusq(e.target.value)}
+                            placeholder="Filtrar por nombre o código..."
+                            className="w-full h-10 pl-10 pr-4 bg-[#0d1018] rounded-xl text-sm focus:outline-none border border-transparent focus:border-orange-500/50 transition-all"
+                        />
+                    </div>
+                    <div className="flex gap-1 p-1 bg-[#0d1018] rounded-xl">
+                        {(["todos", "bajo", "agotado"] as const).map(f => (
+                            <button key={f} onClick={() => setFiltro(f)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filtro === f ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>
+                                {f.toUpperCase()}
+                            </button>
                         ))}
                     </div>
-
-                    {/* Filtros */}
-                    <div className="flex gap-3 flex-wrap">
-                        <div className="relative flex-1 min-w-48">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: C.slate }} />
-                            <input value={busqueda} onChange={e => setBusq(e.target.value)}
-                                placeholder="Buscar insumo..."
-                                className="w-full h-10 pl-9 pr-4 rounded-xl text-sm text-white focus:outline-none"
-                                style={{ background: C.surface, border: `1px solid ${C.border}` }} />
-                        </div>
-                        <div className="flex gap-2">
-                            {(["todos", "bajo", "agotado"] as const).map(f => (
-                                <button key={f} onClick={() => setFiltro(f)}
-                                    className="h-10 px-4 rounded-xl text-xs font-semibold transition-all"
-                                    style={{
-                                        background: filtro === f ? `${C.orange}18` : C.surface,
-                                        color: filtro === f ? C.orange : "#94a3b8",
-                                        border: `1px solid ${filtro === f ? C.orange : C.border}`,
-                                    }}>
-                                    {f === "todos" ? "Todos" : f === "bajo" ? "Stock bajo" : "Agotados"}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Tabla */}
-                    <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr style={{ background: C.surface }}>
-                                    {["Insumo", "Tipo", "Stock actual", "Mínimo", "Nivel", "Proveedor", "Vinculado a"].map(h => (
-                                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: C.slate }}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtrados.map((ins, i) => {
-                                    const st = stockStatus(ins.stock, ins.minimo);
-                                    const pct = Math.min(Math.round((ins.stock / Math.max(ins.minimo * 2, 1)) * 100), 100);
-                                    return (
-                                        <tr key={ins.id} className="border-t"
-                                            style={{ borderColor: C.border, background: i % 2 === 0 ? C.bg : `${C.surface}80` }}>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Package className="w-4 h-4 shrink-0" style={{ color: C.slate }} />
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded"
-                                                                style={{ background: `${C.orange}18`, color: C.orange }}>{ins.codigo}</span>
-                                                            <span className="text-sm font-semibold text-white">{ins.nombre}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-xs capitalize font-semibold px-2 py-0.5 rounded-full"
-                                                    style={{ background: "rgba(255,255,255,0.06)", color: "#94a3b8" }}>
-                                                    {ins.tipo} · {ins.subtipo}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-16 h-1.5 rounded-full" style={{ background: "#1e293b" }}>
-                                                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: st.color }} />
-                                                    </div>
-                                                    <span className="text-sm font-bold font-mono" style={{ color: st.color }}>
-                                                        {ins.stock} {ins.unidad}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-xs" style={{ color: C.slate }}>
-                                                {ins.minimo} {ins.unidad}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-semibold"
-                                                    style={{ background: st.bg, color: st.color }}>
-                                                    {ins.stock === 0 && <TrendingDown className="w-3 h-3" />}
-                                                    {ins.stock < ins.minimo && ins.stock > 0 && <AlertTriangle className="w-3 h-3" />}
-                                                    {st.label}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>{ins.proveedor}</td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {ins.vinculadoA?.length === 0
-                                                        ? <span className="text-xs" style={{ color: "#334155" }}>—</span>
-                                                        : ins.vinculadoA?.map(v => (
-                                                            <span key={v} className="text-xs font-mono px-2 py-0.5 rounded-full"
-                                                                style={{ background: `${C.orange}15`, color: C.orange }}>{v.slice(-4)}</span>
-                                                        ))}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
-            )}
+
+                {/* Tabla de Insumos */}
+                <div className="rounded-2xl border overflow-hidden bg-[#13161e]" style={{ borderColor: C.border }}>
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b" style={{ borderColor: C.border, background: "#1a1f2e" }}>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Insumo / Código</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Estado</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Existencia</th>
+                                {/* <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase text-right">Acciones</th> */}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtrados.map((ins) => (
+                                <tr key={ins.id} className="border-t-[0.5px] hover:bg-white/[0.02] transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                                                <Package className="w-4 h-4 shrink-0 " style={{ color: C.slate }} />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded"
+                                                        style={{ background: `${C.orange}18`, color: C.orange }}>{ins.codigo}</span>
+                                                    <span className="text-sm font-semibold text-white">{ins.nombre}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {ins.stock === 0 ? (
+                                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 bg-red-400/10 px-2 py-1 rounded-full w-fit">
+                                                <TrendingDown className="w-3 h-3" /> AGOTADO
+                                            </span>
+                                        ) : ins.stock < ins.minimo ? (
+                                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded-full w-fit">
+                                                <AlertTriangle className="w-3 h-3" /> STOCK BAJO
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full w-fit">
+                                                ÓPTIMO
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-black text-white">{ins.stock} <span className="text-[10px] text-slate-500 font-normal">{ins.unidad}</span></span>
+                                            <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-orange-500" style={{ width: `${Math.min((ins.stock / (ins.minimo * 2)) * 100, 100)}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }
