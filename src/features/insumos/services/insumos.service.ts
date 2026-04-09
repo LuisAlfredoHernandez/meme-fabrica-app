@@ -52,9 +52,6 @@ create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
           id: Math.random().toString(36).substr(2, 9),
         };
         
-        // Simulamos la persistencia en el mock
-        INSUMOS_MOCK.push(nuevoInsumo);
-        
         console.log(`Insumo created successfully with ID: ${nuevoInsumo.id}`);
         resolve(nuevoInsumo);
       }, API_LATENCY);

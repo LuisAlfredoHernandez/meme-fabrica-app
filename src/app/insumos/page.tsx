@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { Plus, AlertTriangle, Search, Package, X, TrendingDown } from "lucide-react";
-import { ModalNuevoInsumo } from "./components/ModalNuevoInsumo";
+import { ModalEntradaInsumo } from "./components/ModalNuevoInsumo";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -45,7 +45,7 @@ export default function InsumosPage() {
 
     return (
         <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-            {modal && <ModalNuevoInsumo onClose={() => setModal(false)} />}
+            {modal && <ModalEntradaInsumo onClose={() => setModal(false)} />}
 
             <div className="px-6 py-5 border-b flex items-center justify-between"
                 style={{ borderColor: C.border, background: C.surface }}>
@@ -56,7 +56,7 @@ export default function InsumosPage() {
                 <button onClick={() => setModal(true)}
                     className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold"
                     style={{ background: C.orange }}>
-                    <Plus className="w-4 h-4" /> Nuevo insumo
+                    <Plus className="w-4 h-4" /> Entrada Inventario
                 </button>
             </div>
 
