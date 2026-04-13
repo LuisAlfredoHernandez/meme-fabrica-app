@@ -7,6 +7,7 @@ import { Plus, Search, X, Zap, Cpu, Users, UserCheck, UserMinus } from "lucide-r
 import { Operario, TipoMaquina } from "@/types";
 import { normalizeText } from "@/utils/formatters"
 import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore"
+import { ModalGestionOperario } from "./componentes/ModalGestionOperarios";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -49,8 +50,20 @@ export default function OperariosPage() {
     const activos = operarios.filter(o => o.estado === "activo").length;
     const inactivos = total - activos;
 
+    const [modalAbierto, setModalAbierto] = useState(false);
+
     return (
         <div className="flex-1 overflow-auto bg-[#080b10]">
+            {modalAbierto && (
+                <ModalGestionOperario
+                    onClose={() => setModalAbierto(false)}
+                    operarios={operarios}
+                />
+            )}
+
+            {/* En el mapeo de tus operarios, actualiza el botón de "Asignar Estación" para que también pueda editar: */}
+            {/* <button onClick={() => handleOpenGestion(o)} ... > */}
+
             {asignando && <div className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
                 {/* Placeholder para el Modal de asignación basado en tu lógica previa */}
                 <div className="bg-[#13161e] p-6 rounded-2xl border border-[#1e2130] w-full max-w-sm">
@@ -68,8 +81,8 @@ export default function OperariosPage() {
                     <h1 className="text-lg font-black text-white">Operarios & Rendimiento</h1>
                     <p className="text-xs mt-0.5 text-slate-500 font-medium">Gestión de recursos humanos en planta</p>
                 </div>
-                <button className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-transform">
-                    <Plus className="w-4 h-4" /> Registrar Operario
+                <button onClick={() => setModalAbierto(true)} className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-transform">
+                    <Plus className="w-4 h-4" /> Gestionar operarios
                 </button>
             </div>
 
