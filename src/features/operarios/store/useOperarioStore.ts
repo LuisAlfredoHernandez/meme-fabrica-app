@@ -45,7 +45,7 @@ export const useOperarioStore = create<OperarioState>()(
             // Actualizamos el estado local agregando el nuevo elemento
             set(
               (state) => ({ 
-                insumos: [...state.operarios, created], 
+                operarios: [...state.operarios, created], 
                 isLoading: false 
               }), 
               false, 
@@ -64,7 +64,7 @@ export const useOperarioStore = create<OperarioState>()(
           try {
             const updated = await operariosService.update(id, data);
             
-            // Mapeamos el array actual para reemplazar solo el insumo editado
+            // Mapeamos el array actual para reemplazar solo el operario editado
             set(
               (state) => ({
                 operarios: state.operarios.map((i) => (i.id === id ? updated : i)),

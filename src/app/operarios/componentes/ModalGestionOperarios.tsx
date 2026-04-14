@@ -10,7 +10,7 @@ const C = {
     red: "#f87171", slate: "#475569", inputBg: "#0d1018"
 };
 
-const MAQUINAS_OPTIONS: TipoMaquina = [
+const MAQUINAS_OPTIONS = [
     { id: "merrow", label: "Merrow", color: "#f97316" },
     { id: "cover", label: "Cover", color: "#818cf8" },
     { id: "plana", label: "Plana", color: "#38bdf8" },

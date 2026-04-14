@@ -91,7 +91,7 @@ export default function OperariosPage() {
                     {[
                         { label: "Total Plantilla", valor: total, icon: Users, color: "#fff" },
                         { label: "En Turno", valor: activos, icon: UserCheck, color: C.emerald },
-                        { label: "Ausentes", valor: inactivos, icon: UserMinus, color: C.red },
+                        { label: "Inactivos", valor: inactivos, icon: UserMinus, color: C.red },
                     ].map((k, idx) => (
                         <div key={idx} className="p-4 rounded-2xl border bg-[#13161e]/50 flex items-center gap-4" style={{ borderColor: C.border }}>
                             <div className="p-3 rounded-xl bg-white/5"><k.icon className="w-5 h-5" style={{ color: k.color }} /></div>
