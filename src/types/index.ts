@@ -34,8 +34,6 @@ export type EtapaProduccion =
   | "estampado"
   | "acabado";
 
-
-
 export type NivelAlerta = "info" | "advertencia" | "critica";
 
 export type Temporada = "alta" | "baja";
@@ -67,7 +65,7 @@ export type TipoMaquina =
   | "peso"
   | "plancha_dtf";
 
-interface HabilidadMaquinaria{
+export interface HabilidadMaquinaria{
   maquina: TipoMaquina;
   nivelEficiencia: number; // porcentaje 0-100
 }
@@ -84,7 +82,7 @@ interface Usuario {
   rol: RolUsuario;
 }
 
-type Status = "activo" | "inactivo";
+export type Status = "activo" | "inactivo";
 
 export interface Operario extends Usuario {
   /** Máquinas que el operario está certificado para usar */

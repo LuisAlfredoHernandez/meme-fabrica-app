@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Search, Zap, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCcw, User } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
+import { Operario, RolUsuario, Status, HabilidadMaquinaria, TipoMaquina } from "@/types";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -9,7 +10,7 @@ const C = {
     red: "#f87171", slate: "#475569", inputBg: "#0d1018"
 };
 
-const MAQUINAS_OPTIONS = [
+const MAQUINAS_OPTIONS: TipoMaquina = [
     { id: "merrow", label: "Merrow", color: "#f97316" },
     { id: "cover", label: "Cover", color: "#818cf8" },
     { id: "plana", label: "Plana", color: "#38bdf8" },
@@ -17,7 +18,7 @@ const MAQUINAS_OPTIONS = [
     { id: "plancha_dtf", label: "Plancha DTF", color: "#f472b6" },
 ];
 
-export function ModalGestionOperario({ onClose, operarios }: { onClose: () => void, operarios: any[] }) {
+export function ModalGestionOperario({ onClose, operarios }: { onClose: () => void, operarios: Operario[] }) {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [isExisting, setIsExisting] = useState(false);
@@ -25,7 +26,12 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
     // Estado inicial: Inactivo y sin máquinas por defecto
     const [form, setForm] = useState({
-        id: "", nombre: "", apellido: "", estado: "inactivo", habilidades: [] as any[]
+        id: "",
+        nombre: "",
+        apellido: "",
+        estado: "inactivo" as Status,
+        rol: "operario" as RolUsuario,
+        habilidades: [] as HabilidadMaquinaria[]
     });
 
     const normalizeText = (text: string) =>
@@ -35,7 +41,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         normalizeText(`${op.nombre} ${op.apellido}`).includes(normalizeText(query))
     ).slice(0, 5);
 
-    const toggleMaquina = (maquinaId: string) => {
+    const toggleMaquina = (maquinaId: TipoMaquina) => {
         const existe = form.habilidades.some(h => h.maquina === maquinaId);
         if (existe) {
             setForm(p => ({ ...p, habilidades: p.habilidades.filter(h => h.maquina !== maquinaId) }));
@@ -45,6 +51,42 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     };
 
     const { createOperario, updateOperario, deleteOperario } = useOperarioActions();
+
+    const handleCreate = async () => {
+        try {
+            const { id, ...dataToCreate } = form;
+            await createOperario(dataToCreate);
+            onClose();
+        } catch (error) {
+            console.error("Error al crear operario:", error);
+        }
+    };
+
+    const handleUpdate = async () => {
+        try {
+            await updateOperario(form.id, form);
+            onClose();
+        } catch (error) {
+            console.error("Error al actualizar operario:", error);
+        }
+    };
+
+    const onSubmitModal = () => {
+        if (isExisting) {
+            handleUpdate();
+        } else {
+            handleCreate();
+        }
+    }
+
+    const handleDelete = async () => {
+        try {
+            await deleteOperario(form.id);
+            onClose();
+        } catch (error) {
+            console.error("Error al eliminar operario:", error);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -60,7 +102,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                         <p className="text-xs text-slate-400 mt-2">Esta acción borrará todo el historial de {form.nombre} de forma permanente.</p>
                         <div className="flex gap-2 mt-6">
                             <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 text-xs text-slate-500 font-bold hover:bg-white/5 rounded-lg">Cancelar</button>
-                            <button onClick={onClose} className="flex-1 py-2 text-xs bg-red-500 text-white font-bold rounded-lg shadow-lg">Sí, Eliminar</button>
+                            <button onClick={handleDelete} className="flex-1 py-2 text-xs bg-red-500 text-white font-bold rounded-lg shadow-lg">Sí, Eliminar</button>
                         </div>
                     </div>
                 </div>
@@ -211,7 +253,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                     <button onClick={onClose} className="flex-1 h-12 rounded-xl border border-[#1e2130] text-sm font-semibold text-slate-400 hover:bg-white/5">
                         Cancelar
                     </button>
-                    <button onClick={onClose} className="flex-[2] h-12 rounded-xl text-white text-sm font-bold shadow-lg" style={{ background: C.orange }}>
+                    <button onClick={onSubmitModal} className="flex-[2] h-12 rounded-xl text-white text-sm font-bold shadow-lg" style={{ background: C.orange }}>
                         {isExisting ? "Guardar Cambios" : "Crear Operario"}
                     </button>
                 </div>
