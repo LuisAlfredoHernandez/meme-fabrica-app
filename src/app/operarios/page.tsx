@@ -8,6 +8,7 @@ import { Operario, TipoMaquina } from "@/types";
 import { normalizeText } from "@/utils/formatters"
 import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore"
 import { ModalGestionOperario } from "./componentes/ModalGestionOperarios";
+import { ModalAsignacionTarea } from "./componentes/ModalAsignacionTarea";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -36,7 +37,7 @@ export default function OperariosPage() {
     const [asignando, setAsig] = useState<Operario | null>(null);
 
     const { operarios, isLoading, error } = useOperarioStore();
-    const { fetchOperarios } = useOperarioActions();
+    const { fetchOperarios, updateOperario } = useOperarioActions();
 
     useEffect(() => {
         fetchOperarios();
@@ -52,6 +53,17 @@ export default function OperariosPage() {
 
     const [modalAbierto, setModalAbierto] = useState(false);
 
+    const handleConfirmarAsignacion = async (maquina: string, orden: string) => {
+        if (!asignando) return;
+        await updateOperario(asignando.id, {
+            maquinaActual: maquina,
+            ordenActual: orden,
+            estado: "activo" // Al asignar tarea, pasa a estar activo automáticamente
+        });
+
+        setAsig(null); // Cerramos modal
+    };
+
     return (
         <div className="flex-1 overflow-auto bg-[#080b10]">
             {modalAbierto && (
@@ -61,9 +73,17 @@ export default function OperariosPage() {
                 />
             )}
 
+            {/* MODAL 2: ASIGNACIÓN DE TAREA (EL QUE CREAMOS RECIÉN) */}
+            {asignando && (
+                <ModalAsignacionTarea
+                    operario={asignando}
+                    onClose={() => setAsig(null)}
+                    onConfirm={handleConfirmarAsignacion}
+                />
+            )}
+
             {/* En el mapeo de tus operarios, actualiza el botón de "Asignar Estación" para que también pueda editar: */}
             {/* <button onClick={() => handleOpenGestion(o)} ... > */}
-
             {asignando && <div className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
                 {/* Placeholder para el Modal de asignación basado en tu lógica previa */}
                 <div className="bg-[#13161e] p-6 rounded-2xl border border-[#1e2130] w-full max-w-sm">
