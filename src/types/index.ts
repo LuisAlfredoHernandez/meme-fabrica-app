@@ -36,7 +36,7 @@ export type EtapaProduccion =
 
 export type NivelAlerta = "info" | "advertencia" | "critica";
 
-export type Temporada = "alta" | "baja";
+export type Temporada = "verano" | "invierno" | "primavera" | "otoño";
 
 export type TipoTela =
   | "micro"
@@ -170,6 +170,7 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
+  cola?: number 
 }
 
 // ─── Registro de Producción ──────────────────────────────────
