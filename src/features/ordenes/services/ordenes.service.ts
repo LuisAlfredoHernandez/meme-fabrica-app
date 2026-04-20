@@ -1,24 +1,91 @@
 
 // ─────────────────────────────────────────────────────────────
 // features/ordenes/services/ordenes.service.ts — Mocks
-// ─────────────────────────────────────────────────────────────
-export type EstadoOrden = "pendiente" | "en_proceso" | "pausada" | "completada";
-export type Prioridad = "baja" | "normal" | "alta" | "urgente";
-export type TipoOP = "MTO" | "MTS";
 
-export interface Orden {
-    id: string; numero: string; cliente: string; tipo: TipoOP;
-    prenda: string; cantidad: number; completadas: number;
-    estado: EstadoOrden; prioridad: Prioridad;
-    fechaEntrega: string; fechaCreacion: string; cola: number;
-}
+import { Orden } from "@/types";
+
 
 export const ORDENES_MOCK: Orden[] = [
-    { id: "o1", numero: "ORD-2026-0042", cliente: "Boutique Bella", tipo: "MTO", prenda: "Licra deportiva", cantidad: 150, completadas: 104, estado: "en_proceso", prioridad: "urgente", fechaEntrega: "2026-03-17", fechaCreacion: "2026-03-01", cola: 1 },
-    { id: "o2", numero: "ORD-2026-0043", cliente: "ModaRD Store", tipo: "MTO", prenda: "Jogger tela micro", cantidad: 200, completadas: 55, estado: "en_proceso", prioridad: "alta", fechaEntrega: "2026-03-22", fechaCreacion: "2026-03-05", cola: 2 },
-    { id: "o3", numero: "ORD-2026-0044", cliente: "Stock interno", tipo: "MTS", prenda: "T-shirt básico", cantidad: 300, completadas: 0, estado: "pendiente", prioridad: "normal", fechaEntrega: "2026-03-30", fechaCreacion: "2026-03-08", cola: 3 },
-    { id: "o4", numero: "ORD-2026-0045", cliente: "Zoe Boutique", tipo: "MTO", prenda: "Vestido verano", cantidad: 80, completadas: 80, estado: "completada", prioridad: "alta", fechaEntrega: "2026-03-10", fechaCreacion: "2026-02-28", cola: 4 },
-    { id: "o5", numero: "ORD-2026-0046", cliente: "Stock interno", tipo: "MTS", prenda: "Short licra", cantidad: 120, completadas: 0, estado: "pausada", prioridad: "baja", fechaEntrega: "2026-04-05", fechaCreacion: "2026-03-09", cola: 5 },
+    {
+        id: "o1",
+        numero: "ORD-2026-0042",
+        cliente: "Boutique Bella",
+        tipo: "MTO",
+        estado: "en_proceso",
+        temporada: "primavera",
+        prioridad: "urgente",
+        fechaCreacion: "2026-03-01",
+        fechaEntregaEstimada: "2026-03-17",
+        creadaPor: "u1",
+        cola: 1,
+        lineas: [
+            { productoTipo: "licra", descripcion: "Licra deportiva", cantidad: 150, cantidadCompletada: 104, talla: "M", color: "Azul Rey", insumos: [] }
+        ]
+    },
+    {
+        id: "o2",
+        numero: "ORD-2026-0043",
+        cliente: "ModaRD Store",
+        tipo: "MTO",
+        estado: "en_proceso",
+        temporada: "verano",
+        prioridad: "alta",
+        fechaCreacion: "2026-03-05",
+        fechaEntregaEstimada: "2026-03-22",
+        creadaPor: "u1",
+        cola: 2,
+        lineas: [
+            { productoTipo: "jogger", descripcion: "Jogger tela micro", cantidad: 200, cantidadCompletada: 55, talla: "L", color: "Negro", insumos: [] }
+        ]
+    },
+    {
+        id: "o3",
+        numero: "ORD-2026-0044",
+        cliente: "Stock interno",
+        tipo: "MTS",
+        estado: "pendiente",
+        temporada: "invierno",
+        prioridad: "normal",
+        fechaCreacion: "2026-03-08",
+        fechaEntregaEstimada: "2026-03-30",
+        creadaPor: "u2",
+        cola: 3,
+        lineas: [
+            { productoTipo: "t_shirt", descripcion: "T-shirt básico", cantidad: 300, cantidadCompletada: 0, talla: "S", color: "Blanco", insumos: [] }
+        ]
+    },
+    {
+        id: "o4",
+        numero: "ORD-2026-0045",
+        cliente: "Zoe Boutique",
+        tipo: "MTO",
+        estado: "completada",
+        temporada: "verano",
+        prioridad: "alta",
+        fechaCreacion: "2026-02-28",
+        fechaEntregaEstimada: "2026-03-10",
+        creadaPor: "u1",
+        cola: 4,
+        lineas: [
+            { productoTipo: "vestido", descripcion: "Vestido verano", cantidad: 80, cantidadCompletada: 80, talla: "S", color: "Floral", insumos: [] }
+        ]
+    },
+    {
+        id: "o5",
+        numero: "ORD-2026-0046",
+        cliente: "Stock interno",
+        tipo: "MTS",
+        estado: "pausada",
+        temporada: "otoño",
+        prioridad: "baja",
+        fechaCreacion: "2026-03-09",
+        fechaEntregaEstimada: "2026-04-05",
+        creadaPor: "u2",
+        cola: 5,
+        lineas: [
+            { productoTipo: "licra", descripcion: "Short licra", cantidad: 120, cantidadCompletada: 0, talla: "M", color: "Gris", insumos: [] }
+        ]
+    },
 ];
 
 const API_LATENCY = 500;

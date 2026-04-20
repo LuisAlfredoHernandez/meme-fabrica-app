@@ -26,7 +26,6 @@ export type EstadoOrden =
   | "en_proceso"
   | "pausada"
   | "completada"
-  | "cancelada";
 
 export type EtapaProduccion =
   | "corte"
@@ -94,21 +93,6 @@ export interface Operario extends Usuario {
   // etapasEspecializacion: HabilidadEtapa[];
 }
 
-// export interface Empleado {
-//   id: string;
-//   nombre: string;
-//   apellido: string;
-//   rol: RolUsuario;
-//   /** Máquinas que el operario está certificado para usar */
-//   maquinasHabilitadas: TipoMaquina[];
-//   /** Etapas en las que tiene experiencia */
-//   etapasEspecializacion: EtapaProduccion[];
-//   eficienciaPromedio: number; // porcentaje 0-100
-//   activo: boolean;
-//   fechaIngreso: string; // ISO 8601
-//   avatar?: string; // URL
-// }
-
 export interface Maquina {
   id: string;
   codigo: string; // ej: "MERROW-01"
@@ -152,17 +136,19 @@ export interface LineaOrden {
   }>;
 }
 
+export type TipoOP = "MTO" | "MTS";
+export type Prioridad = "baja" | "normal" | "alta" | "urgente";
+
+
 export interface Orden {
   id: string;
   numero: string; // ej: "ORD-2026-0042"
   cliente: string;
+  tipo: TipoOP;
+  lineas: LineaOrden[];
   estado: EstadoOrden;
   temporada: Temporada;
-  prioridad: "baja" | "normal" | "alta" | "urgente";
-  lineas: LineaOrden[];
-  /** Total de piezas sumando todas las líneas */
-  totalPiezas: number;
-  totalCompletadas: number;
+  prioridad: Prioridad
   fechaCreacion: string; // ISO 8601
   fechaEntregaEstimada: string; // ISO 8601
   /** Fecha calculada por el modelo de IA */
@@ -170,7 +156,7 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
-  cola?: number 
+  cola: number 
 }
 
 // ─── Registro de Producción ──────────────────────────────────

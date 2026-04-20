@@ -2,20 +2,15 @@
 // ─────────────────────────────────────────────────────────────
 // app/ordenes/page.tsx — RF1 (CRUD órdenes) + RF7 (cola drag)
 // ─────────────────────────────────────────────────────────────
-import {
-    Orden,
-    ORDENES_MOCK,
-    Prioridad,
-    TipoOP,
-    EstadoOrden,
-} from "@/features/ordenes/services/ordenes.service";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Plus, Search, GripVertical,
     Clock, AlertCircle, CheckCircle2, Pause,
     ArrowUpDown, Package,
 } from "lucide-react";
 import { ModalGestionOrdenes } from "./componentes/ModalGestionOrdenes";
+import { EstadoOrden, Orden, Prioridad } from "@/types";
+import { useOrdenActions, useOrdenStore } from "@/features/ordenes/store/useOrdenesStore";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -39,7 +34,13 @@ const PRIORIDAD_CFG: Record<Prioridad, { color: string }> = {
 // ── Página principal ───────────────────────────────────────
 
 export default function OrdenesPage() {
-    const [ordenes, setOrdenes] = useState(ORDENES_MOCK);
+    const { ordenes } = useOrdenStore()
+    const { fetchOrdenes, updateCola } = useOrdenActions();
+
+    useEffect(() => {
+        fetchOrdenes();
+    }, [fetchOrdenes]);
+
     const [busqueda, setBusqueda] = useState("");
     const [filtroEstado, setFiltro] = useState<EstadoOrden | "todas">("todas");
     const [modal, setModal] = useState(false);
@@ -54,24 +55,51 @@ export default function OrdenesPage() {
     });
 
     // Cola ordenada por posición (excluye completadas)
-    const colaActiva = [...ordenes]
-        .filter(o => o.estado !== "completada")
-        .sort((a, b) => a.cola - b.cola);
+    const colaActiva = useMemo(() => {
+        return [...ordenes]
+            .filter(o => o.estado !== "completada")
+            .sort((a, b) => (a.cola ?? 0) - (b.cola ?? 0));
+    }, [ordenes]); // Solo se recalcula si 'ordenes' cambia
+    const [colaVisual, setColaVisual] = useState<Orden[]>([]);
+
+    // Sincroniza la vista local con el Store cuando no hay un arrastre activo
+    useEffect(() => {
+        if (dragIdx === null) {
+            // Usamos queueMicrotask para que el estado se actualice 
+            // justo después de que React termine de procesar el render actual
+            queueMicrotask(() => {
+                setColaVisual(colaActiva);
+            });
+        }
+    }, [colaActiva, dragIdx]);
 
     // Drag-and-drop simple para reordenar cola (RF7)
     const handleDragStart = (idx: number) => setDragIdx(idx);
+
     const handleDragOver = (e: React.DragEvent, idx: number) => {
         e.preventDefault();
         if (dragIdx === null || dragIdx === idx) return;
-        const nueva = [...colaActiva];
+
+        // Movimiento visual inmediato (Snappy UX)
+        const nueva = [...colaVisual];
         const [moved] = nueva.splice(dragIdx, 1);
         nueva.splice(idx, 0, moved);
-        nueva.forEach((o, i) => { o.cola = i + 1; });
-        setOrdenes(prev => prev.map(o => {
-            const found = nueva.find(n => n.id === o.id);
-            return found ? { ...o, cola: found.cola } : o;
-        }));
+
+        // Reasignamos el orden de la cola localmente
+        const reordenada = nueva.map((o, i) => ({ ...o, cola: i + 1 }));
+
+        setColaVisual(reordenada);
         setDragIdx(idx);
+    };
+
+    const handleDragEnd = async () => {
+        if (dragIdx === null) return;
+
+        // Confiamos en que colaVisual ya tiene el orden correcto
+        // que el usuario dejó al soltar el mouse.
+        await updateCola(colaVisual);
+
+        setDragIdx(null);
     };
 
     return (
@@ -88,7 +116,7 @@ export default function OrdenesPage() {
                 <button onClick={() => setModal(true)}
                     className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold transition-all"
                     style={{ background: C.orange, boxShadow: `0 4px 16px ${C.orange}30` }}>
-                    <Plus className="w-4 h-4" /> Nueva Orden
+                    <Plus className="w-4 h-4" /> Gestionar Ordenes
                 </button>
             </div>
 
@@ -159,7 +187,13 @@ export default function OrdenesPage() {
                                 </thead>
                                 <tbody>
                                     {filtradas.map((o, i) => {
-                                        const pct = Math.round((o.completadas / o.cantidad) * 100);
+                                        const totalCant = o.lineas.reduce((acc, l) => acc + l.cantidad, 0);
+                                        const totalComp = o.lineas.reduce((acc, l) => acc + l.cantidadCompletada, 0);
+                                        const pct = totalCant > 0 ? Math.round((totalComp / totalCant) * 100) : 0;
+                                        const descripcionPrenda = o.lineas.length > 1
+                                            ? `${o.lineas[0].descripcion} (+${o.lineas.length - 1})`
+                                            : o.lineas[0]?.descripcion || "Sin descripción";
+
                                         const est = ESTADO_CFG[o.estado];
                                         const prio = PRIORIDAD_CFG[o.prioridad];
                                         return (
@@ -176,14 +210,14 @@ export default function OrdenesPage() {
                                                             color: o.tipo === "MTO" ? "#818cf8" : "#94a3b8"
                                                         }}>{o.tipo}</span>
                                                 </td>
-                                                <td className="px-4 py-3 text-xs text-white">{o.prenda}</td>
+                                                <td className="px-4 py-3 text-xs text-white">{descripcionPrenda}</td>
                                                 <td className="px-4 py-3 min-w-32">
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex-1 h-1.5 rounded-full" style={{ background: "#1e293b" }}>
                                                             <div className="h-full rounded-full" style={{ width: `${pct}%`, background: pct >= 100 ? C.emerald : C.orange }} />
                                                         </div>
                                                         <span className="text-xs font-mono" style={{ color: pct >= 100 ? C.emerald : "#94a3b8" }}>
-                                                            {o.completadas}/{o.cantidad}
+                                                            {totalComp}/{totalCant}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -196,7 +230,7 @@ export default function OrdenesPage() {
                                                 <td className="px-4 py-3">
                                                     <span className="text-xs font-bold capitalize" style={{ color: prio.color }}>{o.prioridad}</span>
                                                 </td>
-                                                <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>{o.fechaEntrega}</td>
+                                                <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>{o.fechaEntregaEstimada}</td>
                                             </tr>
                                         );
                                     })}
@@ -219,14 +253,16 @@ export default function OrdenesPage() {
                             <AlertCircle className="w-4 h-4 shrink-0" />
                             Arrastra las órdenes para reordenar la cola de producción. Las MTO siempre tienen precedencia sobre MTS.
                         </div>
-                        {colaActiva.map((o, idx) => {
+                        {colaVisual.map((o, idx) => {
                             const est = ESTADO_CFG[o.estado];
-                            const pct = Math.round((o.completadas / o.cantidad) * 100);
+                            const totalCant = o.lineas.reduce((acc, l) => acc + l.cantidad, 0);
+                            const totalComp = o.lineas.reduce((acc, l) => acc + l.cantidadCompletada, 0);
+                            const pct = totalCant > 0 ? Math.round((totalComp / totalCant) * 100) : 0;
                             return (
                                 <div key={o.id} draggable
                                     onDragStart={() => handleDragStart(idx)}
                                     onDragOver={e => handleDragOver(e, idx)}
-                                    onDragEnd={() => setDragIdx(null)}
+                                    onDragEnd={handleDragEnd}
                                     className="flex items-center gap-4 px-4 py-4 rounded-xl border cursor-grab active:cursor-grabbing transition-all"
                                     style={{
                                         background: dragIdx === idx ? `${C.orange}10` : C.surface,
@@ -247,7 +283,7 @@ export default function OrdenesPage() {
                                                 {o.prioridad}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-white font-medium mt-0.5">{o.cliente} · {o.prenda}</p>
+                                        <p className="text-sm text-white font-medium mt-0.5">{o.cliente} · {o.lineas[0]?.descripcion}</p>
                                         <div className="flex items-center gap-2 mt-1.5">
                                             <div className="w-32 h-1.5 rounded-full" style={{ background: "#1e293b" }}>
                                                 <div className="h-full rounded-full" style={{ width: `${pct}%`, background: C.orange }} />
