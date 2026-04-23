@@ -26,7 +26,6 @@ export type EstadoOrden =
   | "en_proceso"
   | "pausada"
   | "completada"
-  | "cancelada";
 
 export type EtapaProduccion =
   | "corte"
@@ -34,17 +33,9 @@ export type EtapaProduccion =
   | "estampado"
   | "acabado";
 
-export type TipoMaquina =
-  | "merrow"
-  | "cover"
-  | "plana"
-  | "corte"
-  | "peso"
-  | "plancha_dtf";
-
 export type NivelAlerta = "info" | "advertencia" | "critica";
 
-export type Temporada = "alta" | "baja";
+export type Temporada = "verano" | "invierno" | "primavera" | "otoño";
 
 export type TipoTela =
   | "micro"
@@ -65,19 +56,41 @@ export type TipoProducto =
 
 // ─── Entidades Base ──────────────────────────────────────────
 
-export interface Empleado {
+export type TipoMaquina =
+  | "merrow"
+  | "cover"
+  | "plana"
+  | "corte"
+  | "peso"
+  | "plancha_dtf";
+
+export interface HabilidadMaquinaria{
+  maquina: TipoMaquina;
+  nivelEficiencia: number; // porcentaje 0-100
+}
+
+interface HabilidadEtapa{
+  maquina: EtapaProduccion;
+  eficienciaPromedio: number; // porcentaje 0-100
+}
+
+interface Usuario {
   id: string;
   nombre: string;
   apellido: string;
   rol: RolUsuario;
+}
+
+export type Status = "activo" | "inactivo";
+
+export interface Operario extends Usuario {
   /** Máquinas que el operario está certificado para usar */
-  maquinasHabilitadas: TipoMaquina[];
+  habilidades: HabilidadMaquinaria[];
+  estado: Status;
+  maquinaActual?:string;
+  ordenActual?: string;
   /** Etapas en las que tiene experiencia */
-  etapasEspecializacion: EtapaProduccion[];
-  eficienciaPromedio: number; // porcentaje 0-100
-  activo: boolean;
-  fechaIngreso: string; // ISO 8601
-  avatar?: string; // URL
+  // etapasEspecializacion: HabilidadEtapa[];
 }
 
 export interface Maquina {
@@ -97,7 +110,7 @@ export interface Maquina {
 export interface Insumo {
   id: string;
   nombre: string;
-  codigo:string;
+  codigo?:string;
   tipo: "tela" | "accesorio";
   subtipo?: TipoTela | "zipper" | "goma" | "boton" | "hilo" | "otro";
   unidad: "metros" | "unidades" | "rollos" | "kg";
@@ -123,17 +136,19 @@ export interface LineaOrden {
   }>;
 }
 
+export type TipoOP = "MTO" | "MTS";
+export type Prioridad = "baja" | "normal" | "alta" | "urgente";
+
+
 export interface Orden {
   id: string;
   numero: string; // ej: "ORD-2026-0042"
   cliente: string;
+  tipo: TipoOP;
+  lineas: LineaOrden[];
   estado: EstadoOrden;
   temporada: Temporada;
-  prioridad: "baja" | "normal" | "alta" | "urgente";
-  lineas: LineaOrden[];
-  /** Total de piezas sumando todas las líneas */
-  totalPiezas: number;
-  totalCompletadas: number;
+  prioridad: Prioridad
   fechaCreacion: string; // ISO 8601
   fechaEntregaEstimada: string; // ISO 8601
   /** Fecha calculada por el modelo de IA */
@@ -141,6 +156,7 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
+  cola: number 
 }
 
 // ─── Registro de Producción ──────────────────────────────────
