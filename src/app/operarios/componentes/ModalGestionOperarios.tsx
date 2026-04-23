@@ -143,7 +143,16 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                     {/* Buscador Superior */}
                     <div className="space-y-1.5 relative">
-                        <label className="text-xs font-semibold px-1 text-slate-400">Buscar o Registrar</label>
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-xs font-semibold" style={{ color: "#94a3b8" }}>Nombre del Operario</label>
+                            {/* INDICADOR DE NUEVO ELEMENTO */}
+                            {!isExisting && query.length > 2 && (
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 animate-in fade-in zoom-in duration-300">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tight">Nuevo Operario</span>
+                                </div>
+                            )}
+                        </div>
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input
@@ -169,7 +178,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             />
                         </div>
 
-                        {isOpen && query.length > 0 && filteredOperarios.length > 0 && (
+                        {/* {isOpen && query.length > 0 && filteredOperarios.length > 0 && (
                             <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl bg-[#1a1f2e] border-[#1e2130]">
                                 {filteredOperarios.map((op) => (
                                     <button
@@ -182,6 +191,28 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                             setIsOpen(false);
                                         }}>
                                         <span className="font-medium">{op.nombre} {op.apellido}</span>
+                                        <RefreshCcw className="w-4 h-4 text-orange-500" />
+                                    </button>
+                                ))}
+                            </div>
+                        )} */}
+
+                        {isOpen && filteredOperarios.length > 0 && (
+                            <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
+                                style={{ background: "#1a1f2e", borderColor: C.border }}>
+                                {filteredOperarios.map((op) => (
+                                    <button
+                                        key={op.id}
+                                        className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-orange-500/10 flex items-center justify-between group"
+                                        onClick={() => {
+                                            setForm(op);
+                                            setQuery(`${op.nombre} ${op.apellido}`);
+                                            setIsExisting(true);
+                                            setIsOpen(false);
+                                        }}>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{op.nombre} {op.apellido}</span>
+                                        </div>
                                         <RefreshCcw className="w-4 h-4 text-orange-500" />
                                     </button>
                                 ))}

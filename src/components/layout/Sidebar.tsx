@@ -77,6 +77,7 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
             </div>
 
             {/* Nav items */}
+            {/* Nav items */}
             <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 {itemsVisibles.map(item => {
                     const active = pathname === item.href;

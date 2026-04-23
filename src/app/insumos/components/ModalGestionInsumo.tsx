@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { X, Search, PlusCircle, MinusCircle, Trash2, RefreshCcw, AlertCircle } from "lucide-react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { normalizeText } from "@/utils/formatters";
@@ -139,7 +139,18 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
 
                     {/* Buscador de Insumo */}
                     <div className="space-y-1.5 relative" ref={containerRef}>
-                        <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Nombre del Insumo</label>
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-xs font-semibold" style={{ color: "#94a3b8" }}>Nombre del Insumo</label>
+
+                            {/* INDICADOR DE NUEVO ELEMENTO */}
+                            {!isExisting && query.length > 2 && (
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 animate-in fade-in zoom-in duration-300">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tight">Nuevo Insumo</span>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="relative group">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                                 <Search className="w-4 h-4" style={{ color: isOpen ? C.orange : C.slate }} />
@@ -152,17 +163,27 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                     setIsOpen(true);
                                     if (isExisting) {
                                         setIsExisting(false);
-                                        setMode("entrada"); // Reset a entrada si es nuevo
+                                        setMode("entrada");
                                     }
                                 }}
                                 onFocus={() => setIsOpen(true)}
-                                placeholder="Escribe para buscar..."
+                                placeholder="Escribe para buscar o crear..."
                                 className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border transition-all"
-                                style={{ background: C.inputBg, borderColor: isOpen ? C.orange : C.border }}
+                                style={{
+                                    background: C.inputBg,
+                                    borderColor: !isExisting && query.length > 2 ? `${C.emerald}40` : (isOpen ? C.orange : C.border)
+                                }}
                             />
+
+                            {/* ICONO DE STATUS DENTRO DEL INPUT */}
+                            {!isExisting && query.length > 2 && (
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                    <PlusCircle className="w-4 h-4 text-emerald-500/50" />
+                                </div>
+                            )}
                         </div>
 
-                        {/* Dropdown flotante */}
+                        {/* Dropdown flotante (Sin cambios) */}
                         {isOpen && filteredInsumos.length > 0 && (
                             <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
                                 style={{ background: "#1a1f2e", borderColor: C.border }}>
