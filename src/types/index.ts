@@ -64,12 +64,12 @@ export type TipoMaquina =
   | "peso"
   | "plancha_dtf";
 
-export interface HabilidadMaquinaria{
+export interface HabilidadMaquinaria {
   maquina: TipoMaquina;
   nivelEficiencia: number; // porcentaje 0-100
 }
 
-interface HabilidadEtapa{
+interface HabilidadEtapa {
   maquina: EtapaProduccion;
   eficienciaPromedio: number; // porcentaje 0-100
 }
@@ -87,7 +87,7 @@ export interface Operario extends Usuario {
   /** Máquinas que el operario está certificado para usar */
   habilidades: HabilidadMaquinaria[];
   estado: Status;
-  maquinaActual?:string;
+  maquinaActual?: string;
   ordenActual?: string;
   /** Etapas en las que tiene experiencia */
   // etapasEspecializacion: HabilidadEtapa[];
@@ -110,14 +110,14 @@ export interface Maquina {
 export interface Insumo {
   id: string;
   nombre: string;
-  codigo?:string;
+  codigo?: string;
   tipo: "tela" | "accesorio";
   subtipo?: TipoTela | "zipper" | "goma" | "boton" | "hilo" | "otro";
   unidad: "metros" | "unidades" | "rollos" | "kg";
   stock: number;
   minimo: number;
   proveedor?: string;
-  vinculadoA?:string[];
+  vinculadoA?: string[];
 }
 
 // ─── Orden de Producción ─────────────────────────────────────
@@ -156,7 +156,7 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
-  cola: number 
+  cola: number
 }
 
 // ─── Registro de Producción ──────────────────────────────────
