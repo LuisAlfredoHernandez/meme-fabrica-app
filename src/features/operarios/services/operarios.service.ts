@@ -4,11 +4,11 @@
 import type { Operario } from "@/types";
 
 const MOCK_OPERARIOS: Operario[] = [
-    { id: "e1", nombre: "Carmen", apellido: "Méndez", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 92 }, { maquina: "cover", nivelEficiencia: 85 }], estado: "activo", maquinaActual: "MERROW-01", ordenActual: "ORD-2026-0042" },
-    { id: "e2", nombre: "Josué", apellido: "Reyes", rol: "operario", habilidades: [{ maquina: "cover", nivelEficiencia: 74 }, { maquina: "plana", nivelEficiencia: 90 }], estado: "activo", maquinaActual: "COVER-02", ordenActual: "ORD-2026-0042" },
-    { id: "e3", nombre: "María", apellido: "Santos", rol: "operario", habilidades: [{ maquina: "corte", nivelEficiencia: 91 }], estado: "activo", maquinaActual: "CORTE-01", ordenActual: "ORD-2026-0043" },
-    { id: "e4", nombre: "Rafael", apellido: "Núñez", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 82 }, { maquina: "plana", nivelEficiencia: 65 }], estado: "inactivo" },
-    { id: "e6", nombre: "Luis", apellido: "Castro", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 95 }, { maquina: "cover", nivelEficiencia: 88 }], estado: "activo", maquinaActual: "MERROW-02", ordenActual: "ORD-2026-0043" },
+  { id: "e1", nombre: "Carmen", apellido: "Méndez", correo: "carmen@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 92 }, { maquina: "cover", nivelEficiencia: 85 }], estado: "activo", maquinaActual: "MERROW-01", ordenActual: "ORD-2026-0042" },
+  { id: "e2", nombre: "Josué", apellido: "Reyes", correo: "Josue11@gmail.com", rol: "operario", habilidades: [{ maquina: "cover", nivelEficiencia: 74 }, { maquina: "plana", nivelEficiencia: 90 }], estado: "activo", maquinaActual: "COVER-02", ordenActual: "ORD-2026-0042" },
+  { id: "e3", nombre: "María", apellido: "Santos", correo: "MariaSantos@gmail.com", rol: "operario", habilidades: [{ maquina: "corte", nivelEficiencia: 91 }], estado: "activo", maquinaActual: "CORTE-01", ordenActual: "ORD-2026-0043" },
+  { id: "e4", nombre: "Rafael", apellido: "Núñez", correo: "rafaelN56@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 82 }, { maquina: "plana", nivelEficiencia: 65 }], estado: "inactivo" },
+  { id: "e6", nombre: "Luis", apellido: "Castro", correo: "CastroLuis@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 95 }, { maquina: "cover", nivelEficiencia: 88 }], estado: "activo", maquinaActual: "MERROW-02", ordenActual: "ORD-2026-0043" },
 ];
 
 // Simulamos la latencia de una llamada a la API
@@ -33,13 +33,13 @@ export const operariosService = {
     });
   },
 
-/**
-   * Crea un nuevo operario y lo añade a la lista.
-   * @param data - Los datos del nuevo operario (sin el ID).
-   * @returns Una promesa que resuelve con el operario creado.
-   */
-  
-create: (data: Omit<Operario, "id">): Promise<Operario> => {
+  /**
+     * Crea un nuevo operario y lo añade a la lista.
+     * @param data - Los datos del nuevo operario (sin el ID).
+     * @returns Una promesa que resuelve con el operario creado.
+     */
+
+  create: (data: Omit<Operario, "id">): Promise<Operario> => {
     console.log("Creating new operario...", data);
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -48,7 +48,7 @@ create: (data: Omit<Operario, "id">): Promise<Operario> => {
           // Generamos un ID aleatorio o basado en timestamp para el mock
           id: Math.random().toString(36).substr(2, 9),
         };
-        
+
         console.log(`Operario created successfully with ID: ${nuevoInsumo.id}`);
         resolve(nuevoInsumo);
       }, API_LATENCY);
@@ -66,7 +66,7 @@ create: (data: Omit<Operario, "id">): Promise<Operario> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         const index = MOCK_OPERARIOS.findIndex((i) => i.id === id);
-        
+
         if (index === -1) {
           console.error("Update failed: Operario not found.");
           reject(new Error("Operario no encontrado"));
@@ -82,29 +82,29 @@ create: (data: Omit<Operario, "id">): Promise<Operario> => {
       }, API_LATENCY);
     });
   },
-  
-  delete: (id: string): Promise<boolean> => {
-      console.log(`Solicitando eliminación del operario con ID: ${id}...`);
-      
-      return new Promise((resolve, reject) => {
-          setTimeout(() => {
-              // Buscamos el índice del elemento en nuestro "mock"
-              const index = MOCK_OPERARIOS.findIndex(operario => operario.id === id);
 
-              if (index !== -1) {
-                  // Eliminamos el elemento del array global (persistencia simulada)
-                  
-                  // INSUMOS_MOCK.splice(index, 1);
-                  
-                  console.log(`Operario ${id} eliminado correctamente del Mock.`);
-                  resolve(true);
-              } else {
-                  // Si por alguna razón el ID no existe
-                  console.error(`Error: Operario con ID ${id} no encontrado.`);
-                  reject(new Error("El operario que intentas eliminar no existe en el sistema."));
-              }
-          }, API_LATENCY);
-      });
+  delete: (id: string): Promise<boolean> => {
+    console.log(`Solicitando eliminación del operario con ID: ${id}...`);
+
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Buscamos el índice del elemento en nuestro "mock"
+        const index = MOCK_OPERARIOS.findIndex(operario => operario.id === id);
+
+        if (index !== -1) {
+          // Eliminamos el elemento del array global (persistencia simulada)
+
+          // INSUMOS_MOCK.splice(index, 1);
+
+          console.log(`Operario ${id} eliminado correctamente del Mock.`);
+          resolve(true);
+        } else {
+          // Si por alguna razón el ID no existe
+          console.error(`Error: Operario con ID ${id} no encontrado.`);
+          reject(new Error("El operario que intentas eliminar no existe en el sistema."));
+        }
+      }, API_LATENCY);
+    });
   },
 
   /**

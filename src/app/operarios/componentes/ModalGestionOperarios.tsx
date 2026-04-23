@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { X, Search, Zap, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCcw, User } from "lucide-react";
+import { X, Search, Zap, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCcw, User, Mail } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario, RolUsuario, Status, HabilidadMaquinaria, TipoMaquina } from "@/types";
 
@@ -29,6 +29,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         id: "",
         nombre: "",
         apellido: "",
+        correo: "",
         estado: "inactivo" as Status,
         rol: "operario" as RolUsuario,
         habilidades: [] as HabilidadMaquinaria[]
@@ -178,25 +179,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             />
                         </div>
 
-                        {/* {isOpen && query.length > 0 && filteredOperarios.length > 0 && (
-                            <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl bg-[#1a1f2e] border-[#1e2130]">
-                                {filteredOperarios.map((op) => (
-                                    <button
-                                        key={op.id}
-                                        className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-orange-500/10 flex items-center justify-between group"
-                                        onClick={() => {
-                                            setForm(op);
-                                            setQuery(`${op.nombre} ${op.apellido}`);
-                                            setIsExisting(true);
-                                            setIsOpen(false);
-                                        }}>
-                                        <span className="font-medium">{op.nombre} {op.apellido}</span>
-                                        <RefreshCcw className="w-4 h-4 text-orange-500" />
-                                    </button>
-                                ))}
-                            </div>
-                        )} */}
-
                         {isOpen && filteredOperarios.length > 0 && (
                             <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
                                 style={{ background: "#1a1f2e", borderColor: C.border }}>
@@ -238,6 +220,20 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                 className="w-full bg-transparent text-sm font-bold text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                             />
                         </div>
+                    </div>
+
+                    {/* Campo Email agregado aquí para mejor flujo de lectura */}
+                    <div className="space-y-1 pt-2 border-t border-white/5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                            <Mail className="w-3 h-3" /> Correo Electrónico
+                        </label>
+                        <input
+                            type="email"
+                            placeholder="ejemplo@memefabrica.com"
+                            value={form.correo}
+                            onChange={e => setForm({ ...form, correo: e.target.value })}
+                            className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
+                        />
                     </div>
 
                     {/* Selector de Estado */}
@@ -289,6 +285,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

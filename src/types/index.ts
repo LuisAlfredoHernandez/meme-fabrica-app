@@ -69,15 +69,11 @@ export interface HabilidadMaquinaria {
   nivelEficiencia: number; // porcentaje 0-100
 }
 
-interface HabilidadEtapa {
-  maquina: EtapaProduccion;
-  eficienciaPromedio: number; // porcentaje 0-100
-}
-
 interface Usuario {
   id: string;
   nombre: string;
   apellido: string;
+  correo: string;
   rol: RolUsuario;
 }
 
