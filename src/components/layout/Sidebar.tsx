@@ -15,7 +15,7 @@ const C = {
     orange: "#f97316", slate: "#475569",
 };
 
-type Rol = "dueno" | "subjefe" | "operario";
+type Rol = "admin" | "subjefe" | "operario";
 
 interface NavItem {
     href: string;
@@ -28,19 +28,19 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-    { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["dueno", "subjefe"] },
-    { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["dueno", "subjefe"] },
-    { href: "/registro", icon: <ScanLine className="w-5 h-5" />, label: "Registrar", desc: "Captura diaria", roles: ["dueno", "subjefe", "operario"] },
-    { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["dueno", "subjefe"] },
-    { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["dueno", "subjefe"] },
-    { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["dueno"], badge: "IA", badgeColor: "#818cf8" },
+    { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["admin", "subjefe"] },
+    { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["admin", "subjefe"] },
+    { href: "/registro", icon: <ScanLine className="w-5 h-5" />, label: "Registrar", desc: "Captura diaria", roles: ["admin", "subjefe", "operario"] },
+    { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["admin", "subjefe"] },
+    { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["admin", "subjefe"] },
+    { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["admin"], badge: "IA", badgeColor: "#818cf8" },
 ];
 
 const ROL_LABEL: Record<Rol, string> = {
-    dueno: "Dueño", subjefe: "Jefe de Taller", operario: "Operario",
+    admin: "Admin", subjefe: "Jefe de Taller", operario: "Operario",
 };
 const ROL_COLOR: Record<Rol, string> = {
-    dueno: "#f97316", subjefe: "#818cf8", operario: "#34d399",
+    admin: "#f97316", subjefe: "#818cf8", operario: "#34d399",
 };
 
 export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Rol; usuario?: string }) {
