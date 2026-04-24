@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // features/auth/services/auth.service.ts
 // ─────────────────────────────────────────────────────────────
-import { Usuario, RolUsuario } from "@/types";
+import { Usuario } from "@/types";
 
 /**
  * Base de datos simulada de credenciales.
@@ -113,7 +113,7 @@ export const authService = {
 
         return new Promise((resolve) => {
             setTimeout(() => {
-                const newUser: UsuarioMock = {
+                const newUser: Usuario = {
                     ...data,
                     id: `u${Math.random().toString(36).substr(2, 5)}`,
                     ultimaConexion: "Nunca"

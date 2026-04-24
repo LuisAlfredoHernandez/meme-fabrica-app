@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Usuario } from '@/types';
-import { authService } from '@/features/login/services/login.services';
+import { loginAction, logoutAction, registerUserAction, toggleUserStatusAction, updatePasswordAction } from '@/features/login/actions/auth.actions';
 
 interface AuthState {
     user: Usuario | null;
@@ -21,24 +21,19 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
 
             login: async (email, pass) => {
-                try {
-                    const found = await authService.login(email, pass);
-                    if (found) {
-                        const { password, ...userWithoutPass } = found;
-                        set({
-                            user: userWithoutPass as Usuario,
-                            isAuthenticated: true
-                        });
-                        return true;
-                    }
-                    return false;
-                } catch (error) {
-                    console.error("Login error:", error);
-                    return false;
+                const result = await loginAction(email, pass);
+                if (result?.success) {
+                    set({
+                        user: result.user as Usuario,
+                        isAuthenticated: true
+                    });
+                    return true;
                 }
+                return false;
             },
 
-            logout: () => {
+            logout: async () => {
+                await logoutAction(); // Borra cookies en el servidor
                 set({ user: null, isAuthenticated: false });
             },
 
@@ -47,39 +42,39 @@ export const useAuthStore = create<AuthState>()(
                 if (!currentUser) return;
 
                 try {
-                    await authService.updatePassword(currentUser.id, newPass);
-                    console.log("Contraseña actualizada exitosamente en el sistema");
+                    // Ahora llamamos al Action, no al servicio directamente
+                    const result = await updatePasswordAction(currentUser.id, newPass);
+
+                    if (result.success) {
+                        console.log("✅ Contraseña actualizada exitosamente");
+                    } else {
+                        console.error("❌ fallo al actualizar:", result.error);
+                    }
                 } catch (error) {
-                    console.error("Error updating password:", error);
-                    throw error;
+                    console.error("Error crítico en updateMyPassword:", error);
                 }
             },
 
             registerUser: async (data) => {
-                try {
-                    await authService.registerUser(data);
-                    console.log("Nuevo usuario registrado en el sistema");
-                    return true;
-                } catch (error) {
-                    console.error("Error al registrar usuario:", error);
-                    return false;
-                }
+                const result = await registerUserAction(data);
+                return result.success;
             },
 
             toggleUserStatus: async (userId) => {
-                try {
-                    const updatedUser = await authService.toggleUserStatus(userId);
+                const result = await toggleUserStatusAction(userId);
+                if (result.success) {
                     const currentUser = get().user;
-                    if (currentUser && currentUser.id === userId) {
-                        set({ user: updatedUser });
-                        if (updatedUser.estado === "inactivo") get().logout();
+                    // Si el admin se desactiva a sí mismo
+                    if (currentUser?.id === userId) {
+                        if (result.user?.estado === "inactivo") {
+                            get().logout();
+                        } else {
+                            set({ user: result.user });
+                        }
                     }
-
                     return true;
-                } catch (error) {
-                    console.error("Error al cambiar estado de usuario:", error);
-                    return false;
                 }
+                return false;
             }
         }),
         {

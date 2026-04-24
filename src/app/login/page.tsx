@@ -4,6 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 import { useState } from "react";
 import { Eye, EyeOff, Lock, User, AlertCircle, Loader2, Factory } from "lucide-react";
+import { useAuthStore } from "@/features/login/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -16,18 +18,20 @@ export default function LoginPage() {
     const [verPass, setVerPass] = useState(false);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState("");
+    const login = useAuthStore(state => state.login);
+    const router = useRouter();
+
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
         if (!usuario.trim()) { setError("Ingresa tu nombre de usuario."); return; }
-        if (password.length < 4) { setError("La contraseña debe tener al menos 4 caracteres."); return; }
+        if (password.length < 2) { setError("La contraseña debe tener al menos 4 caracteres."); return; }
         setCargando(true);
-        // Simula llamada al backend
-        await new Promise(r => setTimeout(r, 1400));
+        const success = await login(usuario, password);
         setCargando(false);
-        // En producción: router.push('/dashboard') tras JWT
-        setError("Credenciales inválidas. Verifica tu usuario y contraseña.");
+        if (success) router.push("/dashboard");
+        else setError("Credenciales inválidas. Verifica tu usuario y contraseña.");
     };
 
     return (
@@ -48,10 +52,8 @@ export default function LoginPage() {
                 </div>
 
                 <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-
                     {/* Formulario */}
                     <form onSubmit={handleLogin} className="p-5 space-y-4">
-
                         {/* Error banner */}
                         {error && (
                             <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
