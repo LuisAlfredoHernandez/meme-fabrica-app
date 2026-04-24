@@ -7,7 +7,7 @@ import {
     Plus, Search, ShieldCheck, ShieldAlert,
     UserCog, Trash2, Mail, Clock, MoreHorizontal, Users
 } from "lucide-react";
-import { ModalGestionOperario } from "@/app/operarios/componentes/ModalGestionOperarios";
+import { ModalGestionOperario } from "@/app/(protected)/operarios/componentes/ModalGestionOperarios";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
