@@ -69,6 +69,8 @@ export interface HabilidadMaquinaria {
   nivelEficiencia: number; // porcentaje 0-100
 }
 
+export type Status = "activo" | "pendiente" | "inactivo" | "terminado";
+
 export interface Usuario {
   id: string;
   nombre: string;
@@ -79,8 +81,6 @@ export interface Usuario {
   password?: string;
   ultimaConexion?: string;
 }
-
-export type Status = "activo" | "inactivo";
 
 export interface Operario extends Usuario {
   /** Máquinas que el operario está certificado para usar */
