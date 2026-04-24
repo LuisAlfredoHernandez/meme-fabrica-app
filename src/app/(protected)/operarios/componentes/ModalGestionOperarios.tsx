@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { X, Search, Zap, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCcw, User } from "lucide-react";
+import { X, Search, Zap, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCcw, User, Mail, UserMinus, PackageCheck } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario, RolUsuario, Status, HabilidadMaquinaria, TipoMaquina } from "@/types";
 
@@ -29,6 +29,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         id: "",
         nombre: "",
         apellido: "",
+        correo: "",
         estado: "inactivo" as Status,
         rol: "operario" as RolUsuario,
         habilidades: [] as HabilidadMaquinaria[]
@@ -143,7 +144,16 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                     {/* Buscador Superior */}
                     <div className="space-y-1.5 relative">
-                        <label className="text-xs font-semibold px-1 text-slate-400">Buscar o Registrar</label>
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-xs font-semibold" style={{ color: "#94a3b8" }}>Nombre del Operario</label>
+                            {/* INDICADOR DE NUEVO ELEMENTO */}
+                            {!isExisting && query.length > 2 && (
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 animate-in fade-in zoom-in duration-300">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tight">Nuevo Operario</span>
+                                </div>
+                            )}
+                        </div>
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input
@@ -169,8 +179,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             />
                         </div>
 
-                        {isOpen && query.length > 0 && filteredOperarios.length > 0 && (
-                            <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl bg-[#1a1f2e] border-[#1e2130]">
+                        {isOpen && filteredOperarios.length > 0 && (
+                            <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
+                                style={{ background: "#1a1f2e", borderColor: C.border }}>
                                 {filteredOperarios.map((op) => (
                                     <button
                                         key={op.id}
@@ -181,7 +192,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                             setIsExisting(true);
                                             setIsOpen(false);
                                         }}>
-                                        <span className="font-medium">{op.nombre} {op.apellido}</span>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{op.nombre} {op.apellido}</span>
+                                        </div>
                                         <RefreshCcw className="w-4 h-4 text-orange-500" />
                                     </button>
                                 ))}
@@ -209,17 +222,41 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                         </div>
                     </div>
 
+                    {/* Campo Email agregado aquí para mejor flujo de lectura */}
+                    <div className="space-y-1 pt-2 border-t border-white/5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                            <Mail className="w-3 h-3" /> Correo Electrónico
+                        </label>
+                        <input
+                            type="email"
+                            placeholder="ejemplo@memefabrica.com"
+                            value={form.correo}
+                            onChange={e => setForm({ ...form, correo: e.target.value })}
+                            className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
+                        />
+                    </div>
+
                     {/* Selector de Estado */}
                     <div className="space-y-2">
                         <label className="text-xs font-semibold px-1 text-slate-400">Estado en Planta</label>
-                        <div className="flex p-1 rounded-xl bg-[#0d1018] border border-white/5">
+                        <div className="flex gap-2 p-1 rounded-xl bg-[#0d1018] border border-white/5">
                             <button onClick={() => setForm({ ...form, estado: "activo" })}
-                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 ${form.estado === 'activo' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-600'}`}>
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 border ${form.estado === 'activo'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                    : 'text-slate-600 border-transparent hover:border-emerald-500/30 hover:text-slate-400'}`}>
                                 <CheckCircle2 className="w-3.5 h-3.5" /> ACTIVO
                             </button>
                             <button onClick={() => setForm({ ...form, estado: "inactivo" })}
-                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 ${form.estado === 'inactivo' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-slate-600'}`}>
-                                <AlertCircle className="w-3.5 h-3.5" /> INACTIVO
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 border ${form.estado === 'inactivo'
+                                    ? 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+                                    : 'text-slate-600 border-transparent hover:border-slate-500/30 hover:text-slate-400'}`}>
+                                <UserMinus className="w-3.5 h-3.5" /> INACTIVO
+                            </button>
+                            <button onClick={() => setForm({ ...form, estado: "terminado" })}
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 border ${form.estado === 'terminado'
+                                    ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+                                    : 'text-slate-600 border-transparent hover:border-indigo-500/30 hover:text-slate-400'}`}>
+                                <PackageCheck className="w-3.5 h-3.5" /> TERMINADO
                             </button>
                         </div>
                     </div>
@@ -233,14 +270,27 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             {MAQUINAS_OPTIONS.map(m => {
                                 const activo = form.habilidades.some(h => h.maquina === m.id);
                                 return (
-                                    <button key={m.id} onClick={() => toggleMaquina(m.id)}
-                                        className="flex items-center gap-3 p-3 rounded-xl border transition-all"
+                                    <button
+                                        key={m.id}
+                                        onClick={() => toggleMaquina(m.id)}
+                                        className="flex items-center gap-3 p-3 rounded-xl border-2 transition-all group"
                                         style={{
-                                            borderColor: activo ? m.color : C.border,
-                                            background: activo ? `${m.color}10` : "#0d1018",
-                                        }}>
-                                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: activo ? m.color : C.slate }} />
-                                        <span className={`text-[11px] font-bold ${activo ? 'text-white' : 'text-slate-500'}`}>{m.label}</span>
+                                            borderColor: activo ? m.color : 'transparent',
+                                            background: activo ? `${m.color}15` : "#0d1018",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!activo) e.currentTarget.style.borderColor = `${m.color}40`;
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!activo) e.currentTarget.style.borderColor = 'transparent';
+                                        }}
+                                    >
+                                        <div className="w-1.5 h-1.5 rounded-full transition-transform group-hover:scale-125"
+                                            style={{ background: activo ? m.color : C.slate }} />
+
+                                        <span className={`text-[11px] font-bold transition-colors ${activo ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`}>
+                                            {m.label}
+                                        </span>
                                     </button>
                                 );
                             })}
@@ -250,14 +300,14 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                 {/* Footer con Botón de Eliminar */}
                 <div className="flex items-center gap-3 px-6 py-5 bg-black/20 border-t border-[#1e2130]">
-                    <button onClick={onClose} className="flex-1 h-12 rounded-xl border border-[#1e2130] text-sm font-semibold text-slate-400 hover:bg-white/5">
+                    <button onClick={onClose} className="flex-1 h-12 rounded-xl border border-[#1e2130] text-sm font-semibold text-slate-400 hover:bg-white/5 cursor-pointer">
                         Cancelar
                     </button>
-                    <button onClick={onSubmitModal} className="flex-[2] h-12 rounded-xl text-white text-sm font-bold shadow-lg" style={{ background: C.orange }}>
+                    <button onClick={onSubmitModal} className="flex-[2] h-12 rounded-xl text-white text-sm font-bold shadow-lg cursor-pointer" style={{ background: C.orange }}>
                         {isExisting ? "Guardar Cambios" : "Crear Operario"}
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

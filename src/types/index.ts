@@ -19,7 +19,7 @@ export interface KpiResumen {
 
 // ─── Enumeraciones ───────────────────────────────────────────
 
-export type RolUsuario = "dueno" | "subjefe" | "operario";
+export type RolUsuario = "admin" | "subjefe" | "operario";
 
 export type EstadoOrden =
   | "pendiente"
@@ -69,24 +69,22 @@ export interface HabilidadMaquinaria {
   nivelEficiencia: number; // porcentaje 0-100
 }
 
-interface HabilidadEtapa {
-  maquina: EtapaProduccion;
-  eficienciaPromedio: number; // porcentaje 0-100
-}
+export type Status = "activo" | "pendiente" | "inactivo" | "terminado";
 
-interface Usuario {
+export interface Usuario {
   id: string;
   nombre: string;
   apellido: string;
+  correo: string;
   rol: RolUsuario;
+  estado: Status;
+  password?: string;
+  ultimaConexion?: string;
 }
-
-export type Status = "activo" | "inactivo";
 
 export interface Operario extends Usuario {
   /** Máquinas que el operario está certificado para usar */
   habilidades: HabilidadMaquinaria[];
-  estado: Status;
   maquinaActual?: string;
   ordenActual?: string;
   /** Etapas en las que tiene experiencia */

@@ -7,15 +7,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, ClipboardList, Users, ScanLine,
-    Package, Brain, Settings, LogOut, Shield, Factory
+    Package, Brain, Settings, LogOut, Shield,
 } from "lucide-react";
-
+import { useAuthStore } from "@/features/login/store/useAuthStore";
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
     orange: "#f97316", slate: "#475569",
 };
 
-type Rol = "dueno" | "subjefe" | "operario";
+
+type Rol = "admin" | "subjefe" | "operario";
 
 interface NavItem {
     href: string;
@@ -28,19 +29,19 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-    { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["dueno", "subjefe"] },
-    { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["dueno", "subjefe"] },
-    { href: "/registro", icon: <ScanLine className="w-5 h-5" />, label: "Registrar", desc: "Captura diaria", roles: ["dueno", "subjefe", "operario"] },
-    { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["dueno", "subjefe"] },
-    { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["dueno", "subjefe"] },
-    { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["dueno"], badge: "IA", badgeColor: "#818cf8" },
+    { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["admin", "subjefe"] },
+    { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["admin", "subjefe"] },
+    { href: "/registro", icon: <ScanLine className="w-5 h-5" />, label: "Registrar", desc: "Captura diaria", roles: ["admin", "subjefe", "operario"] },
+    { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["admin", "subjefe"] },
+    { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["admin", "subjefe"] },
+    { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["admin"], badge: "IA", badgeColor: "#818cf8" },
 ];
 
 const ROL_LABEL: Record<Rol, string> = {
-    dueno: "Dueño", subjefe: "Jefe de Taller", operario: "Operario",
+    admin: "Admin", subjefe: "Jefe de Taller", operario: "Operario",
 };
 const ROL_COLOR: Record<Rol, string> = {
-    dueno: "#f97316", subjefe: "#818cf8", operario: "#34d399",
+    admin: "#f97316", subjefe: "#818cf8", operario: "#34d399",
 };
 
 export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Rol; usuario?: string }) {
@@ -49,6 +50,7 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
     const pathname = usePathname();
 
     const itemsVisibles = NAV.filter(n => n.roles.includes(rol));
+    const login = useAuthStore();
 
     return (
         <aside
@@ -76,6 +78,7 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
                 </div>
             </div>
 
+            {/* Nav items */}
             {/* Nav items */}
             <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 {itemsVisibles.map(item => {
@@ -147,7 +150,7 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
                 </div>
 
                 {/* Logout Button */}
-                <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group hover:bg-red-500/10"
+                <button onClick={() => login.logout()} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group hover:bg-red-500/10"
                     style={{ color: C.slate }}>
                     <LogOut className="w-5 h-5 shrink-0 group-hover:text-red-400 transition-colors" />
                     <span className={`text-xs font-bold transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
