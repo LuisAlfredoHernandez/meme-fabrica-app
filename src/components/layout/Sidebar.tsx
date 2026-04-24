@@ -7,13 +7,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, ClipboardList, Users, ScanLine,
-    Package, Brain, Settings, LogOut, Shield, Factory
+    Package, Brain, Settings, LogOut, Shield,
 } from "lucide-react";
-
+import { useAuthStore } from "@/features/login/store/useAuthStore";
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
     orange: "#f97316", slate: "#475569",
 };
+
 
 type Rol = "admin" | "subjefe" | "operario";
 
@@ -49,6 +50,7 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
     const pathname = usePathname();
 
     const itemsVisibles = NAV.filter(n => n.roles.includes(rol));
+    const login = useAuthStore();
 
     return (
         <aside
@@ -148,7 +150,7 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
                 </div>
 
                 {/* Logout Button */}
-                <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group hover:bg-red-500/10"
+                <button onClick={() => login.logout()} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group hover:bg-red-500/10"
                     style={{ color: C.slate }}>
                     <LogOut className="w-5 h-5 shrink-0 group-hover:text-red-400 transition-colors" />
                     <span className={`text-xs font-bold transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
