@@ -19,7 +19,6 @@ import {
     Activity,
     Shield,
     RefreshCw,
-    Loader2,
     Info,
     TrendingUp,
 } from "lucide-react";
@@ -27,7 +26,7 @@ import type {
     PrediccionIA,
     AlertaCuelloBottella,
     RecomendacionPersonal,
-    Empleado,
+    Operario,
     Maquina,
     NivelAlerta,
 } from "@/types";
@@ -200,7 +199,7 @@ function TarjetaRecomendacion({
     onRechazar,
 }: {
     rec: RecomendacionPersonal;
-    empleados: Empleado[];
+    empleados: Operario[];
     maquinas: Maquina[];
     onAceptar: (id: string) => void;
     onRechazar: (id: string) => void;
@@ -330,7 +329,7 @@ function TarjetaRecomendacion({
 
 interface PanelRecomendacionesProps {
     prediccion: PrediccionIA | null;
-    empleados: Empleado[];
+    empleados: Operario[];
     maquinas: Maquina[];
     cargando?: boolean;
     onActualizarPrediccion?: () => void;
