@@ -28,6 +28,8 @@ const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos:
 const ESTADO_CFG = {
     activo: { color: "#34d399", label: "Activo", bg: "rgba(52,211,153,0.12)", icon: UserCheck },
     inactivo: { color: "#f87171", label: "Inactivo", bg: "rgba(248,113,113,0.12)", icon: UserMinus },
+    pendiente: { color: "#e7e7e74b", label: "Pendiente", bg: "rgba(52,211,153,0.12)", icon: UserCheck },
+    terminado: { color: "#f70909", label: "Terminado", bg: "rgba(248,113,113,0.12)", icon: UserMinus },
 };
 
 // ... (Componente ModalAsignacion se asume implementado externamente)
