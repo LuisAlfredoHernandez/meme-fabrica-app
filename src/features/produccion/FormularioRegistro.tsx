@@ -355,11 +355,19 @@ export function FormularioRegistro({
                                     }`}
                             >
                                 <option value="">— Selecciona una orden —</option>
-                                {ordenesActivas.map((o) => (
-                                    <option key={o.id} value={o.id}>
-                                        {o.numero} · {o.cliente} ({o.totalPiezas - o.totalCompletadas} restantes)
-                                    </option>
-                                ))}
+                                {ordenesActivas.map((o) => {
+                                    // Sumamos todas las cantidades de las líneas para obtener el gran total
+                                    const totalPiezas = o.lineas.reduce((acc, linea) => acc + linea.cantidad, 0);
+                                    const totalCompletadas = o.lineas.reduce((acc, linea) => acc + linea.cantidadCompletada, 0);
+                                    const restantes = totalPiezas - totalCompletadas;
+
+                                    return (
+                                        <option key={o.id} value={o.id} className="bg-[#13161e] text-white">
+                                            {/* Formato: [NUMERO] CLIENTE · TIPO (PRIORIDAD) · RESTANTES */}
+                                            {`[${o.numero}] ${o.cliente.toUpperCase()} · ${o.tipo} · ${restantes} pzs restantes`}
+                                        </option>
+                                    );
+                                })}
                             </select>
                             {errores.ordenId && (
                                 <p className="text-red-400 text-xs flex items-center gap-1">
@@ -371,21 +379,26 @@ export function FormularioRegistro({
                                     <div className="flex-1">
                                         <p className="text-xs text-slate-400">Progreso de la orden</p>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-orange-500 rounded-full transition-all"
-                                                    style={{
-                                                        width: `${Math.round(
-                                                            (ordenSeleccionada.totalCompletadas /
-                                                                ordenSeleccionada.totalPiezas) *
-                                                            100
-                                                        )}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                            <span className="text-xs font-mono text-orange-400 shrink-0">
-                                                {ordenSeleccionada.totalCompletadas}/{ordenSeleccionada.totalPiezas}
-                                            </span>
+                                            {(() => {
+                                                // Calculamos los totales desde el array de lineas
+                                                const totalPiezas = ordenSeleccionada.lineas.reduce((acc, l) => acc + l.cantidad, 0);
+                                                const totalCompletadas = ordenSeleccionada.lineas.reduce((acc, l) => acc + l.cantidadCompletada, 0);
+                                                const porcentaje = totalPiezas > 0 ? Math.round((totalCompletadas / totalPiezas) * 100) : 0;
+
+                                                return (
+                                                    <>
+                                                        <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-orange-500 rounded-full transition-all"
+                                                                style={{ width: `${porcentaje}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-xs font-mono text-orange-400 shrink-0">
+                                                            {totalCompletadas}/{totalPiezas}
+                                                        </span>
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
@@ -490,27 +503,27 @@ export function FormularioRegistro({
                                         label: "Hora de Inicio",
                                         default: ahora,
                                     },
-                                    { campo: "horaFin" as keyof FormState, label: "Hora de Fin" },
+                                    { campo: "horaFin" as keyof FormState, label: "Hora de Fin", default: "" },
                                 ] as const
-                            ).map(({ campo, label, default: def }) => (
-                                <div key={campo} className="space-y-2">
+                            ).map((item) => (
+                                <div key={item.campo} className="space-y-2">
                                     <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-slate-500" />
-                                        {label}
+                                        {item.label}
                                     </label>
                                     <input
                                         type="time"
-                                        value={form[campo]}
-                                        onChange={(e) => set(campo, e.target.value)}
-                                        defaultValue={def}
-                                        className={`w-full h-14 px-4 rounded-xl bg-slate-900 border text-white text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-colors ${errores[campo]
+                                        value={form[item.campo]}
+                                        onChange={(e) => set(item.campo, e.target.value)}
+                                        defaultValue={item.default}
+                                        className={`w-full h-14 px-4 rounded-xl bg-slate-900 border text-white text-lg font-mono text-center focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-colors ${errores[item.campo]
                                             ? "border-red-500"
                                             : "border-slate-700 focus:border-orange-500"
                                             }`}
                                     />
-                                    {errores[campo] && (
+                                    {errores[item.campo] && (
                                         <p className="text-red-400 text-xs flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" /> {errores[campo]}
+                                            <AlertCircle className="w-3 h-3" /> {errores[item.campo]}
                                         </p>
                                     )}
                                 </div>
