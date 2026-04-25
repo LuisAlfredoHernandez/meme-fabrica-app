@@ -5,8 +5,8 @@
 // ─────────────────────────────────────────────────────────────
 import { useState } from "react";
 import {
-    CheckCircle2, AlertTriangle, Wrench, Package,
-    Scissors, Zap, ChevronRight, RotateCcw, Clock,
+    CheckCircle2, Wrench, Package,
+    Scissors, ChevronRight, RotateCcw, Clock,
 } from "lucide-react";
 
 const C = {

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { X, Cpu, Hash, CheckCircle2, AlertCircle, Plus } from "lucide-react";
-import { Operario, TipoMaquina } from "@/types";
+import { Operario } from "@/types";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",

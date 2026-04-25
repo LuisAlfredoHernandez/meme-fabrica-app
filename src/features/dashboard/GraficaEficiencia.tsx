@@ -18,8 +18,7 @@ import {
     Tooltip,
     Legend,
     ReferenceLine,
-    type TooltipProps,
-    TooltipContentProps,
+    type TooltipContentProps,
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Calendar, BarChart3 } from "lucide-react";
 

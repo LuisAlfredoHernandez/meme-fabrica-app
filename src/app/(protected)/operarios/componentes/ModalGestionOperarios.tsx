@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { X, Search, Zap, Plus, Trash2, CheckCircle2, AlertCircle, RefreshCcw, User, Mail, UserMinus, PackageCheck } from "lucide-react";
+import { useState } from "react";
+import { X, Search, Zap, Trash2, CheckCircle2, RefreshCcw, User, Mail, UserMinus, PackageCheck } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario, RolUsuario, Status, HabilidadMaquinaria, TipoMaquina } from "@/types";
 

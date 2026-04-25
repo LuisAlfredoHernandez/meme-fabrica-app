@@ -4,8 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 import { useState } from "react";
 import {
-    Plus, Search, ShieldCheck, ShieldAlert,
-    UserCog, Trash2, Mail, Clock, MoreHorizontal, Users
+    Plus, Search, ShieldCheck,
+    UserCog, Trash2, Mail, Clock, Users
 } from "lucide-react";
 import { ModalGestionOperario } from "@/app/(protected)/operarios/componentes/ModalGestionOperarios";
 

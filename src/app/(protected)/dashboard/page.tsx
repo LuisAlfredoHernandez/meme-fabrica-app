@@ -5,12 +5,12 @@
 // ─────────────────────────────────────────────────────────────
 import { useState } from "react";
 import {
-    ResponsiveContainer, ComposedChart, BarChart, Area, Bar,
-    Line, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
+    ResponsiveContainer, ComposedChart, BarChart, Bar,
+    Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
 import {
-    BarChart3, TrendingUp, TrendingDown, Activity,
-    Clock, Zap, Users, Package,
+    BarChart3, TrendingUp, Activity,
+    Zap, Users, Package,
 } from "lucide-react";
 
 const C = {
