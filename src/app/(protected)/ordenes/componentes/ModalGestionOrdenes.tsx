@@ -106,9 +106,9 @@ export function ModalGestionOrdenes({ onClose }: { onClose: () => void }) {
 
                 <div className="flex gap-3 px-6 pb-6">
                     <button onClick={onClose}
-                        className="flex-1 h-11 rounded-xl border text-sm font-semibold"
+                        className="flex-1 h-11 rounded-xl border text-sm font-semibold cursor-pointer hover:scale-105 transition-transform"
                         style={{ borderColor: C.border, color: "#94a3b8" }}>Cancelar</button>
-                    <button className="flex-1 h-11 rounded-xl text-white text-sm font-bold"
+                    <button className="flex-1 h-11 rounded-xl text-white text-sm font-bold cursor-pointer hover:scale-105 transition-transform "
                         style={{ background: C.orange, boxShadow: `0 4px 16px ${C.orange}40` }}>
                         Crear Orden
                     </button>

@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { X, Search, Zap, Trash2, CheckCircle2, RefreshCcw, User, Mail, UserMinus, PackageCheck } from "lucide-react";
+import { Search, Zap, Trash2, CheckCircle2, RefreshCcw, User, Mail, UserMinus, PackageCheck } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario, RolUsuario, Status, HabilidadMaquinaria, TipoMaquina } from "@/types";
+import { useForm } from "react-hook-form";
 
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -123,21 +124,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             <p className="text-[11px]" style={{ color: C.slate }}>Panel de RRHH · Meme Fábricas</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        {/* Botón Eliminar: Solo aparece si existe el operario */}
-                        {isExisting && (
-                            <button
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className="p-2.5 rounded-full hover:bg-red-500/10 transition-colors group"
-                                title="Eliminar Operario"
-                            >
-                                <Trash2 className="w-4.5 h-4.5 text-slate-500 group-hover:text-red-400" />
-                            </button>
-                        )}
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors" style={{ color: C.slate }}>
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
                 </div>
 
                 <div className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: '70vh' }}>
@@ -168,7 +154,8 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                             ...prev,
                                             nombre: partes[0] || "",
                                             apellido: partes.slice(1).join(" ") || "",
-                                            habilidades: []
+                                            habilidades: [],
+                                            correo: "",
                                         }));
                                     }
                                     if (isExisting) setIsExisting(false);

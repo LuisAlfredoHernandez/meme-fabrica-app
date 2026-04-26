@@ -114,7 +114,7 @@ export default function OrdenesPage() {
                     <p className="text-xs mt-0.5" style={{ color: C.slate }}>RF1 · RF7 — Gestión y cola de prioridades</p>
                 </div>
                 <button onClick={() => setModal(true)}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold transition-all"
+                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm  font-bold cursor-pointer hover:scale-105 transition-transform "
                     style={{ background: C.orange, boxShadow: `0 4px 16px ${C.orange}30` }}>
                     <Plus className="w-4 h-4" /> Gestionar Ordenes
                 </button>
@@ -142,7 +142,7 @@ export default function OrdenesPage() {
                 <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "#0d1018", border: `1px solid ${C.border}` }}>
                     {(["lista", "cola"] as const).map(t => (
                         <button key={t} onClick={() => setVistaTab(t)}
-                            className="px-4 py-2 rounded-lg text-xs font-semibold transition-all"
+                            className="px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer hover:scale-105 transition-transform"
                             style={{ background: vistaTab === t ? C.orange : "transparent", color: vistaTab === t ? "#fff" : C.slate }}>
                             {t === "lista" ? "📋 Lista" : "🔢 Cola de prioridad"}
                         </button>

@@ -103,7 +103,7 @@ export default function OperariosPage() {
                     <h1 className="text-lg font-black text-white">Operarios & Rendimiento</h1>
                     <p className="text-xs mt-0.5 text-slate-500 font-medium">Gestión de recursos humanos en planta</p>
                 </div>
-                <button onClick={() => setModalAbierto(true)} className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-transform">
+                <button onClick={() => setModalAbierto(true)} className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 cursor-pointer hover:scale-105 transition-transform">
                     <Plus className="w-4 h-4" /> Gestionar operarios
                 </button>
             </div>
