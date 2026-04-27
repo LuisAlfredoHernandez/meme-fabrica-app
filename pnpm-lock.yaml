@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@hookform/resolvers':
+    specifier: ^5.2.2
+    version: 5.2.2(react-hook-form@7.71.2)
   lucide-react:
     specifier: ^0.577.0
     version: 0.577.0(react@19.2.3)
@@ -299,6 +302,15 @@ packages:
       '@eslint/core': 0.17.0
       levn: 0.4.1
     dev: true
+
+  /@hookform/resolvers@5.2.2(react-hook-form@7.71.2):
+    resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.71.2(react@19.2.3)
+    dev: false
 
   /@humanfs/core@0.19.1:
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}

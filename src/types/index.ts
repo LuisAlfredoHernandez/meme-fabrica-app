@@ -18,9 +18,6 @@ export interface KpiResumen {
 }
 
 // ─── Enumeraciones ───────────────────────────────────────────
-
-export type RolUsuario = "admin" | "subjefe" | "operario";
-
 export type EstadoOrden =
   | "pendiente"
   | "en_proceso"
@@ -55,24 +52,23 @@ export type TipoProducto =
   | "otro";
 
 // ─── Entidades Base ──────────────────────────────────────────
+export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf"] as const;
+export type TipoMaquina = typeof MAQUINAS_LIST[number]; // Esto genera el tipo automáticamente
 
-export type TipoMaquina =
-  | "merrow"
-  | "cover"
-  | "plana"
-  | "corte"
-  | "peso"
-  | "plancha_dtf";
+export const ROLSUSUARIO = ["admin", "subjefe", "operario"] as const;
+export type RolUsuario = typeof ROLSUSUARIO[number];
+
+export const STATUS = ["activo", "pendiente", "inactivo", "terminado"] as const;
+export type Status = typeof STATUS[number]
+
 
 export interface HabilidadMaquinaria {
   maquina: TipoMaquina;
   nivelEficiencia: number; // porcentaje 0-100
 }
 
-export type Status = "activo" | "pendiente" | "inactivo" | "terminado";
-
 export interface Usuario {
-  id: string;
+  id?: string;
   nombre: string;
   apellido: string;
   correo: string;
@@ -85,7 +81,7 @@ export interface Usuario {
 export interface Operario extends Usuario {
   /** Máquinas que el operario está certificado para usar */
   habilidades: HabilidadMaquinaria[];
-  maquinaActual?: string;
+  maquinaActual?: TipoMaquina;
   ordenActual?: string;
   /** Etapas en las que tiene experiencia */
   // etapasEspecializacion: HabilidadEtapa[];
