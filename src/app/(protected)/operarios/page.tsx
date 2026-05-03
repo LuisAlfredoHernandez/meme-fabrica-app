@@ -55,9 +55,9 @@ export default function OperariosPage() {
     const [modalAbierto, setModalAbierto] = useState(false);
 
     const handleConfirmarAsignacion = async (maquina: string, orden: string) => {
-        if (!asignando) return;
+        if (!asignando || !asignando.id) return;
         await updateOperario(asignando.id, {
-            maquinaActual: maquina,
+            maquinaActual: maquina as TipoMaquina,
             ordenActual: orden,
             estado: "activo" // Al asignar tarea, pasa a estar activo automáticamente
         });

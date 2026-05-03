@@ -95,7 +95,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         }
     };
 
-    const onInvalidSubmit = (errors: any) => {
+    const onInvalidSubmit = (errors: unknown) => {
         console.error("🚨 Error de Validación en Formulario Operarios:", {
             timestamp: new Date().toISOString(),
             errors, // Aquí verás qué campo falló y por qué (Zod error messages)

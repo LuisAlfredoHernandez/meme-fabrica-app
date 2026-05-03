@@ -9,7 +9,7 @@ export const usuarioSchema = z.object({
     correo: z.email("Correo electrónico inválido"),
     rol: z.enum(USUARIO_ROL),
     estado: z.enum(USUARIO_STATUS),
-    password: z.string().optional().nullish(), // Opcional para ediciones
+    password: z.string().optional(), // Opcional para ediciones
 });
 
 // 2. Esquema de Habilidad (coincide con HabilidadMaquinaria)

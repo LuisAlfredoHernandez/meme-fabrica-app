@@ -4,7 +4,7 @@ import { useMaquinasStore } from "@/features/maquinas/store/useMaquinasStore";
 import { Maquina, MaquinaStatus } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { FieldErrors, useForm } from "react-hook-form";
 
 export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, onClose: () => void }) {
     const { actions } = useMaquinasStore();
@@ -13,10 +13,9 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
     const { register, handleSubmit, setValue, watch, getValues, formState: { errors } } = useForm<MaquinaFormData>({
         resolver: zodResolver(maquinaSchema),
         defaultValues: {
-            id: maquina?.id || "",
-            codigo: maquina?.codigo || "",
             nombre: maquina?.nombre || "",
-            estado: maquina?.estado || "activa",
+            codigo: maquina?.codigo || "",
+            estado: maquina?.estado || "inactiva",
             modelo: maquina?.modelo || "",
             serie: maquina?.serie || "",
             capacidadPorHora: maquina?.capacidadPorHora || 0,
@@ -33,7 +32,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                 await actions.updateMaquina(maquina.id, data as Maquina);
             } else {
                 const { id, ...dataToCreate } = data;
-                await actions.createMaquina(dataToCreate as any);
+                await actions.createMaquina(dataToCreate);
             }
             onClose();
         } catch (error) {
@@ -41,7 +40,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
         }
     };
 
-    const onInvalidSubmit = (errors: any) => {
+    const onInvalidSubmit = (errors: FieldErrors<MaquinaFormData>) => {
         console.error("🚨 Error de Validación:", { errors, currentValues: getValues() });
     };
 
