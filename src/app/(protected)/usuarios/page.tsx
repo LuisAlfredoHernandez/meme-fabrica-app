@@ -8,12 +8,8 @@ import {
     UserCog, Trash2, Mail, Clock, Users
 } from "lucide-react";
 import { ModalGestionOperario } from "@/app/(protected)/operarios/componentes/ModalGestionOperarios";
+import { AppColors } from "@/shared/constants";
 
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", violet: "#818cf8", emerald: "#34d399",
-    slate: "#475569", red: "#f87171"
-};
 
 const ROL_CFG: Record<string, { label: string; color: string; icon: any }> = {
     admin: { label: "Dueño / Admin", color: "#f97316", icon: ShieldCheck },
@@ -29,7 +25,7 @@ export default function UsuariosPage() {
     // Mock local para la vista
     const [usuarios, setUsuarios] = useState([
         { id: "u1", nombre: "Luis", apellido: "Hernández", email: "l.hernandez@memefabrica.com", rol: "admin", estado: "activo", ultimaConexion: "Hace 10 min" },
-        { id: "u2", nombre: "Carmen", apellido: "Méndez", email: "c.mendez@memefabrica.com", rol: "subjefe", estado: "activo", ultimaConexion: "Ayer" },
+        { id: "u2", nombre: "Carmen", apellido: "Méndez", email: "AppColors.mendez@memefabrica.com", rol: "subjefe", estado: "activo", ultimaConexion: "Ayer" },
         { id: "u3", nombre: "Josué", apellido: "Reyes", email: "j.reyes@memefabrica.com", rol: "operario", estado: "inactivo", ultimaConexion: "Hace 3 días" },
     ]);
 
@@ -49,7 +45,7 @@ export default function UsuariosPage() {
             )}
 
             {/* Header Principal */}
-            <div className="px-6 py-5 border-b flex items-center justify-between bg-[#13161e]" style={{ borderColor: C.border }}>
+            <div className="px-6 py-5 border-b flex items-center justify-between bg-[#13161e]" style={{ borderColor: AppColors.border }}>
                 <div>
                     <h1 className="text-lg font-black text-white uppercase tracking-tighter">Gestión de Usuarios</h1>
                     <p className="text-xs mt-0.5 text-slate-500 font-medium">Control de accesos y permisos de plataforma</p>
@@ -67,10 +63,10 @@ export default function UsuariosPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
                         { label: "Cuentas Totales", valor: usuarios.length, icon: Users, color: "#fff" },
-                        { label: "Administradores", valor: usuarios.filter(u => u.rol !== 'operario').length, icon: ShieldCheck, color: C.orange },
-                        { label: "Sesiones Activas", valor: usuarios.filter(u => u.estado === 'activo').length, icon: Clock, color: C.emerald },
+                        { label: "Administradores", valor: usuarios.filter(u => u.rol !== 'operario').length, icon: ShieldCheck, color: AppColors.orange },
+                        { label: "Sesiones Activas", valor: usuarios.filter(u => u.estado === 'activo').length, icon: Clock, color: AppColors.emerald },
                     ].map((s, i) => (
-                        <div key={i} className="p-4 rounded-2xl border bg-[#13161e]/50 flex items-center gap-4" style={{ borderColor: C.border }}>
+                        <div key={i} className="p-4 rounded-2xl border bg-[#13161e]/50 flex items-center gap-4" style={{ borderColor: AppColors.border }}>
                             <div className="p-3 rounded-xl bg-white/5"><s.icon className="w-5 h-5" style={{ color: s.color }} /></div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{s.label}</p>
@@ -92,10 +88,10 @@ export default function UsuariosPage() {
                 </div>
 
                 {/* Tabla de Usuarios */}
-                <div className="rounded-2xl border bg-[#13161e] overflow-hidden" style={{ borderColor: C.border }}>
+                <div className="rounded-2xl border bg-[#13161e] overflow-hidden" style={{ borderColor: AppColors.border }}>
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b" style={{ borderColor: C.border, background: "rgba(255,255,255,0.02)" }}>
+                            <tr className="border-b" style={{ borderColor: AppColors.border, background: "rgba(255,255,255,0.02)" }}>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Usuario</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rol / Permisos</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Estado</th>

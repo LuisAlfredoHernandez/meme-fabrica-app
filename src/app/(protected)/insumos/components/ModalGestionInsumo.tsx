@@ -3,13 +3,8 @@ import { useRef, useState } from "react";
 import { X, Search, PlusCircle, MinusCircle, Trash2, RefreshCcw, AlertCircle } from "lucide-react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { normalizeText } from "@/utils/formatters";
+import { AppColors } from "@/shared/constants";
 
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", violet: "#818cf8", slate: "#475569",
-    inputBg: "#0d1018"
-};
 
 type OperationMode = "entrada" | "salida" | "eliminar";
 
@@ -101,15 +96,15 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
             )}
 
             <div className="w-full max-w-md flex flex-col rounded-2xl shadow-2xl overflow-hidden border"
-                style={{ background: C.surface, borderColor: C.border }}>
+                style={{ background: AppColors.surface, borderColor: AppColors.border }}>
 
                 {/* Header Dinámico */}
-                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: C.border }}>
+                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: AppColors.border }}>
                     <div>
                         <h2 className="font-bold text-white text-lg">Movimiento de Stock</h2>
-                        <p className="text-[11px]" style={{ color: C.slate }}>Gestión de inventario Meme Fábricas</p>
+                        <p className="text-[11px]" style={{ color: AppColors.slate }}>Gestión de inventario Meme Fábricas</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors" style={{ color: C.slate }}>
+                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors" style={{ color: AppColors.slate }}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -117,7 +112,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                 <div className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: '80vh' }}>
 
                     {/* SELECTOR DE OPERACIÓN (MODO) */}
-                    <div className="grid grid-cols-3 gap-2 p-1 rounded-xl" style={{ background: C.inputBg }}>
+                    <div className="grid grid-cols-3 gap-2 p-1 rounded-xl" style={{ background: AppColors.inputBg }}>
                         <button
                             onClick={() => setMode("entrada")}
                             className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${mode === "entrada" ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-500'}`}>
@@ -153,7 +148,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
 
                         <div className="relative group">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                <Search className="w-4 h-4" style={{ color: isOpen ? C.orange : C.slate }} />
+                                <Search className="w-4 h-4" style={{ color: isOpen ? AppColors.orange : AppColors.slate }} />
                             </div>
                             <input
                                 value={query}
@@ -170,8 +165,8 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                 placeholder="Escribe para buscar o crear..."
                                 className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border transition-all"
                                 style={{
-                                    background: C.inputBg,
-                                    borderColor: !isExisting && query.length > 2 ? `${C.emerald}40` : (isOpen ? C.orange : C.border)
+                                    background: AppColors.inputBg,
+                                    borderColor: !isExisting && query.length > 2 ? `${AppColors.emerald}40` : (isOpen ? AppColors.orange : AppColors.border)
                                 }}
                             />
 
@@ -186,7 +181,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                         {/* Dropdown flotante (Sin cambios) */}
                         {isOpen && filteredInsumos.length > 0 && (
                             <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
-                                style={{ background: "#1a1f2e", borderColor: C.border }}>
+                                style={{ background: "#1a1f2e", borderColor: AppColors.border }}>
                                 {filteredInsumos.map((ins) => (
                                     <button
                                         key={ins.id}
@@ -208,7 +203,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                         }}>
                                         <div className="flex flex-col">
                                             <span className="font-medium">{ins.nombre}</span>
-                                            <span className="text-[10px]" style={{ color: C.slate }}>Stock: {ins.stock} {ins.unidad}</span>
+                                            <span className="text-[10px]" style={{ color: AppColors.slate }}>Stock: {ins.stock} {ins.unidad}</span>
                                         </div>
                                         <RefreshCcw className="w-4 h-4 text-orange-500 opacity-0 group-hover:opacity-100" />
                                     </button>
@@ -228,7 +223,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                         value={form.tipo}
                                         onChange={e => setField("tipo", e.target.value)}
                                         className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        style={{ background: C.inputBg, borderColor: C.border }}>
+                                        style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
                                         <option value="tela">Tela</option>
                                         <option value="accesorio">Accesorio</option>
                                     </select>
@@ -240,7 +235,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                         value={form.unidad}
                                         onChange={e => setField("unidad", e.target.value)}
                                         className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        style={{ background: C.inputBg, borderColor: C.border }}>
+                                        style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
                                         {["metros", "unidades", "rollos", "kg"].map(u => <option key={u} value={u}>{u}</option>)}
                                     </select>
                                 </div>
@@ -248,18 +243,18 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold px-1" style={{ color: mode === "entrada" ? C.emerald : C.orange }}>
+                                    <label className="text-xs font-semibold px-1" style={{ color: mode === "entrada" ? AppColors.emerald : AppColors.orange }}>
                                         Cantidad a {mode === "entrada" ? "sumar" : "retirar"}
                                     </label>
                                     <input type="number" value={form.cantidad} onChange={e => setField("cantidad", e.target.value)}
                                         className="w-full h-11 px-4 rounded-xl text-white text-sm focus:outline-none border transition-all"
-                                        style={{ background: C.inputBg, borderColor: form.cantidad > 0 ? (mode === "entrada" ? C.emerald : C.orange) : C.border }} />
+                                        style={{ background: AppColors.inputBg, borderColor: form.cantidad > 0 ? (mode === "entrada" ? AppColors.emerald : AppColors.orange) : AppColors.border }} />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Mínimo Crítico</label>
                                     <input type="number" value={form.minimo} onChange={e => setField("minimo", e.target.value)}
                                         className="w-full h-11 px-4 rounded-xl text-white text-sm border"
-                                        style={{ background: C.inputBg, borderColor: C.border }} />
+                                        style={{ background: AppColors.inputBg, borderColor: AppColors.border }} />
                                 </div>
                             </div>
                         </>
@@ -276,20 +271,20 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                             <input value={form.proveedor} onChange={e => setField("proveedor", e.target.value)}
                                 placeholder="Nombre del proveedor"
                                 className="w-full h-11 px-4 rounded-xl text-white text-sm border"
-                                style={{ background: C.inputBg, borderColor: C.border }} />
+                                style={{ background: AppColors.inputBg, borderColor: AppColors.border }} />
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3 px-6 py-5 bg-black/20 border-t" style={{ borderColor: C.border }}>
-                    <button onClick={onClose} className="flex-1 h-12 rounded-xl border text-sm font-semibold text-slate-400 hover:bg-white/5 transition-colors" style={{ borderColor: C.border }}>
+                <div className="flex gap-3 px-6 py-5 bg-black/20 border-t" style={{ borderColor: AppColors.border }}>
+                    <button onClick={onClose} className="flex-1 h-12 rounded-xl border text-sm font-semibold text-slate-400 hover:bg-white/5 transition-colors" style={{ borderColor: AppColors.border }}>
                         Cancelar
                     </button>
                     <button
                         onClick={() => (mode !== "entrada" ? setShowConfirm(true) : handleAction())}
                         className="flex-1 h-12 rounded-xl text-white text-sm font-bold shadow-lg transition-all active:scale-95"
-                        style={{ background: mode === "entrada" ? C.emerald : mode === "salida" ? C.orange : C.red }}>
+                        style={{ background: mode === "entrada" ? AppColors.emerald : mode === "salida" ? AppColors.orange : AppColors.red }}>
                         {mode === "entrada" ? "Registrar Entrada" : mode === "salida" ? "Retirar Stock" : "Eliminar Todo"}
                     </button>
                 </div>

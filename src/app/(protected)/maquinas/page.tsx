@@ -1,27 +1,26 @@
 "use client";
-import { useMaquinasStore } from "@/features/maquinas/store/useMaquinasStore";
+import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
 import { ModalGestionMaquina } from "./componentes/ModalGestionMaquina";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Maquina } from "@/types";
 import { Plus, Settings, } from "lucide-react";
 import { StatusBadge } from "./componentes/StatusBadge.";
 import { MetricCard } from "./componentes/MetricCard";
+import { AppColors } from "@/shared/constants";
+
 
 export default function MaquinasPage() {
     const { maquinas } = useMaquinasStore();
+    const { fetchMaquinas } = useMaquinasActions()
     const [selectedMaquina, setSelectedMaquina] = useState<Maquina | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-
-    const C = {
-        bg: "#080b10", surface: "#13161e", border: "#1e2130",
-        orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-        red: "#f87171", slate: "#475569", inputBg: "#0d1018"
-    };
-
+    useEffect(() => {
+        fetchMaquinas();
+    }, [fetchMaquinas]);
 
     return (
-        <div className="min-h-screen p-8 text-white" style={{ background: C.bg }}>
+        <div className="min-h-screen p-8 text-white" style={{ background: AppColors.bg }}>
             {/* Header de Pantalla */}
             <div className="flex justify-between items-center mb-8">
                 <div>
@@ -31,7 +30,7 @@ export default function MaquinasPage() {
                 <button
                     onClick={() => { setSelectedMaquina(null); setIsModalOpen(true); }}
                     className="px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20"
-                    style={{ background: C.orange }}
+                    style={{ background: AppColors.orange }}
                 >
                     <Plus className="w-5 h-5" /> Nueva máquina
                 </button>
@@ -40,16 +39,16 @@ export default function MaquinasPage() {
             {/* Cards de Métricas */}
             <div className="grid grid-cols-4 gap-6 mb-8">
                 <MetricCard title="Total Equipos" value={maquinas.length} />
-                <MetricCard title="Activas" value={maquinas.filter(m => m.estado === 'activa').length} color={C.emerald} />
-                <MetricCard title="En Mantenimiento" value={maquinas.filter(m => m.estado === 'inactiva').length} color={C.amber} />
-                <MetricCard title="Depreciadas" value={maquinas.filter(m => m.estado === 'depreciada').length} color={C.red} />
+                <MetricCard title="Activas" value={maquinas.filter(m => m.estado === 'activa').length} color={AppColors.emerald} />
+                <MetricCard title="En Mantenimiento" value={maquinas.filter(m => m.estado === 'inactiva').length} color={AppColors.amber} />
+                <MetricCard title="Depreciadas" value={maquinas.filter(m => m.estado === 'depreciada').length} color={AppColors.red} />
             </div>
 
             {/* Tabla Estilo Insumos */}
-            <div className="rounded-2xl border overflow-hidden" style={{ background: C.surface, borderColor: C.border }}>
+            <div className="rounded-2xl border overflow-hidden" style={{ background: AppColors.surface, borderColor: AppColors.border }}>
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b" style={{ borderColor: C.border }}>
+                        <tr className="border-b" style={{ borderColor: AppColors.border }}>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">ID / Nombre</th>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Modelo</th>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Estado</th>

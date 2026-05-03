@@ -6,12 +6,8 @@ import { useOperarioActions } from "@/features/operarios/store/useOperarioStore"
 import { Operario, TipoMaquina } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OperarioFormData, operarioSchema } from "@/features/operarios/schemas/operario.schema";
+import { AppColors } from "@/shared/constants";
 
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", slate: "#475569", inputBg: "#0d1018"
-};
 
 const MAQUINAS_OPTIONS: { id: TipoMaquina; label: string; color: string }[] = [
     { id: "merrow", label: "Merrow", color: "#f97316" },
@@ -126,17 +122,17 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
             <form onSubmit={handleSubmit(onActualSubmit, onInvalidSubmit)}
                 className="w-full max-w-md flex flex-col rounded-2xl shadow-2xl overflow-hidden border"
-                style={{ background: C.surface, borderColor: C.border }}>
+                style={{ background: AppColors.surface, borderColor: AppColors.border }}>
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: C.border }}>
+                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: AppColors.border }}>
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-orange-500/10">
                             <User className="w-5 h-5 text-orange-500" />
                         </div>
                         <div>
                             <h2 className="font-bold text-white text-lg">Gestión de Operarios</h2>
-                            <p className="text-[11px]" style={{ color: C.slate }}>Panel de RRHH · Meme Fábricas</p>
+                            <p className="text-[11px]" style={{ color: AppColors.slate }}>Panel de RRHH · Meme Fábricas</p>
                         </div>
                     </div>
                 </div>
@@ -178,7 +174,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                         {isOpen && filteredOperarios.length > 0 && (
                             <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
-                                style={{ background: "#1a1f2e", borderColor: C.border }}>
+                                style={{ background: "#1a1f2e", borderColor: AppColors.border }}>
                                 {filteredOperarios.map((op) => (
                                     <button
                                         type="button"
@@ -278,7 +274,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                         }}
                                     >
                                         <div className="w-1.5 h-1.5 rounded-full transition-transform group-hover:scale-125"
-                                            style={{ background: activo ? m.color : C.slate }} />
+                                            style={{ background: activo ? m.color : AppColors.slate }} />
 
                                         <span className={`text-[11px] font-bold transition-colors ${activo ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`}>
                                             {m.label}
@@ -295,7 +291,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                     <button type="button" onClick={onClose} className="flex-1 h-12 rounded-xl border border-[#1e2130] text-sm font-semibold text-slate-400 hover:bg-white/5 cursor-pointer">
                         Cancelar
                     </button>
-                    <button type="submit" className="flex-[2] h-12 rounded-xl text-white text-sm font-bold shadow-lg cursor-pointer transition-transform active:scale-95" style={{ background: C.orange }}>
+                    <button type="submit" className="flex-[2] h-12 rounded-xl text-white text-sm font-bold shadow-lg cursor-pointer transition-transform active:scale-95" style={{ background: AppColors.orange }}>
                         {isExisting ? "Guardar Cambios" : "Crear Operario"}
                     </button>
                 </div>

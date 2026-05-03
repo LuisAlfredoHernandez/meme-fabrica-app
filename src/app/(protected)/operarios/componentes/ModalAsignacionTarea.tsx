@@ -2,12 +2,8 @@
 import { useState } from "react";
 import { X, Cpu, Hash, CheckCircle2, AlertCircle, Plus } from "lucide-react";
 import { Operario } from "@/types";
+import { AppColors } from "@/shared/constants";
 
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", slate: "#475569",
-    inputBg: "#0d1018"
-};
 
 // Configuración de máquinas (metadatos visuales)
 const MAQUINAS_CFG: Record<string, { label: string; color: string }> = {
@@ -50,10 +46,10 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div className="w-full max-w-md flex flex-col rounded-3xl shadow-2xl overflow-hidden border"
-                style={{ background: C.surface, borderColor: C.border }}>
+                style={{ background: AppColors.surface, borderColor: AppColors.border }}>
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: C.border }}>
+                <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: AppColors.border }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500 font-black">
                             {operario.nombre[0]}{operario.apellido[0]}
@@ -86,8 +82,8 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                             onClick={() => setSelectedMaq(`${key.toUpperCase()}-01`)} // Simulación de ID de estación
                                             className="flex items-center justify-between p-3 rounded-2xl border-2 transition-all text-left"
                                             style={{
-                                                borderColor: isSelected ? cfg.color : C.border,
-                                                background: isSelected ? `${cfg.color}15` : C.inputBg
+                                                borderColor: isSelected ? cfg.color : AppColors.border,
+                                                background: isSelected ? `${cfg.color}15` : AppColors.inputBg
                                             }}
                                         >
                                             <div className="min-w-0">
@@ -141,7 +137,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                         onClick={handleConfirmar}
                         disabled={!selectedMaq || !selectedOrd}
                         className="w-full h-12 rounded-2xl text-white text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
-                        style={{ background: C.orange }}
+                        style={{ background: AppColors.orange }}
                     >
                         Confirmar Asignación
                     </button>

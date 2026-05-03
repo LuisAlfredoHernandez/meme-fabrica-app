@@ -12,12 +12,7 @@ import {
     BarChart3, TrendingUp, Activity,
     Zap, Users, Package,
 } from "lucide-react";
-
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", violet: "#818cf8", sky: "#38bdf8", slate: "#475569",
-};
+import { AppColors } from "@/shared/constants";
 
 // ── Mock data ─────────────────────────────────────────────────
 
@@ -46,7 +41,7 @@ const MAQUINAS_USO = [
 const OPERARIOS_RENDIMIENTO = [
     { nombre: "Carmen M.", eficiencia: 88, piezasHoy: 42, estado: "activo" },
     { nombre: "María S.", eficiencia: 91, piezasHoy: 55, estado: "activo" },
-    { nombre: "Luis C.", eficiencia: 95, piezasHoy: 48, estado: "activo" },
+    { nombre: "Luis AppColors.", eficiencia: 95, piezasHoy: 48, estado: "activo" },
     { nombre: "Rafael N.", eficiencia: 82, piezasHoy: 35, estado: "activo" },
     { nombre: "Josué R.", eficiencia: 74, piezasHoy: 28, estado: "activo" },
     { nombre: "Paola H.", eficiencia: 0, piezasHoy: 0, estado: "ausente" },
@@ -55,7 +50,7 @@ const OPERARIOS_RENDIMIENTO = [
 const TooltipCustom = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
-        <div className="p-3 rounded-xl text-xs shadow-2xl" style={{ background: "#1a1d28", border: `1px solid ${C.border}` }}>
+        <div className="p-3 rounded-xl text-xs shadow-2xl" style={{ background: "#1a1d28", border: `1px solid ${AppColors.border}` }}>
             <p className="mb-2 font-medium" style={{ color: "#64748b" }}>{label}</p>
             {payload.map((p: any) => (
                 <div key={p.dataKey} className="flex justify-between gap-4 mb-1">
@@ -85,16 +80,16 @@ export default function DashboardPage() {
 
             {/* Header de página */}
             <div className="px-6 py-5 border-b flex items-center justify-between"
-                style={{ borderColor: C.border, background: C.surface }}>
+                style={{ borderColor: AppColors.border, background: AppColors.surface }}>
                 <div>
                     <h1 className="text-lg font-black text-white">Dashboard de Producción</h1>
-                    <p className="text-xs mt-0.5 capitalize" style={{ color: C.slate }}>{fecha} · {hora}</p>
+                    <p className="text-xs mt-0.5 capitalize" style={{ color: AppColors.slate }}>{fecha} · {hora}</p>
                 </div>
-                <div className="flex gap-1 p-1 rounded-xl" style={{ background: "#0d1018", border: `1px solid ${C.border}` }}>
+                <div className="flex gap-1 p-1 rounded-xl" style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
                     {(["semana", "mes"] as const).map(p => (
                         <button key={p} onClick={() => setPeriodo(p)}
                             className="px-4 py-2 rounded-lg text-xs font-semibold transition-all capitalize"
-                            style={{ background: periodoTab === p ? C.orange : "transparent", color: periodoTab === p ? "#fff" : C.slate }}>
+                            style={{ background: periodoTab === p ? AppColors.orange : "transparent", color: periodoTab === p ? "#fff" : AppColors.slate }}>
                             Esta {p}
                         </button>
                     ))}
@@ -106,19 +101,19 @@ export default function DashboardPage() {
                 {/* RF8: KPIs globales */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { label: "Piezas producidas hoy", valor: totalHoy, unidad: "de " + metaHoy + " meta", icon: <Package className="w-5 h-5" />, color: C.orange, trend: "+8% vs ayer" },
-                        { label: "Eficiencia global", valor: `${efGlobal}%`, unidad: "esta semana", icon: <Zap className="w-5 h-5" />, color: C.emerald, trend: "↑ mejorando" },
-                        { label: "Operarios activos", valor: OPERARIOS_RENDIMIENTO.filter(o => o.estado === "activo").length, unidad: `de ${OPERARIOS_RENDIMIENTO.length} total`, icon: <Users className="w-5 h-5" />, color: C.sky, trend: "1 ausente" },
-                        { label: "Máquinas en uso", valor: maqsActivas, unidad: "1 en mantenimiento", icon: <Activity className="w-5 h-5" />, color: C.amber, trend: "CORTE-02 offline" },
+                        { label: "Piezas producidas hoy", valor: totalHoy, unidad: "de " + metaHoy + " meta", icon: <Package className="w-5 h-5" />, color: AppColors.orange, trend: "+8% vs ayer" },
+                        { label: "Eficiencia global", valor: `${efGlobal}%`, unidad: "esta semana", icon: <Zap className="w-5 h-5" />, color: AppColors.emerald, trend: "↑ mejorando" },
+                        { label: "Operarios activos", valor: OPERARIOS_RENDIMIENTO.filter(o => o.estado === "activo").length, unidad: `de ${OPERARIOS_RENDIMIENTO.length} total`, icon: <Users className="w-5 h-5" />, color: AppColors.sky, trend: "1 ausente" },
+                        { label: "Máquinas en uso", valor: maqsActivas, unidad: "1 en mantenimiento", icon: <Activity className="w-5 h-5" />, color: AppColors.amber, trend: "CORTE-02 offline" },
                     ].map(k => (
                         <div key={k.label} className="rounded-2xl px-5 py-4 space-y-2"
-                            style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+                            style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-medium" style={{ color: C.slate }}>{k.label}</p>
+                                <p className="text-xs font-medium" style={{ color: AppColors.slate }}>{k.label}</p>
                                 <span style={{ color: k.color }}>{k.icon}</span>
                             </div>
                             <p className="text-3xl font-black font-mono" style={{ color: k.color }}>{k.valor}</p>
-                            <p className="text-xs" style={{ color: C.slate }}>{k.unidad}</p>
+                            <p className="text-xs" style={{ color: AppColors.slate }}>{k.unidad}</p>
                             <p className="text-xs font-semibold" style={{ color: k.color }}>{k.trend}</p>
                         </div>
                     ))}
@@ -128,19 +123,19 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
                     {/* RF9: Real vs Meta */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                        <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: C.border }}>
-                            <BarChart3 className="w-5 h-5" style={{ color: C.orange }} />
+                    <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
+                        <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
+                            <BarChart3 className="w-5 h-5" style={{ color: AppColors.orange }} />
                             <h3 className="font-bold text-white text-sm">Producción Real vs Meta — RF9</h3>
                         </div>
                         <div className="p-5">
                             <ResponsiveContainer width="100%" height={200}>
                                 <ComposedChart data={DATOS_SEMANA} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={AppColors.border} vertical={false} />
                                     <XAxis dataKey="d" tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <YAxis tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <Tooltip content={<TooltipCustom />} />
-                                    <Bar dataKey="real" name="Real" fill={C.orange} radius={[4, 4, 0, 0]} fillOpacity={0.9} />
+                                    <Bar dataKey="real" name="Real" fill={AppColors.orange} radius={[4, 4, 0, 0]} fillOpacity={0.9} />
                                     <Line type="monotone" dataKey="meta" name="Meta" stroke="#475569" strokeWidth={2} strokeDasharray="4 3" dot={false} />
                                 </ComposedChart>
                             </ResponsiveContainer>
@@ -148,51 +143,51 @@ export default function DashboardPage() {
                     </div>
 
                     {/* RF10: MTO vs MTS */}
-                    <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                        <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: C.border }}>
-                            <TrendingUp className="w-5 h-5" style={{ color: C.violet }} />
+                    <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
+                        <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
+                            <TrendingUp className="w-5 h-5" style={{ color: AppColors.violet }} />
                             <h3 className="font-bold text-white text-sm">Comparativa MTO vs MTS — RF10</h3>
                         </div>
                         <div className="p-5">
                             <ResponsiveContainer width="100%" height={200}>
                                 <BarChart data={DATOS_SEMANA} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={AppColors.border} vertical={false} />
                                     <XAxis dataKey="d" tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <YAxis tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <Tooltip content={<TooltipCustom />} />
-                                    <Bar dataKey="mto" name="MTO (Pedido)" stackId="a" fill={C.violet} radius={[0, 0, 0, 0]} />
-                                    <Bar dataKey="mts" name="MTS (Stock)" stackId="a" fill={C.sky} radius={[4, 4, 0, 0]} fillOpacity={0.8} />
+                                    <Bar dataKey="mto" name="MTO (Pedido)" stackId="a" fill={AppColors.violet} radius={[0, 0, 0, 0]} />
+                                    <Bar dataKey="mts" name="MTS (Stock)" stackId="a" fill={AppColors.sky} radius={[4, 4, 0, 0]} fillOpacity={0.8} />
                                 </BarChart>
                             </ResponsiveContainer>
                             <div className="flex gap-4 mt-2 text-xs" style={{ color: "#475569" }}>
-                                <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm inline-block" style={{ background: C.violet }} /> MTO</span>
-                                <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm inline-block" style={{ background: C.sky }} /> MTS</span>
+                                <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm inline-block" style={{ background: AppColors.violet }} /> MTO</span>
+                                <span className="flex items-center gap-1.5"><span className="w-3 h-2.5 rounded-sm inline-block" style={{ background: AppColors.sky }} /> MTS</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* RF11: Utilización de maquinaria */}
-                <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                    <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: C.border }}>
-                        <Activity className="w-5 h-5" style={{ color: C.sky }} />
+                <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
+                    <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
+                        <Activity className="w-5 h-5" style={{ color: AppColors.sky }} />
                         <h3 className="font-bold text-white text-sm">Utilización de Maquinaria — RF11</h3>
                     </div>
                     <div className="p-5">
                         <div className="space-y-3">
                             {MAQUINAS_USO.map(m => {
-                                const color = m.estado === "mantenimiento" ? C.red : m.uso >= 90 ? C.red : m.uso >= 70 ? C.amber : m.uso >= 40 ? C.orange : C.slate;
+                                const color = m.estado === "mantenimiento" ? AppColors.red : m.uso >= 90 ? AppColors.red : m.uso >= 70 ? AppColors.amber : m.uso >= 40 ? AppColors.orange : AppColors.slate;
                                 return (
                                     <div key={m.codigo} className="flex items-center gap-4">
                                         <div className="w-24 shrink-0">
                                             <p className="text-xs font-bold text-white">{m.codigo}</p>
-                                            <p className="text-xs" style={{ color: C.slate }}>{m.tipo}</p>
+                                            <p className="text-xs" style={{ color: AppColors.slate }}>{m.tipo}</p>
                                         </div>
                                         <div className="flex-1">
                                             {m.estado === "mantenimiento" ? (
                                                 <div className="h-2.5 rounded-full flex items-center px-2"
-                                                    style={{ background: `${C.red}20`, border: `1px dashed ${C.red}50` }}>
-                                                    <span className="text-[9px] font-bold" style={{ color: C.red }}>EN MANTENIMIENTO</span>
+                                                    style={{ background: `${AppColors.red}20`, border: `1px dashed ${AppColors.red}50` }}>
+                                                    <span className="text-[9px] font-bold" style={{ color: AppColors.red }}>EN MANTENIMIENTO</span>
                                                 </div>
                                             ) : (
                                                 <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "#1e293b" }}>
@@ -205,31 +200,31 @@ export default function DashboardPage() {
                                             <span className="text-sm font-black font-mono" style={{ color }}>{m.estado === "mantenimiento" ? "—" : `${m.uso}%`}</span>
                                         </div>
                                         <div className="w-16 text-right">
-                                            <span className="text-xs font-mono" style={{ color: C.slate }}>{m.piezasHoy > 0 ? `${m.piezasHoy} pzs` : "—"}</span>
+                                            <span className="text-xs font-mono" style={{ color: AppColors.slate }}>{m.piezasHoy > 0 ? `${m.piezasHoy} pzs` : "—"}</span>
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
                         <div className="mt-4 flex gap-4 text-xs" style={{ color: "#475569" }}>
-                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: C.red }} /> Saturada ≥90%</span>
-                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: C.amber }} /> Alta ≥70%</span>
-                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: C.orange }} /> Normal ≥40%</span>
-                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: C.slate }} /> Ociosa</span>
+                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: AppColors.red }} /> Saturada ≥90%</span>
+                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: AppColors.amber }} /> Alta ≥70%</span>
+                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: AppColors.orange }} /> Normal ≥40%</span>
+                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: AppColors.slate }} /> Ociosa</span>
                         </div>
                     </div>
                 </div>
 
                 {/* RF8: Rendimiento individual de operarios */}
-                <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                    <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: C.border }}>
-                        <Users className="w-5 h-5" style={{ color: C.emerald }} />
+                <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
+                    <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
+                        <Users className="w-5 h-5" style={{ color: AppColors.emerald }} />
                         <h3 className="font-bold text-white text-sm">Rendimiento Individual — RF8</h3>
                     </div>
                     <div className="p-5">
                         <div className="space-y-4">
                             {OPERARIOS_RENDIMIENTO.map(o => {
-                                const color = o.estado === "ausente" ? C.slate : o.eficiencia >= 90 ? C.emerald : o.eficiencia >= 75 ? C.orange : C.red;
+                                const color = o.estado === "ausente" ? AppColors.slate : o.eficiencia >= 90 ? AppColors.emerald : o.eficiencia >= 75 ? AppColors.orange : AppColors.red;
                                 return (
                                     <div key={o.nombre} className="flex items-center gap-4">
                                         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shrink-0"
@@ -241,7 +236,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="flex-1">
                                             {o.estado === "ausente"
-                                                ? <p className="text-xs" style={{ color: C.slate }}>Ausente</p>
+                                                ? <p className="text-xs" style={{ color: AppColors.slate }}>Ausente</p>
                                                 : (
                                                     <div className="h-2 rounded-full overflow-hidden" style={{ background: "#1e293b" }}>
                                                         <div className="h-full rounded-full" style={{ width: `${o.eficiencia}%`, background: color }} />
@@ -249,7 +244,7 @@ export default function DashboardPage() {
                                                 )}
                                         </div>
                                         <span className="w-12 text-right text-sm font-black font-mono" style={{ color }}>{o.estado === "ausente" ? "—" : `${o.eficiencia}%`}</span>
-                                        <span className="w-16 text-right text-xs font-mono" style={{ color: C.slate }}>{o.piezasHoy > 0 ? `${o.piezasHoy} pzs` : "—"}</span>
+                                        <span className="w-16 text-right text-xs font-mono" style={{ color: AppColors.slate }}>{o.piezasHoy > 0 ? `${o.piezasHoy} pzs` : "—"}</span>
                                     </div>
                                 );
                             })}

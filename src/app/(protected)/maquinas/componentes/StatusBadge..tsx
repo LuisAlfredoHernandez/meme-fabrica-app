@@ -1,16 +1,12 @@
+import { AppColors } from "@/shared/constants";
 import { MaquinaStatus } from "@/types";
 
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", slate: "#475569", inputBg: "#0d1018"
-};
 
 export function StatusBadge({ status }: { status: MaquinaStatus }) {
     const config = {
-        activa: { color: C.emerald, label: "Operativa" },
-        inactiva: { color: C.amber, label: "Mantenimiento" },
-        depreciada: { color: C.red, label: "Fuera de Servicio" }
+        activa: { color: AppColors.emerald, label: "Operativa" },
+        inactiva: { color: AppColors.amber, label: "Mantenimiento" },
+        depreciada: { color: AppColors.red, label: "Fuera de Servicio" }
     };
 
     return (

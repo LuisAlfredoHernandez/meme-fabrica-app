@@ -8,29 +8,24 @@ import {
     CheckCircle2, Wrench, Package,
     Scissors, ChevronRight, RotateCcw, Clock,
 } from "lucide-react";
-
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", violet: "#818cf8", slate: "#475569",
-};
+import { AppColors } from "@/shared/constants";
 
 type Incidencia = "falla_mecanica" | "falta_insumo" | "error_corte" | "ninguna";
 
 const INCIDENCIAS: { id: Incidencia; label: string; icon: React.ReactNode; color: string }[] = [
-    { id: "falla_mecanica", label: "Falla mecánica", icon: <Wrench className="w-6 h-6" />, color: C.red },
-    { id: "falta_insumo", label: "Falta de insumo", icon: <Package className="w-6 h-6" />, color: C.amber },
-    { id: "error_corte", label: "Error de corte", icon: <Scissors className="w-6 h-6" />, color: C.violet },
-    { id: "ninguna", label: "Sin incidencias", icon: <CheckCircle2 className="w-6 h-6" />, color: C.emerald },
+    { id: "falla_mecanica", label: "Falla mecánica", icon: <Wrench className="w-6 h-6" />, color: AppColors.red },
+    { id: "falta_insumo", label: "Falta de insumo", icon: <Package className="w-6 h-6" />, color: AppColors.amber },
+    { id: "error_corte", label: "Error de corte", icon: <Scissors className="w-6 h-6" />, color: AppColors.violet },
+    { id: "ninguna", label: "Sin incidencias", icon: <CheckCircle2 className="w-6 h-6" />, color: AppColors.emerald },
 ];
 
 // Contadores de piezas con botones grandes (táctil)
 function ContadorTactil({
-    label, value, onChange, color = C.orange,
+    label, value, onChange, color = AppColors.orange,
 }: { label: string; value: number; onChange: (v: number) => void; color?: string }) {
     const presets = [1, 5, 10, 25];
     return (
-        <div className="rounded-2xl overflow-hidden" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
             <div className="px-5 pt-4 pb-2">
                 <p className="text-sm font-semibold" style={{ color: "#94a3b8" }}>{label}</p>
                 <p className="text-5xl font-black font-mono mt-1" style={{ color }}>{value}</p>
@@ -92,16 +87,16 @@ export default function RegistroPage() {
             </div>
             <div className="text-center">
                 <p className="text-2xl font-black text-white">¡Registro guardado!</p>
-                <p className="text-sm mt-2" style={{ color: C.slate }}>{piezas} piezas registradas · {hora}</p>
+                <p className="text-sm mt-2" style={{ color: AppColors.slate }}>{piezas} piezas registradas · {hora}</p>
                 {incidencia !== "ninguna" && (
-                    <p className="text-sm mt-1" style={{ color: C.amber }}>
+                    <p className="text-sm mt-1" style={{ color: AppColors.amber }}>
                         Incidencia reportada: {INCIDENCIAS.find(i => i.id === incidencia)?.label}
                     </p>
                 )}
             </div>
             <button onClick={reiniciar}
                 className="flex items-center gap-2 h-14 px-8 rounded-2xl text-white font-bold text-base"
-                style={{ background: C.orange, boxShadow: `0 8px 24px ${C.orange}40` }}>
+                style={{ background: AppColors.orange, boxShadow: `0 8px 24px ${AppColors.orange}40` }}>
                 <RotateCcw className="w-5 h-5" /> Nuevo registro
             </button>
         </div>
@@ -111,15 +106,15 @@ export default function RegistroPage() {
         <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
             {/* Header */}
-            <div className="px-6 py-5 border-b" style={{ borderColor: C.border, background: C.surface }}>
+            <div className="px-6 py-5 border-b" style={{ borderColor: AppColors.border, background: AppColors.surface }}>
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-lg font-black text-white">Registrar Producción</h1>
-                        <p className="text-xs mt-0.5" style={{ color: C.slate }}>RF4 · RNF-04 — Máximo 3 interacciones</p>
+                        <p className="text-xs mt-0.5" style={{ color: AppColors.slate }}>RF4 · RNF-04 — Máximo 3 interacciones</p>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                        style={{ background: "#0d1018", border: `1px solid ${C.border}` }}>
-                        <Clock className="w-3.5 h-3.5" style={{ color: C.slate }} />
+                        style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
+                        <Clock className="w-3.5 h-3.5" style={{ color: AppColors.slate }} />
                         <span className="text-sm font-mono text-white">{hora}</span>
                     </div>
                 </div>
@@ -129,18 +124,18 @@ export default function RegistroPage() {
 
                 {/* Contexto del operario (siempre visible) */}
                 <div className="rounded-2xl px-5 py-4 flex items-center gap-4"
-                    style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+                    style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
                     <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shrink-0"
-                        style={{ background: `${C.orange}20`, color: C.orange }}>CM</div>
+                        style={{ background: `${AppColors.orange}20`, color: AppColors.orange }}>CM</div>
                     <div className="flex-1">
                         <p className="font-bold text-white">{operario.nombre}</p>
                         <div className="flex items-center gap-3 mt-1 flex-wrap">
                             <span className="text-xs font-mono px-2 py-0.5 rounded-full"
-                                style={{ background: `${C.orange}18`, color: C.orange }}>{operario.maquina}</span>
-                            <span className="text-xs" style={{ color: C.slate }}>{operario.orden}</span>
+                                style={{ background: `${AppColors.orange}18`, color: AppColors.orange }}>{operario.maquina}</span>
+                            <span className="text-xs" style={{ color: AppColors.slate }}>{operario.orden}</span>
                         </div>
                     </div>
-                    <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: C.emerald }} />
+                    <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: AppColors.emerald }} />
                 </div>
 
                 {/* Indicador de pasos */}
@@ -154,16 +149,16 @@ export default function RegistroPage() {
                             <div className="flex items-center gap-1.5 flex-1">
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
                                     style={{
-                                        background: paso > n ? C.emerald : paso === n ? C.orange : "#1e293b",
+                                        background: paso > n ? AppColors.emerald : paso === n ? AppColors.orange : "#1e293b",
                                         color: "#fff",
-                                        boxShadow: paso === n ? `0 0 0 4px ${C.orange}30` : "none",
+                                        boxShadow: paso === n ? `0 0 0 4px ${AppColors.orange}30` : "none",
                                     }}>
                                     {paso > n ? <CheckCircle2 className="w-4 h-4" /> : n}
                                 </div>
                                 <span className="text-xs font-medium hidden sm:block"
-                                    style={{ color: paso === n ? C.orange : paso > n ? C.emerald : "#475569" }}>{l}</span>
+                                    style={{ color: paso === n ? AppColors.orange : paso > n ? AppColors.emerald : "#475569" }}>{l}</span>
                             </div>
-                            {i < 2 && <div className="h-0.5 flex-1 rounded" style={{ background: paso > n ? C.emerald : C.border }} />}
+                            {i < 2 && <div className="h-0.5 flex-1 rounded" style={{ background: paso > n ? AppColors.emerald : AppColors.border }} />}
                         </div>
                     ))}
                 </div>
@@ -173,21 +168,21 @@ export default function RegistroPage() {
                     <div className="space-y-4">
                         <p className="text-base font-semibold text-white">¿Confirmas tu tarea actual?</p>
                         <div className="rounded-2xl p-5 space-y-3"
-                            style={{ background: "#0d1018", border: `1.5px solid ${C.border}` }}>
+                            style={{ background: "#0d1018", border: `1.5px solid ${AppColors.border}` }}>
                             {[
                                 { label: "Orden", valor: operario.orden },
                                 { label: "Máquina", valor: operario.maquina },
                                 { label: "Operario", valor: operario.nombre },
                             ].map(r => (
                                 <div key={r.label} className="flex justify-between items-center">
-                                    <span className="text-sm" style={{ color: C.slate }}>{r.label}</span>
+                                    <span className="text-sm" style={{ color: AppColors.slate }}>{r.label}</span>
                                     <span className="text-sm font-bold text-white">{r.valor}</span>
                                 </div>
                             ))}
                         </div>
                         <button onClick={() => setPaso(2)}
                             className="w-full h-16 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 transition-all active:scale-95"
-                            style={{ background: C.orange, boxShadow: `0 8px 24px ${C.orange}40` }}>
+                            style={{ background: AppColors.orange, boxShadow: `0 8px 24px ${AppColors.orange}40` }}>
                             ✓ Confirmar y continuar <ChevronRight className="w-5 h-5" />
                         </button>
                         <p className="text-center text-xs" style={{ color: "#334155" }}>
@@ -200,24 +195,24 @@ export default function RegistroPage() {
                 {paso === 2 && (
                     <div className="space-y-4">
                         <p className="text-base font-semibold text-white">¿Cuántas piezas terminaste?</p>
-                        <ContadorTactil label="Piezas producidas" value={piezas} onChange={setPiezas} color={C.orange} />
-                        <ContadorTactil label="Piezas defectuosas" value={defectuosas} onChange={v => setDefect(Math.min(v, piezas))} color={C.red} />
+                        <ContadorTactil label="Piezas producidas" value={piezas} onChange={setPiezas} color={AppColors.orange} />
+                        <ContadorTactil label="Piezas defectuosas" value={defectuosas} onChange={v => setDefect(Math.min(v, piezas))} color={AppColors.red} />
 
                         {piezas > 0 && (
                             <div className="px-4 py-3 rounded-xl flex items-center justify-between"
                                 style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                                <span className="text-sm" style={{ color: C.emerald }}>Piezas buenas</span>
-                                <span className="text-xl font-black font-mono" style={{ color: C.emerald }}>{piezas - defectuosas}</span>
+                                <span className="text-sm" style={{ color: AppColors.emerald }}>Piezas buenas</span>
+                                <span className="text-xl font-black font-mono" style={{ color: AppColors.emerald }}>{piezas - defectuosas}</span>
                             </div>
                         )}
 
                         <div className="flex gap-3">
                             <button onClick={() => setPaso(1)}
                                 className="h-14 px-6 rounded-2xl border font-semibold"
-                                style={{ borderColor: C.border, color: "#94a3b8" }}>Atrás</button>
+                                style={{ borderColor: AppColors.border, color: "#94a3b8" }}>Atrás</button>
                             <button onClick={() => setPaso(3)} disabled={piezas === 0}
                                 className="flex-1 h-14 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40"
-                                style={{ background: piezas > 0 ? C.orange : "#334155", boxShadow: piezas > 0 ? `0 6px 20px ${C.orange}40` : "none" }}>
+                                style={{ background: piezas > 0 ? AppColors.orange : "#334155", boxShadow: piezas > 0 ? `0 6px 20px ${AppColors.orange}40` : "none" }}>
                                 Siguiente <ChevronRight className="w-5 h-5" />
                             </button>
                         </div>
@@ -234,8 +229,8 @@ export default function RegistroPage() {
                                 <button key={inc.id} onClick={() => setIncidencia(inc.id)}
                                     className="flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all active:scale-95"
                                     style={{
-                                        borderColor: incidencia === inc.id ? inc.color : C.border,
-                                        background: incidencia === inc.id ? `${inc.color}12` : C.surface,
+                                        borderColor: incidencia === inc.id ? inc.color : AppColors.border,
+                                        background: incidencia === inc.id ? `${inc.color}12` : AppColors.surface,
                                     }}>
                                     <span style={{ color: incidencia === inc.id ? inc.color : "#475569" }}>{inc.icon}</span>
                                     <span className="text-sm font-semibold text-center"
@@ -245,17 +240,17 @@ export default function RegistroPage() {
                         </div>
 
                         {/* Resumen antes de guardar */}
-                        <div className="rounded-xl p-4 space-y-2" style={{ background: "#0d1018", border: `1px solid ${C.border}` }}>
-                            <p className="text-xs font-semibold mb-2" style={{ color: C.slate }}>Resumen del registro</p>
+                        <div className="rounded-xl p-4 space-y-2" style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
+                            <p className="text-xs font-semibold mb-2" style={{ color: AppColors.slate }}>Resumen del registro</p>
                             {[
-                                { l: "Piezas producidas", v: piezas, c: C.orange },
-                                { l: "Piezas buenas", v: piezas - defectuosas, c: C.emerald },
-                                { l: "Defectuosas", v: defectuosas, c: C.red },
-                                { l: "Incidencia", v: INCIDENCIAS.find(i => i.id === incidencia)?.label ?? "", c: "#94a3b8" },
+                                { l: "Piezas producidas", v: piezas, AppColors: AppColors.orange },
+                                { l: "Piezas buenas", v: piezas - defectuosas, AppColors: AppColors.emerald },
+                                { l: "Defectuosas", v: defectuosas, AppColors: AppColors.red },
+                                { l: "Incidencia", v: INCIDENCIAS.find(i => i.id === incidencia)?.label ?? "", AppColors: "#94a3b8" },
                             ].map(r => (
                                 <div key={r.l} className="flex justify-between">
-                                    <span className="text-xs" style={{ color: C.slate }}>{r.l}</span>
-                                    <span className="text-xs font-bold" style={{ color: r.c }}>{r.v}</span>
+                                    <span className="text-xs" style={{ color: AppColors.slate }}>{r.l}</span>
+                                    <span className="text-xs font-bold" style={{ color: r.AppColors }}>{r.v}</span>
                                 </div>
                             ))}
                         </div>
@@ -263,10 +258,10 @@ export default function RegistroPage() {
                         <div className="flex gap-3">
                             <button onClick={() => setPaso(2)}
                                 className="h-14 px-6 rounded-2xl border font-semibold"
-                                style={{ borderColor: C.border, color: "#94a3b8" }}>Atrás</button>
+                                style={{ borderColor: AppColors.border, color: "#94a3b8" }}>Atrás</button>
                             <button onClick={guardar} disabled={guardando}
                                 className="flex-1 h-14 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60"
-                                style={{ background: C.emerald, boxShadow: `0 6px 20px rgba(52,211,153,0.35)` }}>
+                                style={{ background: AppColors.emerald, boxShadow: `0 6px 20px rgba(52,211,153,0.35)` }}>
                                 {guardando ? "Guardando..." : <><CheckCircle2 className="w-5 h-5" /> Guardar registro</>}
                             </button>
                         </div>
