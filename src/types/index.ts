@@ -53,19 +53,16 @@ export type TipoProducto =
 
 // ─── Entidades Base ──────────────────────────────────────────
 export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf"] as const;
-export type TipoMaquina = typeof MAQUINAS_LIST[number]; // Esto genera el tipo automáticamente
+export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
-export const ROLSUSUARIO = ["admin", "subjefe", "operario"] as const;
-export type RolUsuario = typeof ROLSUSUARIO[number];
+export const MAQUINAS_STATUS_LIST = ["activa", "inactiva", "depreciada"] as const;
+export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
-export const STATUS = ["activo", "pendiente", "inactivo", "terminado"] as const;
-export type Status = typeof STATUS[number]
+export const USUARIO_ROL = ["admin", "subjefe", "operario"] as const;
+export type RolUsuario = typeof USUARIO_ROL[number];
 
-
-export interface HabilidadMaquinaria {
-  maquina: TipoMaquina;
-  nivelEficiencia: number; // porcentaje 0-100
-}
+export const USUARIO_STATUS = ["activo", "pendiente", "inactivo", "terminado"] as const;
+export type Status = typeof USUARIO_STATUS[number]
 
 export interface Usuario {
   id?: string;
@@ -87,15 +84,22 @@ export interface Operario extends Usuario {
   // etapasEspecializacion: HabilidadEtapa[];
 }
 
+export interface HabilidadMaquinaria {
+  maquina: TipoMaquina;
+  nivelEficiencia: number; // porcentaje 0-100
+}
+
 export interface Maquina {
   id: string;
   codigo: string; // ej: "MERROW-01"
   tipo: TipoMaquina;
   nombre: string;
   descripcion?: string;
+  modelo?: string;
+  serie?: string;
   capacidadPorHora: number; // piezas/hora estimadas
   operarioAsignado?: string; // Empleado.id
-  estado: "activa" | "mantenimiento" | "inactiva";
+  estado: MaquinaStatus;
   ultimoMantenimiento?: string; // ISO 8601
   horasUso: number; // total acumulado
   ubicacion?: string; // ej: "Zona A - Fila 2"

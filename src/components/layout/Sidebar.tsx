@@ -6,8 +6,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-    LayoutDashboard, ClipboardList, Users, ScanLine,
+    LayoutDashboard, ClipboardList, Users,
     Package, Brain, Settings, LogOut, Shield,
+    Factory,
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 const C = {
@@ -31,6 +32,7 @@ interface NavItem {
 const NAV: NavItem[] = [
     { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["admin", "subjefe"] },
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["admin", "subjefe"] },
+    { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["admin", "subjefe"] },
     // { href: "/registro", icon: <ScanLine className="w-5 h-5" />, label: "Registrar", desc: "Captura diaria", roles: ["admin", "subjefe", "operario"] },
     { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["admin", "subjefe"] },
     { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["admin", "subjefe"] },
@@ -78,7 +80,6 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
                 </div>
             </div>
 
-            {/* Nav items */}
             {/* Nav items */}
             <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 {itemsVisibles.map(item => {

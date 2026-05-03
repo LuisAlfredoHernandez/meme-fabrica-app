@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAQUINAS_LIST, ROLSUSUARIO, STATUS } from "@/types";
+import { MAQUINAS_LIST, USUARIO_ROL, USUARIO_STATUS } from "@/types";
 
 // 1. Esquema base que coincide con la interface Usuario
 export const usuarioSchema = z.object({
@@ -7,8 +7,8 @@ export const usuarioSchema = z.object({
     nombre: z.string().min(2, "El nombre es demasiado corto"),
     apellido: z.string().min(2, "El apellido es demasiado corto"),
     correo: z.email("Correo electrónico inválido"),
-    rol: z.enum(ROLSUSUARIO),
-    estado: z.enum(STATUS),
+    rol: z.enum(USUARIO_ROL),
+    estado: z.enum(USUARIO_STATUS),
     password: z.string().optional().nullish(), // Opcional para ediciones
 });
 

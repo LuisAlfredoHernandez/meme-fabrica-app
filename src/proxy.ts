@@ -24,5 +24,5 @@ export function proxy(request: NextRequest) {
 
 // Asegúrate de que el matcher cubra tus rutas protegidas
 export const config = {
-    matcher: ['/', '/dashboard/:path*', '/ordenes/:path*', '/insumos/:path*', '/operarios/:path*', '/usuarios/:path*'],
+    matcher: ['/', '/dashboard/:path*', '/ordenes/:path*', '/insumos/:path*', '/operarios/:path*', '/usuarios/:path*', '/maquinas/:path*'],
 };
