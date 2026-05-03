@@ -1,14 +1,16 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { maquinasService } from "@/features/maquinas/services/maquinas.service";
-import { Maquina } from "@/types";
+import { Maquina, TipoMaquina } from "@/types";
 
 interface MaquinasState {
     maquinas: Maquina[];
+    maquinaTypes: TipoMaquina[];
     isLoading: boolean;
     error: string | null;
     actions: {
         fetchMaquinas: () => Promise<void>;
+        fetchAllMaquinaTypes: () => Promise<void>;
         createMaquina: (data: Omit<Maquina, "id">) => Promise<boolean>;
         updateMaquina: (id: string, data: Partial<Maquina>) => Promise<boolean>;
         reset: () => void;
@@ -19,6 +21,7 @@ export const useMaquinasStore = create<MaquinasState>()(
     devtools(
         (set) => ({
             maquinas: [],
+            maquinaTypes: [],
             isLoading: false,
             error: null,
 
@@ -30,6 +33,16 @@ export const useMaquinasStore = create<MaquinasState>()(
                         set({ maquinas: data, isLoading: false }, false, "maquinas/fetch_success");
                     } catch (e) {
                         set({ isLoading: false, error: "Error al cargar máquinas" }, false, "maquinas/fetch_error");
+                    }
+                },
+
+                fetchAllMaquinaTypes: async () => {
+                    set({ isLoading: true, error: null }, false, "maquinasAllTypes/fetch_start");
+                    try {
+                        const data = await maquinasService.getAllTypes();
+                        set({ maquinaTypes: data, isLoading: false }, false, "maquinasAllTypes/fetch_success");
+                    } catch (e) {
+                        set({ isLoading: false, error: "Error al cargar los tipos de máquinas" }, false, "maquinasAllTypes/fetch_error");
                     }
                 },
 

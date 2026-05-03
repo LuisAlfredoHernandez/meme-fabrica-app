@@ -1,4 +1,4 @@
-import { Maquina, } from "@/types";
+import { Maquina, TipoMaquina, } from "@/types";
 
 // Simulación de base de datos inicial
 const MAQUINAS_MOCK: Maquina[] = [
@@ -8,12 +8,22 @@ const MAQUINAS_MOCK: Maquina[] = [
     { id: "MAC-004", codigo: "COR-01", tipo: "corte", nombre: "Cortadora de Tela", modelo: "Eastman 629X", serie: "EM-88122", estado: "depreciada", ubicacion: "Corte", capacidadPorHora: 100, horasUso: 1500 },
 ];
 
+
+
+const MAQUINAS_ALL_TYPES_MOCK: TipoMaquina[] = ["merrow", "cover", "plana", "corte", "plancha_dtf"]
+
 const API_LATENCY = 800;
 
 export const maquinasService = {
     getAll: (): Promise<Maquina[]> => {
         return new Promise((resolve) => {
             setTimeout(() => resolve([...MAQUINAS_MOCK]), API_LATENCY);
+        });
+    },
+
+    getAllTypes: (): Promise<TipoMaquina[]> => {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve([...MAQUINAS_ALL_TYPES_MOCK]), API_LATENCY);
         });
     },
 
