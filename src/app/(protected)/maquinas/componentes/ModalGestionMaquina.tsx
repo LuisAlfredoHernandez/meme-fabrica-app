@@ -82,15 +82,15 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                         <div className="p-3 rounded-xl border flex items-center justify-between"
                             style={{ background: "rgba(249,115,22,0.05)", borderColor: "rgba(249,115,22,0.2)" }}>
                             <span className="text-[10px] font-bold text-slate-400 uppercase">Identificador</span>
-                            <span className="font-mono text-orange-500 font-bold">{maquina?.id ?? "MAC-AUTO"}</span>
+                            <span className="font-mono text-orange-500 font-bold">{maquina?.id ?? `MAC-AUTO`}</span>
                         </div>
 
                         {/* Nombre y Descripción */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-slate-400">Nombre / Descripción</label>
+                            <label className="text-xs font-semibold text-slate-400">Nombre</label>
                             <input
                                 {...register("nombre")}
-                                placeholder="Ej: Recta Industrial Juki"
+                                placeholder="Ej: Recta Industrial"
                                 className="w-full h-11 px-4 rounded-xl text-white text-sm bg-[#0d1018] border border-[#1e2130] focus:outline-none focus:border-orange-500"
                             />
                             {errors.nombre && <span className="text-[10px] text-red-400">{errors.nombre.message}</span>}

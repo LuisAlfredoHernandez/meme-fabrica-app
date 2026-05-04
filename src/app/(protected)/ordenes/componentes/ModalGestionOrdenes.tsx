@@ -83,7 +83,7 @@ export function ModalGestionOrdenes({ onClose }: { onClose: () => void }) {
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold" style={{ color: "#94a3b8" }}>Prioridad</label>
                             <select value={form.prioridad} onChange={e => set("prioridad", e.target.value)}
-                                className="w-full h-11 px-3 rounded-xl text-sm text-white appearance-none focus:outline-none"
+                                className="w-full h-11 px-3 rounded-xl text-sm text-white appearance-none focus:outline-none transition-all"
                                 style={{ background: "#0d1018", border: `1.5px solid ${AppColors.border}` }}>
                                 {["baja", "normal", "alta", "urgente"].map(p =>
                                     <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
