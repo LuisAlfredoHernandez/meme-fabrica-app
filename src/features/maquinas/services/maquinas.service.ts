@@ -10,7 +10,7 @@ const MAQUINAS_MOCK: Maquina[] = [
 
 
 
-const MAQUINAS_ALL_TYPES_MOCK: TipoMaquina[] = ["merrow", "cover", "plana", "corte", "plancha_dtf"]
+const MAQUINAS_ALL_TYPES_MOCK: TipoMaquina[] = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"]
 
 const API_LATENCY = 800;
 

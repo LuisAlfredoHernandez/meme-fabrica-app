@@ -23,6 +23,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
             estado: maquina?.estado || "inactiva",
             modelo: maquina?.modelo || "",
             serie: maquina?.serie || "",
+            tipo: maquina?.tipo || undefined,
             capacidadPorHora: maquina?.capacidadPorHora || 0,
             horasUso: maquina?.horasUso || 0
         }

@@ -48,7 +48,7 @@ export type TipoProducto =
   | "otro";
 
 // ─── Entidades Base ──────────────────────────────────────────
-export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf"] as const;
+export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"] as const;
 export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
 export const MAQUINAS_STATUS_LIST = ["activa", "inactiva", "depreciada"] as const;
