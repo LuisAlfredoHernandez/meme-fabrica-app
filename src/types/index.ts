@@ -1,3 +1,5 @@
+import { LineaOrden } from "@/features/ordenes/schemas/ordenes.schemas";
+
 // Contratos de datos para Meme Fábrica
 export interface ProduccionSemanal {
   dia: string;
@@ -18,11 +20,6 @@ export interface KpiResumen {
 }
 
 // ─── Enumeraciones ───────────────────────────────────────────
-export type EstadoOrden =
-  | "pendiente"
-  | "en_proceso"
-  | "pausada"
-  | "completada"
 
 export type EtapaProduccion =
   | "corte"
@@ -32,7 +29,6 @@ export type EtapaProduccion =
 
 export type NivelAlerta = "info" | "advertencia" | "critica";
 
-export type Temporada = "verano" | "invierno" | "primavera" | "otoño";
 
 export type TipoTela =
   | "micro"
@@ -76,7 +72,6 @@ export interface Usuario {
 }
 
 export interface Operario extends Usuario {
-  /** Máquinas que el operario está certificado para usar */
   habilidades: HabilidadMaquinaria[];
   maquinaActual?: TipoMaquina;
   ordenActual?: string;
@@ -119,23 +114,14 @@ export interface Insumo {
 }
 
 // ─── Orden de Producción ─────────────────────────────────────
-
-export interface LineaOrden {
-  productoTipo: TipoProducto;
-  descripcion: string;
-  cantidad: number; // piezas solicitadas
-  cantidadCompletada: number;
-  talla?: string; // ej: "S/M/L/XL"
-  color?: string;
-  insumos: Array<{
-    insumoId: string;
-    cantidadRequerida: number;
-    unidad: string;
-  }>;
-}
-
-export type TipoOP = "MTO" | "MTS";
-export type Prioridad = "baja" | "normal" | "alta" | "urgente";
+export const TipoOP_LIST = ["MTO", "MTS"] as const;
+export type TipoOP = typeof TipoOP_LIST[number];
+export const PRIORIDAD_LIST = ["baja", "normal", "alta", "urgente"] as const;
+export type Prioridad = typeof PRIORIDAD_LIST[number];
+export const TEMPORADA_LIST = ["verano", "invierno", "primavera", "otoño"] as const
+export type Temporada = typeof TEMPORADA_LIST[number];
+export const ESTADO_ORDEN_LIST = ["pendiente", "en_proceso", "pausada", "completada"] as const
+export type EstadoOrden = typeof ESTADO_ORDEN_LIST[number];
 
 
 export interface Orden {
