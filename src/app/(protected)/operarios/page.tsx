@@ -18,6 +18,7 @@ const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos:
     plana: { label: "Plana", color: "#38bdf8", codigos: ["PLANA-01"] },
     corte: { label: "Corte", color: "#fbbf24", codigos: ["CORTE-01", "CORTE-02"] },
     plancha_dtf: { label: "Plancha DTF", color: "#f472b6", codigos: ["DTF-01", "DTF-02"] },
+    otro: { label: "Otro", color: "#94a3b8", codigos: ["OTRO-01"] },
 };
 
 const ESTADO_CFG = {

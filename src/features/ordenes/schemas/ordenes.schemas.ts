@@ -9,10 +9,10 @@ const insumoSchema = z.object({
 });
 
 export const lineaOrdenSchema = z.object({
-    productoTipo: z.custom<TipoProducto>(),
+    productoTipo: z.custom<TipoProducto>().optional(),
     descripcion: z.string(),
     cantidad: z.number(),
-    cantidadCompletada: z.number(),
+    cantidadCompletada: z.number().optional(),
     talla: z.string().optional(),
     color: z.string().optional(),
     insumos: z.array(insumoSchema),
