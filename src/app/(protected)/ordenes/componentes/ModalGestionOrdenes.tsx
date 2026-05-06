@@ -1,13 +1,16 @@
 "use client";
 
 import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.schemas";
+import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { AppColors } from "@/shared/constants";
+import { Orden } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Trash2, Calendar } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 
-export function ModalGestionOrdenes({ onClose }: { onClose: () => void }) {
-    const { register, handleSubmit, watch, setValue, control, formState: { errors } } = useForm<OrdenFormData>({
+
+export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, orden?: Orden; }) {
+    const { register, handleSubmit, watch, setValue, control, getValues, formState: { errors } } = useForm<OrdenFormData>({
         resolver: zodResolver(ordenSchema),
         defaultValues: {
             tipo: "MTO",
@@ -22,16 +25,38 @@ export function ModalGestionOrdenes({ onClose }: { onClose: () => void }) {
     });
 
     const { fields, append, remove } = useFieldArray({ control, name: "lineas" });
+    const { createOrden, updateOrden } = useOrdenActions()
+    const isEdit = !!orden;
 
     const vTipo = watch("tipo");
     const vCliente = watch("cliente");
     const vFechaEntrega = watch("fechaEntregaEstimada");
     const vLineas = watch("lineas");
 
-    const onActualSubmit = (data: OrdenFormData) => {
-        console.log("Datos enviados:", data);
-        onClose();
+
+    const onActualSubmit = async (data: OrdenFormData) => {
+        try {
+            if (isEdit && orden?.id) {
+                await updateOrden(orden.id, data as Orden);
+                console.log("Orden actualizada exitosamente");
+            } else {
+                await createOrden(data as Orden);
+                console.log("Orden creada exitosamente");
+            }
+            onClose();
+        } catch (error) {
+            console.error("Error al procesar la operación:", error);
+        }
     };
+
+    const onInvalidSubmit = (errors: unknown) => {
+        console.error("🚨 Error de Validación en Formulario Operarios:", {
+            timestamp: new Date().toISOString(),
+            errors, // Aquí verás qué campo falló y por qué (Zod error messages)
+            currentValues: getValues()
+        });
+    };
+
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -53,18 +78,20 @@ export function ModalGestionOrdenes({ onClose }: { onClose: () => void }) {
                 }
             `}</style>
 
-            <form onSubmit={handleSubmit(onActualSubmit)}
+            <form onSubmit={handleSubmit(onActualSubmit, onInvalidSubmit)}
                 className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
                 style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: AppColors.border }}>
                     <h2 className="font-bold text-white text-lg">Nueva Orden de Producción</h2>
-                    <button type="button" onClick={onClose} style={{ color: AppColors.slate }} className="hover:rotate-90 transition-transform duration-200"><X className="w-5 h-5" /></button>
+                    <button type="button" onClick={onClose} style={{ color: AppColors.slate }}
+                        className="hover:bg-red-500/10 hover:rotate-90 transition-transform duration-200 cursor-pointer">
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
                 <div className="p-6 space-y-5 overflow-hidden flex-1 flex flex-col">
-
                     {/* Sección Fija: Datos Generales */}
                     <div className="space-y-4 shrink-0">
                         <div className="space-y-1.5">
@@ -164,7 +191,6 @@ export function ModalGestionOrdenes({ onClose }: { onClose: () => void }) {
                         <div className="space-y-1.5 shrink-0">
                             <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Fecha Entrega</label>
                             <div className="relative group">
-                                {/* Icono de Calendario posicionado */}
                                 <Calendar
                                     className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 pointer-events-none ${vFechaEntrega ? 'text-orange-500' : 'text-slate-500'
                                         }`}

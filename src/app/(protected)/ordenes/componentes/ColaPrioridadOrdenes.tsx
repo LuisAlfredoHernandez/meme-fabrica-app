@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { GripVertical, AlertCircle, Clock, CheckCircle2, Pause, ArrowUpDown } from "lucide-react";
 import { Orden, EstadoOrden } from "@/types";
 import { AppColors } from "@/shared/constants";

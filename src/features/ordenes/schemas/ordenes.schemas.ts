@@ -13,9 +13,9 @@ export const lineaOrdenSchema = z.object({
     descripcion: z.string(),
     cantidad: z.number(),
     cantidadCompletada: z.number().optional(),
-    talla: z.string().optional(),
+    talla: z.string(),
     color: z.string().optional(),
-    insumos: z.array(insumoSchema),
+    insumos: z.array(insumoSchema).optional(),
 });
 
 export const ordenSchema = z.object({
@@ -24,13 +24,13 @@ export const ordenSchema = z.object({
     cliente: z.string().min(2, "Nombre de cliente inválido"),
     tipo: z.enum(TipoOP_LIST),
     estado: z.enum(ESTADO_ORDEN_LIST),
-    temporada: z.enum(TEMPORADA_LIST),
+    temporada: z.enum(TEMPORADA_LIST).optional(),
     prioridad: z.enum(PRIORIDAD_LIST),
     fechaCreacion: z.string().datetime().optional(),
-    fechaEntregaEstimada: z.string().datetime({ message: "Fecha de entrega requerida" }),
+    fechaEntregaEstimada: z.string(),
     fechaEntregaPredicha: z.string().datetime().optional(),
     fechaEntregaReal: z.string().datetime().optional(),
-    creadaPor: z.string().min(1),
+    creadaPor: z.string().optional(),
     notas: z.string().optional(),
     cola: z.number().int().nonnegative().optional(),
     // Si manejas las líneas dentro del mismo form:
