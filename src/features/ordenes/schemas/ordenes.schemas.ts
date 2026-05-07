@@ -26,7 +26,7 @@ export const ordenSchema = z.object({
     estado: z.enum(ESTADO_ORDEN_LIST),
     temporada: z.enum(TEMPORADA_LIST).optional(),
     prioridad: z.enum(PRIORIDAD_LIST),
-    fechaCreacion: z.string().datetime().optional(),
+    fechaCreacion: z.string().optional(),
     fechaEntregaEstimada: z.string(),
     fechaEntregaPredicha: z.string().datetime().optional(),
     fechaEntregaReal: z.string().datetime().optional(),

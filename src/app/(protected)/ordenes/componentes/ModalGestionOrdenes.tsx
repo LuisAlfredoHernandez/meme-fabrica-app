@@ -6,11 +6,13 @@ import { AppColors } from "@/shared/constants";
 import { Orden } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Trash2, Calendar } from "lucide-react";
+import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 
 export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, orden?: Orden; }) {
-    const { register, handleSubmit, watch, setValue, control, getValues, formState: { errors } } = useForm<OrdenFormData>({
+
+    const { register, handleSubmit, watch, setValue, control, getValues, reset, formState: { errors } } = useForm<OrdenFormData>({
         resolver: zodResolver(ordenSchema),
         defaultValues: {
             tipo: "MTO",
@@ -19,7 +21,6 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
             numero: "ORD-" + new Date().getFullYear() + "-",
             estado: "pendiente",
             lineas: [{ descripcion: "", cantidad: 1, talla: "M", insumos: [] }],
-            fechaCreacion: new Date().toISOString(),
             fechaEntregaEstimada: ""
         }
     });
@@ -33,6 +34,11 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
     const vFechaEntrega = watch("fechaEntregaEstimada");
     const vLineas = watch("lineas");
 
+    useEffect(() => {
+        if (orden) {
+            reset(orden); // Esto limpia el formulario y carga los datos de la orden a editar
+        }
+    }, [orden, reset]);
 
     const onActualSubmit = async (data: OrdenFormData) => {
         try {
@@ -52,7 +58,7 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
     const onInvalidSubmit = (errors: unknown) => {
         console.error("🚨 Error de Validación en Formulario Operarios:", {
             timestamp: new Date().toISOString(),
-            errors, // Aquí verás qué campo falló y por qué (Zod error messages)
+            errors,
             currentValues: getValues()
         });
     };
