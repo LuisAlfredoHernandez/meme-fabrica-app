@@ -4,6 +4,7 @@ import { X, Search, PlusCircle, MinusCircle, Trash2, RefreshCcw, AlertCircle } f
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
+import { Insumo } from "@/types";
 
 
 type OperationMode = "entrada" | "salida" | "eliminar";
@@ -27,14 +28,12 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
     const [isExisting, setIsExisting] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const setField = (k: string, v: any) => setForm(p => ({ ...p, [k]: v }));
-
+    const setField = (k: string, v: unknown) => setForm(p => ({ ...p, [k]: v }));
 
     // Filtrar por TIPO y por BÚSQUEDA
     const filteredInsumos = insumos.filter(insumo =>
         normalizeText(insumo.nombre).includes(normalizeText(query))
     ).slice(0, 10);
-
 
     const generarCodigo = () => {
         const prefix = form.tipo === "tela" ? "TEL" : form.tipo === "accesorio" ? "ACC" : "UKN";
@@ -62,12 +61,11 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
 
             await updateInsumo(form.id, { stock: nuevoStock });
         } else {
-            // Solo se crean nuevos en modo "entrada"
             await createInsumo({
                 ...form,
                 stock: form.cantidad,
                 codigo: generarCodigo()
-            } as any);
+            } as Insumo);
         }
         onClose();
     };
