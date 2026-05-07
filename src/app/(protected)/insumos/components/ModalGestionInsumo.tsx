@@ -1,11 +1,13 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Search, PlusCircle, MinusCircle, Trash2, RefreshCcw, AlertCircle } from "lucide-react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
 import { Insumo } from "@/types";
-
+import { insumoSchema, InsumoFormData } from "@/features/insumos/schemas/insumos.schemas";
 
 type OperationMode = "entrada" | "salida" | "eliminar";
 
@@ -13,66 +15,89 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
     const { insumos } = useInsumosStore();
     const { createInsumo, updateInsumo, deleteInsumo } = useInsumosActions();
 
-    // Estado de la operación
+    // Estados de UI
     const [mode, setMode] = useState<OperationMode>("entrada");
     const [showConfirm, setShowConfirm] = useState(false);
-
-    // Estados del formulario
-    const [form, setForm] = useState({
-        id: "", nombre: "", tipo: "", unidad: "",
-        cantidad: 0, minimo: 0, proveedor: "", codigo: ""
-    });
-
-    const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [isExisting, setIsExisting] = useState(false);
+
+    // Almacena los datos válidos si el usuario debe confirmar la acción
+    const [pendingData, setPendingData] = useState<InsumoFormData | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const setField = (k: string, v: unknown) => setForm(p => ({ ...p, [k]: v }));
+    // Inicialización de React Hook Form
+    const { register, handleSubmit, setValue, watch, getValues, reset, formState: { errors } } = useForm<InsumoFormData>({
+        resolver: zodResolver(insumoSchema),
+        defaultValues: {
+            nombre: "", tipo: "tela", unidad: "metros", stock: 0, minimo: 0, proveedor: "", codigo: ""
+        }
+    });
 
-    // Filtrar por TIPO y por BÚSQUEDA
-    const filteredInsumos = insumos.filter(insumo =>
-        normalizeText(insumo.nombre).includes(normalizeText(query))
-    ).slice(0, 10);
+    // Observamos campos críticos para la UI reactiva
+    const query = watch("nombre") || "";
+    const cantidadWatch = watch("stock") || 0;
+    const tipoWatch = watch("tipo");
+
+    // Filtrar insumos existentes
+    const filteredInsumos = useMemo(() => {
+        if (!query || isExisting) return [];
+        return insumos.filter(insumo =>
+            normalizeText(insumo.nombre).includes(normalizeText(query))
+        ).slice(0, 10);
+    }, [insumos, query, isExisting]);
 
     const generarCodigo = () => {
-        const prefix = form.tipo === "tela" ? "TEL" : form.tipo === "accesorio" ? "ACC" : "UKN";
+        const prefix = tipoWatch === "tela" ? "TEL" : tipoWatch === "otro" ? "ACC" : "UKN";
         const maxValue = Math.max(...insumos.map(x => Number(x.codigo?.split("-")[1]) || 0)) + 1;
         return `${prefix}-${String(maxValue).padStart(3, '0')}`;
     };
 
-    const handleAction = async () => {
-        if (mode === "eliminar") {
-            await deleteInsumo(form.id);
+    // Función principal de ejecución (después de validar o confirmar)
+    const executeAction = async (data: InsumoFormData) => {
+        try {
+            if (isExisting) {
+                const original = insumos.find(i => i.id === data.id);
+                const stockActual = Number(original?.stock || 0);
+
+                const nuevoStock = mode === "entrada"
+                    ? stockActual + data.stock
+                    : Math.max(0, stockActual - data.stock);
+
+                await updateInsumo(data.id as string, { stock: nuevoStock });
+            } else {
+                await createInsumo({
+                    ...data,
+                    stock: data.stock || 0,
+                    codigo: generarCodigo()
+                } as Insumo);
+            }
             onClose();
-            return;
+        } catch (error) {
+            console.error("Error al procesar insumo:", error);
         }
+    };
 
-        if (!form.nombre || form.cantidad <= 0) return;
-
-        if (isExisting) {
-            const original = insumos.find(i => i.id === form.id);
-            const stockActual = Number(original?.stock || 0);
-
-            // Lógica de suma o resta
-            const nuevoStock = mode === "entrada"
-                ? stockActual + Number(form.cantidad)
-                : Math.max(0, stockActual - Number(form.cantidad));
-
-            await updateInsumo(form.id, { stock: nuevoStock });
+    // Handler del Formulario (Solo se ejecuta si Zod aprueba la validación)
+    const onSubmit = (data: InsumoFormData) => {
+        if (mode === "salida") {
+            setPendingData(data);
+            setShowConfirm(true); // Requiere confirmación
         } else {
-            await createInsumo({
-                ...form,
-                stock: form.cantidad,
-                codigo: generarCodigo()
-            } as Insumo);
+            executeAction(data); // Entrada directa
         }
-        onClose();
+    };
+
+    const handleEliminar = async () => {
+        const id = getValues("id");
+        if (id) {
+            await deleteInsumo(id);
+            onClose();
+        }
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            {/* POPUP DE CONFIRMACIÓN INTERNO */}
+            {/* Modal de Confirmación */}
             {showConfirm && (
                 <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-md rounded-2xl">
                     <div className="bg-[#1a1f2e] border border-white/10 p-6 rounded-2xl max-w-xs text-center shadow-2xl">
@@ -83,76 +108,68 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                         <p className="text-xs text-slate-400 mt-2">
                             {mode === "eliminar"
                                 ? "Se borrará el registro completo de la base de datos."
-                                : `Se retirarán ${form.cantidad} ${form.unidad} del inventario.`}
+                                : `Se retirarán ${cantidadWatch} unidades del inventario.`}
                         </p>
                         <div className="flex gap-2 mt-6">
-                            <button onClick={() => setShowConfirm(false)} className="flex-1 py-2 text-xs text-slate-400 font-bold hover:bg-white/5 rounded-lg">Atrás</button>
-                            <button onClick={handleAction} className="flex-1 py-2 text-xs bg-red-500 text-white font-bold rounded-lg shadow-lg">Confirmar</button>
+                            <button type="button" onClick={() => setShowConfirm(false)} className="flex-1 py-2 text-xs text-slate-400 font-bold hover:bg-white/5 rounded-lg">Atrás</button>
+                            <button type="button" onClick={() => mode === "eliminar" ? handleEliminar() : pendingData && executeAction(pendingData)} className="flex-1 py-2 text-xs bg-red-500 text-white font-bold rounded-lg shadow-lg">Confirmar</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="w-full max-w-md flex flex-col rounded-2xl shadow-2xl overflow-hidden border"
-                style={{ background: AppColors.surface, borderColor: AppColors.border }}>
-
-                {/* Header Dinámico */}
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full max-w-md flex flex-col rounded-2xl shadow-2xl overflow-hidden border"
+                style={{ background: AppColors.surface, borderColor: AppColors.border }}
+            >
+                {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: AppColors.border }}>
                     <div>
                         <h2 className="font-bold text-white text-lg">Movimiento de Stock</h2>
                         <p className="text-[11px]" style={{ color: AppColors.slate }}>Gestión de inventario Meme Fábricas</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors" style={{ color: AppColors.slate }}>
+                    <button type="button" onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors" style={{ color: AppColors.slate }}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="p-6 space-y-5 overflow-y-auto" style={{ maxHeight: '80vh' }}>
 
-                    {/* SELECTOR DE OPERACIÓN (MODO) */}
+                    {/* SELECTOR DE MODO */}
                     <div className="grid grid-cols-3 gap-2 p-1 rounded-xl" style={{ background: AppColors.inputBg }}>
-                        <button
-                            onClick={() => setMode("entrada")}
-                            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${mode === "entrada" ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-500'}`}>
+                        <button type="button" onClick={() => setMode("entrada")}
+                            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${mode === "entrada" ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-500 hover:text-slate-300'}`}>
                             <PlusCircle className="w-4 h-4" /> Entrada
                         </button>
-                        <button
-                            onClick={() => { if (isExisting) setMode("salida") }}
-                            disabled={!isExisting}
-                            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isExisting ? 'opacity-20 cursor-not-allowed' : ''} ${mode === "salida" ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-500'}`}>
+                        <button type="button" onClick={() => isExisting && setMode("salida")} disabled={!isExisting}
+                            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isExisting ? 'opacity-20 cursor-not-allowed' : 'hover:text-slate-300'} ${mode === "salida" ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-500'}`}>
                             <MinusCircle className="w-4 h-4" /> Salida
                         </button>
-                        <button
-                            onClick={() => { if (isExisting) setMode("eliminar") }}
-                            disabled={!isExisting}
-                            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isExisting ? 'opacity-20 cursor-not-allowed' : ''} ${mode === "eliminar" ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-slate-500'}`}>
+                        <button type="button" onClick={() => isExisting && setMode("eliminar")} disabled={!isExisting}
+                            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isExisting ? 'opacity-20 cursor-not-allowed' : 'hover:text-slate-300'} ${mode === "eliminar" ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-slate-500'}`}>
                             <Trash2 className="w-4 h-4" /> Eliminar
                         </button>
                     </div>
 
-                    {/* Buscador de Insumo */}
+                    {/* BUSCADOR DE INSUMO */}
                     <div className="space-y-1.5 relative" ref={containerRef}>
                         <div className="flex items-center justify-between px-1">
                             <label className="text-xs font-semibold" style={{ color: "#94a3b8" }}>Nombre del Insumo</label>
-
-                            {/* INDICADOR DE NUEVO ELEMENTO */}
                             {!isExisting && query.length > 2 && (
-                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 animate-in fade-in zoom-in duration-300">
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                                     <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tight">Nuevo Insumo</span>
+                                    <span className="text-[10px] font-bold text-emerald-400 uppercase">Nuevo Insumo</span>
                                 </div>
                             )}
                         </div>
 
                         <div className="relative group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                <Search className="w-4 h-4" style={{ color: isOpen ? AppColors.orange : AppColors.slate }} />
-                            </div>
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isOpen ? AppColors.orange : AppColors.slate }} />
                             <input
-                                value={query}
-                                onChange={e => {
-                                    setQuery(e.target.value);
-                                    setField("nombre", e.target.value);
+                                {...register("nombre")}
+                                onChange={(e) => {
+                                    setValue("nombre", e.target.value, { shouldValidate: true });
                                     setIsOpen(true);
                                     if (isExisting) {
                                         setIsExisting(false);
@@ -164,44 +181,37 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                 className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border transition-all"
                                 style={{
                                     background: AppColors.inputBg,
-                                    borderColor: !isExisting && query.length > 2 ? `${AppColors.emerald}40` : (isOpen ? AppColors.orange : AppColors.border)
+                                    borderColor: errors.nombre ? AppColors.red : (!isExisting && query.length > 2 ? `${AppColors.emerald}40` : (isOpen ? AppColors.orange : AppColors.border))
                                 }}
                             />
-
-                            {/* ICONO DE STATUS DENTRO DEL INPUT */}
-                            {!isExisting && query.length > 2 && (
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                    <PlusCircle className="w-4 h-4 text-emerald-500/50" />
-                                </div>
-                            )}
+                            {errors.nombre && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-red-400">{errors.nombre.message}</span>}
                         </div>
 
-                        {/* Dropdown flotante (Sin cambios) */}
+                        {/* DROPDOWN AUTOCUMPLETAR */}
                         {isOpen && filteredInsumos.length > 0 && (
-                            <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl"
-                                style={{ background: "#1a1f2e", borderColor: AppColors.border }}>
+                            <div className="absolute w-full mt-2 py-2 rounded-xl border z-50 shadow-2xl" style={{ background: "#1a1f2e", borderColor: AppColors.border }}>
                                 {filteredInsumos.map((ins) => (
                                     <button
+                                        type="button"
                                         key={ins.id}
                                         className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-orange-500/10 flex items-center justify-between group"
                                         onClick={() => {
-                                            setForm({
+                                            reset({
                                                 id: ins.id,
                                                 nombre: ins.nombre,
                                                 tipo: ins.tipo,
                                                 unidad: ins.unidad,
-                                                cantidad: 0,
+                                                stock: 0,
                                                 minimo: ins.minimo,
                                                 proveedor: ins.proveedor ?? "",
                                                 codigo: ins.codigo ?? ""
                                             });
-                                            setQuery(ins.nombre);
                                             setIsExisting(true);
                                             setIsOpen(false);
                                         }}>
                                         <div className="flex flex-col">
                                             <span className="font-medium">{ins.nombre}</span>
-                                            <span className="text-[10px]" style={{ color: AppColors.slate }}>Stock: {ins.stock} {ins.unidad}</span>
+                                            <span className="text-[10px]" style={{ color: AppColors.slate }}>Stock Actual: {ins.stock} {ins.unidad}</span>
                                         </div>
                                         <RefreshCcw className="w-4 h-4 text-orange-500 opacity-0 group-hover:opacity-100" />
                                     </button>
@@ -210,30 +220,22 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                         )}
                     </div>
 
-                    {/* Seccion Dinámica según Modo */}
+                    {/* SECCIÓN DINÁMICA */}
                     {mode !== "eliminar" ? (
                         <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Tipo</label>
-                                    <select
-                                        disabled={isExisting}
-                                        value={form.tipo}
-                                        onChange={e => setField("tipo", e.target.value)}
-                                        className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
+                                    <select {...register("tipo")} disabled={isExisting} className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
                                         <option value="tela">Tela</option>
                                         <option value="accesorio">Accesorio</option>
+                                        <option value="zipper">Zipper</option>
+                                        <option value="hilo">Hilo</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Unidad</label>
-                                    <select
-                                        disabled={isExisting}
-                                        value={form.unidad}
-                                        onChange={e => setField("unidad", e.target.value)}
-                                        className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
+                                    <select {...register("unidad")} disabled={isExisting} className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
                                         {["metros", "unidades", "rollos", "kg"].map(u => <option key={u} value={u}>{u}</option>)}
                                     </select>
                                 </div>
@@ -244,49 +246,54 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                     <label className="text-xs font-semibold px-1" style={{ color: mode === "entrada" ? AppColors.emerald : AppColors.orange }}>
                                         Cantidad a {mode === "entrada" ? "sumar" : "retirar"}
                                     </label>
-                                    <input type="number" value={form.cantidad} onChange={e => setField("cantidad", e.target.value)}
+                                    <input type="number" {...register("stock", { valueAsNumber: true })}
                                         className="w-full h-11 px-4 rounded-xl text-white text-sm focus:outline-none border transition-all"
-                                        style={{ background: AppColors.inputBg, borderColor: form.cantidad > 0 ? (mode === "entrada" ? AppColors.emerald : AppColors.orange) : AppColors.border }} />
+                                        style={{ background: AppColors.inputBg, borderColor: errors.stock ? AppColors.red : (cantidadWatch > 0 ? (mode === "entrada" ? AppColors.emerald : AppColors.orange) : AppColors.border) }} />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Mínimo Crítico</label>
-                                    <input type="number" value={form.minimo} onChange={e => setField("minimo", e.target.value)}
-                                        className="w-full h-11 px-4 rounded-xl text-white text-sm border"
+                                    <input type="number" {...register("minimo", { valueAsNumber: true })} disabled={isExisting}
+                                        className={`w-full h-11 px-4 rounded-xl text-white text-sm border ${isExisting ? 'opacity-50' : ''}`}
                                         style={{ background: AppColors.inputBg, borderColor: AppColors.border }} />
                                 </div>
                             </div>
                         </>
                     ) : (
                         <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-center gap-3">
-                            <Trash2 className="text-red-400 w-5 h-5" />
-                            <p className="text-xs text-red-200">Se eliminará el insumo <b>{form.nombre}</b>. Esta acción es irreversible.</p>
+                            <Trash2 className="text-red-400 w-5 h-5 flex-shrink-0" />
+                            <p className="text-xs text-red-200">Se eliminará el insumo <b>{query}</b> y todo su historial de stock. Esta acción es irreversible.</p>
                         </div>
                     )}
 
-                    {mode === "entrada" && (
+                    {mode === "entrada" && !isExisting && (
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Proveedor</label>
-                            <input value={form.proveedor} onChange={e => setField("proveedor", e.target.value)}
-                                placeholder="Nombre del proveedor"
+                            <input {...register("proveedor")} placeholder="Nombre del proveedor"
                                 className="w-full h-11 px-4 rounded-xl text-white text-sm border"
                                 style={{ background: AppColors.inputBg, borderColor: AppColors.border }} />
                         </div>
                     )}
                 </div>
 
-                {/* Footer */}
+                {/* FOOTER */}
                 <div className="flex gap-3 px-6 py-5 bg-black/20 border-t" style={{ borderColor: AppColors.border }}>
-                    <button onClick={onClose} className="flex-1 h-12 rounded-xl border text-sm font-semibold text-slate-400 hover:bg-white/5 transition-colors" style={{ borderColor: AppColors.border }}>
+                    <button type="button" onClick={onClose} className="flex-1 h-12 rounded-xl border text-sm font-semibold text-slate-400 hover:bg-white/5 transition-colors" style={{ borderColor: AppColors.border }}>
                         Cancelar
                     </button>
-                    <button
-                        onClick={() => (mode !== "entrada" ? setShowConfirm(true) : handleAction())}
-                        className="flex-1 h-12 rounded-xl text-white text-sm font-bold shadow-lg transition-all active:scale-95"
-                        style={{ background: mode === "entrada" ? AppColors.emerald : mode === "salida" ? AppColors.orange : AppColors.red }}>
-                        {mode === "entrada" ? "Registrar Entrada" : mode === "salida" ? "Retirar Stock" : "Eliminar Todo"}
-                    </button>
+                    {mode === "eliminar" ? (
+                        // Botón especial para Eliminar (No hace submit al formulario)
+                        <button type="button" onClick={() => setShowConfirm(true)} className="flex-1 h-12 rounded-xl text-white text-sm font-bold shadow-lg transition-all active:scale-95 bg-red-500">
+                            Eliminar Todo
+                        </button>
+                    ) : (
+                        // Botón Submit para Entrada / Salida
+                        <button type="submit" className="flex-1 h-12 rounded-xl text-white text-sm font-bold shadow-lg transition-all active:scale-95"
+                            style={{ background: mode === "entrada" ? AppColors.emerald : AppColors.orange }}>
+                            {mode === "entrada" ? "Registrar Entrada" : "Retirar Stock"}
+                        </button>
+                    )}
                 </div>
-            </div>
+            </form>
         </div>
     );
 }

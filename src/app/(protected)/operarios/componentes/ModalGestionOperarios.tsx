@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, } from "react-hook-form";
-import { Search, Trash2, RefreshCcw, User, Mail } from "lucide-react";
+import { Search, RefreshCcw, User, Mail } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";

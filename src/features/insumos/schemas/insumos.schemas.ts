@@ -1,0 +1,15 @@
+import { z } from "zod";
+
+export const insumoSchema = z.object({
+    id: z.string(),
+    nombre: z.string().min(1, "El nombre es requerido"),
+    codigo: z.string().optional(),
+    tipo: z.enum(["tela", "zipper", "goma", "boton", "hilo", "otro"]),
+    unidad: z.enum(["metros", "unidades", "rollos", "kg"]),
+    stock: z.number().min(0, "El stock no puede ser negativo"),
+    minimo: z.number().min(0, "El stock mínimo no puede ser negativo"),
+    proveedor: z.string().optional(),
+    vinculadoA: z.array(z.string()).optional(),
+});
+
+export type InsumoFormData = z.infer<typeof insumoSchema>;

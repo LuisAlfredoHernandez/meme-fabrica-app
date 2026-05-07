@@ -104,8 +104,7 @@ export interface Insumo {
   id: string;
   nombre: string;
   codigo?: string;
-  tipo: "tela" | "accesorio";
-  subtipo?: TipoTela | "zipper" | "goma" | "boton" | "hilo" | "otro";
+  tipo: "tela" | "zipper" | "goma" | "boton" | "hilo" | "otro";
   unidad: "metros" | "unidades" | "rollos" | "kg";
   stock: number;
   minimo: number;
