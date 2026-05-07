@@ -1,22 +1,17 @@
 "use client";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, } from "react-hook-form";
-import { Search, Zap, Trash2, RefreshCcw, User, Mail } from "lucide-react";
+import { Search, Trash2, RefreshCcw, User, Mail } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
-import { Operario, TipoMaquina } from "@/types";
+import { Operario } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OperarioFormData, operarioSchema } from "@/features/operarios/schemas/operario.schema";
 import { AppColors } from "@/shared/constants";
 import { StatusSelector } from "./StatusSelector";
+import { EstacionesSelector } from "./EstacionesSelector";
+import { normalizeText } from "@/utils/formatters";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
-
-const MAQUINAS_OPTIONS: { id: TipoMaquina; label: string; color: string }[] = [
-    { id: "merrow", label: "Merrow", color: "#f97316" },
-    { id: "cover", label: "Cover", color: "#818cf8" },
-    { id: "plana", label: "Plana", color: "#38bdf8" },
-    { id: "corte", label: "Corte", color: "#fbbf24" },
-    { id: "plancha_dtf", label: "Plancha DTF", color: "#f472b6" },
-];
 
 export function ModalGestionOperario({ onClose, operarios }: { onClose: () => void, operarios: Operario[] }) {
     const [query, setQuery] = useState("");
@@ -26,7 +21,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
     const { createOperario, updateOperario, deleteOperario } = useOperarioActions();
 
-    // 1. Inicialización de react-hook-form con tus valores iniciales
     const methods = useForm<OperarioFormData>({
         resolver: zodResolver(operarioSchema),
         defaultValues: {
@@ -39,13 +33,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         }
     });
 
-    const { register, handleSubmit, setValue, watch, reset, getValues } = methods
-
-    // Observadores para UI reactiva
-    const habilidadesWatch = watch("habilidades");
-
-    const normalizeText = (text: string) =>
-        text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const { register, handleSubmit, setValue, reset, getValues } = methods
 
     const filteredOperarios = useMemo(() => {
         return operarios
@@ -57,14 +45,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
             .slice(0, 5);
     }, [operarios, query]);
 
-    const toggleMaquina = (maquinaId: TipoMaquina) => {
-        const existe = habilidadesWatch.some(h => h.maquina === maquinaId);
-        if (existe) {
-            setValue("habilidades", habilidadesWatch.filter(h => h.maquina !== maquinaId));
-        } else {
-            setValue("habilidades", [...habilidadesWatch, { maquina: maquinaId, nivelEficiencia: 0 }]);
-        }
-    };
 
     const onActualSubmit = async (data: Operario) => {
         try {
@@ -99,25 +79,21 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
             errors, // Aquí verás qué campo falló y por qué (Zod error messages)
             currentValues: getValues()
         });
-        // Aquí podrías enviar esto a un servicio externo como Sentry o Logtail
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             {showDeleteConfirm && (
-                <div className="absolute inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-md">
-                    <div className="bg-[#1a1f2e] border border-red-500/30 p-6 rounded-2xl max-w-xs text-center shadow-2xl">
-                        <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Trash2 className="text-red-400 w-6 h-6" />
-                        </div>
-                        <h4 className="text-white font-bold">¿Eliminar Operario?</h4>
-                        <p className="text-xs text-slate-400 mt-2">Esta acción borrará todo al operario {getValues("nombre")} de forma permanente.</p>
-                        <div className="flex gap-2 mt-6">
-                            <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 text-xs text-slate-500 font-bold hover:bg-white/5 rounded-lg">Cancelar</button>
-                            <button type="button" onClick={handleDelete} className="flex-1 py-2 text-xs bg-red-500 text-white font-bold rounded-lg shadow-lg">Sí, Eliminar</button>
-                        </div>
-                    </div>
-                </div>
+                <DeleteConfirmModal
+                    title="¿Eliminar Operario?"
+                    description={
+                        <>
+                            Esta acción borrará todo al operario <strong className="text-white">{getValues("nombre")}</strong> de forma permanente.
+                        </>
+                    }
+                    onCancel={() => setShowDeleteConfirm(false)}
+                    onConfirm={handleDelete}
+                />
             )}
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onActualSubmit, onInvalidSubmit)}
@@ -224,43 +200,11 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             />
                         </div>
 
+                        {/* Selector de estados del formulario */}
                         <StatusSelector />
 
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                                <Zap className="w-3 h-3 text-amber-400" /> Estaciones Certificadas
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {MAQUINAS_OPTIONS.map(m => {
-                                    const activo = habilidadesWatch.some(h => h.maquina === m.id);
-                                    return (
-                                        <button
-                                            type="button"
-                                            key={m.id}
-                                            onClick={() => toggleMaquina(m.id)}
-                                            className="flex items-center gap-3 p-3 rounded-xl border-2 transition-all group"
-                                            style={{
-                                                borderColor: activo ? m.color : 'transparent',
-                                                background: activo ? `${m.color}15` : "#0d1018",
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (!activo) e.currentTarget.style.borderColor = `${m.color}40`;
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (!activo) e.currentTarget.style.borderColor = 'transparent';
-                                            }}
-                                        >
-                                            <div className="w-1.5 h-1.5 rounded-full transition-transform group-hover:scale-125"
-                                                style={{ background: activo ? m.color : AppColors.slate }} />
-
-                                            <span className={`text-[11px] font-bold transition-colors ${activo ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`}>
-                                                {m.label}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        {/* Selector de estaciones del operador */}
+                        <EstacionesSelector />
                     </div>
 
                     {/* Footer */}
