@@ -3,13 +3,15 @@
 // app/operarios/page.tsx — RF2 + RF3 (Colores por Máquina)
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from "react";
-import { Plus, Search, X, Zap, Cpu, Users, UserCheck, UserMinus } from "lucide-react";
+import { Search, X, Zap, Cpu, Users, UserCheck, UserMinus } from "lucide-react";
 import { Operario, TipoMaquina } from "@/types";
 import { normalizeText } from "@/utils/formatters"
 import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore"
 import { ModalGestionOperario } from "./componentes/ModalGestionOperarios";
 import { ModalAsignacionTarea } from "./componentes/ModalAsignacionTarea";
 import { AppColors } from "@/shared/constants";
+import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos: string[] }> = {
@@ -58,12 +60,11 @@ export default function OperariosPage() {
             ordenActual: orden,
             estado: "activo" // Al asignar tarea, pasa a estar activo automáticamente
         });
-
         setAsig(null); // Cerramos modal
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-[#080b10]">
+        <div className="min-h-screen p-8 text-white">
             {modalAbierto && (
                 <ModalGestionOperario
                     onClose={() => setModalAbierto(false)}
@@ -94,16 +95,10 @@ export default function OperariosPage() {
                 </div>
             </div>}
 
-            <div className="px-6 py-5 border-b flex items-center justify-between bg-[#13161e]" style={{ borderColor: AppColors.border }}>
-                <div>
-                    <h1 className="text-lg font-black text-white">Operarios & Rendimiento</h1>
-                    <p className="text-xs mt-0.5 text-slate-500 font-medium">Gestión de recursos humanos en planta</p>
-                </div>
-                <button onClick={() => setModalAbierto(true)} className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 cursor-pointer hover:scale-105 transition-transform">
-                    <Plus className="w-4 h-4" /> Gestionar operarios
-                </button>
-            </div>
+            {/* Header pantalla */}
+            <Header title={"Operarios & Rendimiento"} subtitle="Gestión de recursos humanos en planta" buttonLabel={"Gestionar operarios"} onButtonClick={() => setModalAbierto(true)} />
 
+            {/* Card de statuss de operarios */}
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
@@ -111,13 +106,7 @@ export default function OperariosPage() {
                         { label: "En Turno", valor: activos, icon: UserCheck, color: AppColors.emerald },
                         { label: "Inactivos", valor: inactivos, icon: UserMinus, color: AppColors.red },
                     ].map((k, idx) => (
-                        <div key={idx} className="p-4 rounded-2xl border bg-[#13161e]/50 flex items-center gap-4" style={{ borderColor: AppColors.border }}>
-                            <div className="p-3 rounded-xl bg-white/5"><k.icon className="w-5 h-5" style={{ color: k.color }} /></div>
-                            <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{k.label}</p>
-                                <p className="text-2xl font-black text-white">{k.valor}</p>
-                            </div>
-                        </div>
+                        <StatCard key={idx} valor={k.valor} label={k.label} icon={k.icon} color={k.color} />
                     ))}
                 </div>
 
