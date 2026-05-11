@@ -11,6 +11,7 @@ import { ModalGestionOperario } from "./componentes/ModalGestionOperarios";
 import { ModalAsignacionTarea } from "./componentes/ModalAsignacionTarea";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos: string[] }> = {
@@ -97,6 +98,7 @@ export default function OperariosPage() {
             {/* Header pantalla */}
             <Header title={"Operarios & Rendimiento"} subtitle="Gestión de recursos humanos en planta" buttonLabel={"Gestionar operarios"} onButtonClick={() => setModalAbierto(true)} />
 
+            {/* Card de statuss de operarios */}
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
@@ -104,13 +106,7 @@ export default function OperariosPage() {
                         { label: "En Turno", valor: activos, icon: UserCheck, color: AppColors.emerald },
                         { label: "Inactivos", valor: inactivos, icon: UserMinus, color: AppColors.red },
                     ].map((k, idx) => (
-                        <div key={idx} className="p-4 rounded-2xl border bg-[#13161e]/50 flex items-center gap-4" style={{ borderColor: AppColors.border }}>
-                            <div className="p-3 rounded-xl bg-white/5"><k.icon className="w-5 h-5" style={{ color: k.color }} /></div>
-                            <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{k.label}</p>
-                                <p className="text-2xl font-black text-white">{k.valor}</p>
-                            </div>
-                        </div>
+                        <StatCard key={idx} valor={k.valor} label={k.label} icon={k.icon} color={k.color} />
                     ))}
                 </div>
 

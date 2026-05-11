@@ -9,6 +9,7 @@ import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúr
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 export default function InsumosPage() {
@@ -61,11 +62,8 @@ export default function InsumosPage() {
                         { label: "Stock Bajo", val: insumos.filter(i => i.stock < i.minimo && i.stock > 0).length, color: AppColors.amber },
                         { label: "Agotados", val: insumos.filter(i => i.stock === 0).length, color: AppColors.red },
                         { label: "Salud de Inv.", val: "88%", color: AppColors.emerald },
-                    ].map(k => (
-                        <div key={k.label} className="p-4 rounded-2xl border bg-[#13161e]/50" style={{ borderColor: AppColors.border }}>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{k.label}</p>
-                            <p className="text-2xl font-black mt-1" style={{ color: k.color }}>{k.val}</p>
-                        </div>
+                    ].map((k, idx) => (
+                        <StatCard key={idx} label={k.label} valor={k.val} labelColor={k.color} />
                     ))}
                 </div>
 

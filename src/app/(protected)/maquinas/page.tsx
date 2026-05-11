@@ -8,6 +8,7 @@ import { StatusBadge } from "./componentes/StatusBadge.";
 import { MetricCard } from "./componentes/MetricCard";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 export default function MaquinasPage() {
@@ -27,10 +28,10 @@ export default function MaquinasPage() {
 
             {/* Cards de Métricas */}
             <div className="grid grid-cols-4 gap-6 mb-8">
-                <MetricCard title="Total Equipos" value={maquinas.length} />
-                <MetricCard title="Activas" value={maquinas.filter(m => m.estado === 'activa').length} color={AppColors.emerald} />
-                <MetricCard title="En Mantenimiento" value={maquinas.filter(m => m.estado === 'inactiva').length} color={AppColors.amber} />
-                <MetricCard title="Depreciadas" value={maquinas.filter(m => m.estado === 'depreciada').length} color={AppColors.red} />
+                <StatCard label="Total Equipos" valor={maquinas.length} />
+                <StatCard label="Activas" valor={maquinas.filter(m => m.estado === 'activa').length} labelColor={AppColors.emerald} />
+                <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'inactiva').length} labelColor={AppColors.amber} />
+                <StatCard label="Depreciadas" valor={maquinas.filter(m => m.estado === 'depreciada').length} labelColor={AppColors.red} />
             </div>
 
             {/* Tabla Estilo Insumos */}

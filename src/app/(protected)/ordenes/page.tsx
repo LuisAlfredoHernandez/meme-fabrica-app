@@ -15,6 +15,7 @@ import { AppColors } from "@/shared/constants";
 import { ColaPrioridadesOrdenes } from "./componentes/ColaPrioridadOrdenes";
 import { TablaOrdenes } from "./componentes/TablaOrdenes";
 import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -68,12 +69,8 @@ export default function OrdenesPage() {
                         { label: "MTO pendientes", valor: ordenes.filter(o => o.tipo === "MTO" && o.estado !== "completada").length, color: "#818cf8" },
                         { label: "Completadas hoy", valor: ordenes.filter(o => o.estado === "completada").length, color: AppColors.emerald },
                         { label: "En pausa", valor: ordenes.filter(o => o.estado === "pausada").length, color: AppColors.amber },
-                    ].map(s => (
-                        <div key={s.label} className="rounded-xl px-4 py-3"
-                            style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
-                            <p className="text-xs mb-1" style={{ color: AppColors.slate }}>{s.label}</p>
-                            <p className="text-2xl font-black font-mono" style={{ color: s.color }}>{s.valor}</p>
-                        </div>
+                    ].map((s, key) => (
+                        <StatCard key={key} label={s.label} valor={s.valor} labelColor={s.color} />
                     ))}
                 </div>
 
