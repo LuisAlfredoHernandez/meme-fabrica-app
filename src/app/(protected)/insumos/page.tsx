@@ -93,17 +93,16 @@ export default function InsumosPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b" style={{ borderColor: AppColors.border, background: "#1a1f2e" }}>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Insumo / Código</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Estado</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Existencia</th>
-                                {/* <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase text-right">Acciones</th> */}
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Insumo / Código</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Estado</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Existencia</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtrados.map((ins) => (
-                                <tr key={ins.id} className="border-t-[0.5px] hover:bg-white/[0.02] transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
+                                <tr key={ins.id} className="hover:bg-white/[0.02] border-b border-[#1e2130] transition-colors">
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
                                             <div className="p-1 rounded-lg bg-orange-500/10 border border-orange-500/20">
                                                 <Package className="w-4 h-4 shrink-0 " style={{ color: AppColors.slate }} />
                                             </div>
@@ -139,7 +138,6 @@ export default function InsumosPage() {
                                             </div>
                                         </div>
                                     </td>
-
                                 </tr>
                             ))}
                         </tbody>
