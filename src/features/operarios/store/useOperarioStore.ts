@@ -41,14 +41,13 @@ export const useOperarioStore = create<OperarioState>()(
           set({ isLoading: true, error: null }, false, "operarios/create_start");
           try {
             const created = await operariosService.create(newOperarioData);
-            
             // Actualizamos el estado local agregando el nuevo elemento
             set(
-              (state) => ({ 
-                operarios: [...state.operarios, created], 
-                isLoading: false 
-              }), 
-              false, 
+              (state) => ({
+                operarios: [...state.operarios, created],
+                isLoading: false
+              }),
+              false,
               "operarios/create_success"
             );
             return true;
@@ -63,7 +62,7 @@ export const useOperarioStore = create<OperarioState>()(
           set({ isLoading: true, error: null }, false, "operarios/update_start");
           try {
             const updated = await operariosService.update(id, data);
-            
+
             // Mapeamos el array actual para reemplazar solo el operario editado
             set(
               (state) => ({
@@ -84,13 +83,13 @@ export const useOperarioStore = create<OperarioState>()(
         deleteOperario: async (id) => {
           set({ isLoading: true, error: null }, false, "operarios/delete_start");
           try {
-              await operariosService.delete(id);
-              set((state) => ({
-                  operarios: state.operarios.filter(i => i.id !== id),
-                  isLoading: false
-              }), false, "operarios/delete_success");
+            await operariosService.delete(id);
+            set((state) => ({
+              operarios: state.operarios.filter(i => i.id !== id),
+              isLoading: false
+            }), false, "operarios/delete_success");
           } catch (e) {
-              set({ isLoading: false, error: "operarios/delete_error" });
+            set({ isLoading: false, error: "operarios/delete_error" });
           }
         },
 

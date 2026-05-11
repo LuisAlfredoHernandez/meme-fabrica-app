@@ -131,5 +131,4 @@ export const useOrdenStore = create<OrdenState>()(
     )
 );
 
-// Helper Hook para consumir las acciones sin causar re-renders del estado
 export const useOrdenActions = () => useOrdenStore((state) => state.actions);

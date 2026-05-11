@@ -41,14 +41,14 @@ export const useInsumosStore = create<InsumosState>()(
           set({ isLoading: true, error: null }, false, "insumos/create_start");
           try {
             const created = await insumosService.create(newInsumoData);
-            
+
             // Actualizamos el estado local agregando el nuevo elemento
             set(
-              (state) => ({ 
-                insumos: [...state.insumos, created], 
-                isLoading: false 
-              }), 
-              false, 
+              (state) => ({
+                insumos: [...state.insumos, created],
+                isLoading: false
+              }),
+              false,
               "insumos/create_success"
             );
             return true;
@@ -63,7 +63,7 @@ export const useInsumosStore = create<InsumosState>()(
           set({ isLoading: true, error: null }, false, "insumos/update_start");
           try {
             const updated = await insumosService.update(id, data);
-            
+
             // Mapeamos el array actual para reemplazar solo el insumo editado
             set(
               (state) => ({
@@ -84,13 +84,13 @@ export const useInsumosStore = create<InsumosState>()(
         deleteInsumo: async (id) => {
           set({ isLoading: true, error: null }, false, "insumos/delete_start");
           try {
-              await insumosService.delete(id);
-              set((state) => ({
-                  insumos: state.insumos.filter(i => i.id !== id),
-                  isLoading: false
-              }), false, "insumos/delete_success");
+            await insumosService.delete(id);
+            set((state) => ({
+              insumos: state.insumos.filter(i => i.id !== id),
+              isLoading: false
+            }), false, "insumos/delete_success");
           } catch (e) {
-              set({ isLoading: false, error: "insumos/delete_error" });
+            set({ isLoading: false, error: "insumos/delete_error" });
           }
         },
 

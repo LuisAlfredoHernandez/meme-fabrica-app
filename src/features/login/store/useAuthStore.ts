@@ -39,12 +39,10 @@ export const useAuthStore = create<AuthState>()(
 
             updateMyPassword: async (newPass) => {
                 const currentUser = get().user;
-                if (!currentUser) return;
+                if (!currentUser || !currentUser.id) return;
 
                 try {
-                    // Ahora llamamos al Action, no al servicio directamente
                     const result = await updatePasswordAction(currentUser.id, newPass);
-
                     if (result.success) {
                         console.log("✅ Contraseña actualizada exitosamente");
                     } else {

@@ -5,13 +5,13 @@ import type { Insumo } from "@/types";
 export type TipoInsumo = "tela" | "accesorio";
 
 export const INSUMOS_MOCK: Insumo[] = [
-    { id: "i1", codigo: "TEL-001", nombre: "Tela micro azul rey", tipo: "tela", subtipo: "micro", unidad: "metros", stock: 45, minimo: 20, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0042"] },
-    { id: "i2", codigo: "TEL-002", nombre: "Tela licra negra", tipo: "tela", subtipo: "licra", unidad: "metros", stock: 12, minimo: 15, proveedor: "ImportaTex", vinculadoA: ["ORD-2026-0043"] },
-    { id: "i3", codigo: "TEL-003", nombre: "Tela mono beige", tipo: "tela", subtipo: "mono", unidad: "metros", stock: 80, minimo: 10, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0044"] },
-    { id: "i4", codigo: "ACC-001", nombre: "Zippers negros #5", tipo: "accesorio", subtipo: "zipper", unidad: "unidades", stock: 320, minimo: 100, proveedor: "AccesoriosDO", vinculadoA: ["ORD-2026-0042"] },
-    { id: "i5", codigo: "ACC-002", nombre: "Gomas elásticas 2cm", tipo: "accesorio", subtipo: "goma", unidad: "metros", stock: 8, minimo: 20, proveedor: "ElásticosCaribeño", vinculadoA: ["ORD-2026-0043"] },
-    { id: "i6", codigo: "ACC-003", nombre: "Hilo poliéster negro", tipo: "accesorio", subtipo: "hilo", unidad: "rollos", stock: 15, minimo: 8, proveedor: "HilosNatl", vinculadoA: ["ORD-2026-0042", "ORD-2026-0043"] },
-    { id: "i7", codigo: "ACC-004", nombre: "Botones metálicos 18mm", tipo: "accesorio", subtipo: "boton", unidad: "unidades", stock: 0, minimo: 50, proveedor: "AccesoriosDO", vinculadoA: [] },
+  { id: "i1", codigo: "TEL-001", nombre: "Tela micro azul rey", tipo: "tela", unidad: "metros", stock: 45, minimo: 20, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0042"] },
+  { id: "i2", codigo: "TEL-002", nombre: "Tela licra negra", tipo: "tela", unidad: "metros", stock: 12, minimo: 15, proveedor: "ImportaTex", vinculadoA: ["ORD-2026-0043"] },
+  { id: "i3", codigo: "TEL-003", nombre: "Tela mono beige", tipo: "tela", unidad: "metros", stock: 80, minimo: 10, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0044"] },
+  { id: "i4", codigo: "ACC-001", nombre: "Zippers negros #5", tipo: "zipper", unidad: "unidades", stock: 320, minimo: 100, proveedor: "AccesoriosDO", vinculadoA: ["ORD-2026-0042"] },
+  { id: "i5", codigo: "ACC-002", nombre: "Gomas elásticas 2cm", tipo: "hilo", unidad: "metros", stock: 8, minimo: 20, proveedor: "ElásticosCaribeño", vinculadoA: ["ORD-2026-0043"] },
+  { id: "i6", codigo: "ACC-003", nombre: "Hilo poliéster negro", tipo: "boton", unidad: "rollos", stock: 15, minimo: 8, proveedor: "HilosNatl", vinculadoA: ["ORD-2026-0042", "ORD-2026-0043"] },
+  { id: "i7", codigo: "ACC-004", nombre: "Botones metálicos 18mm", tipo: "goma", unidad: "unidades", stock: 0, minimo: 50, proveedor: "AccesoriosDO", vinculadoA: [] },
 ];
 
 // Simulamos la latencia de una llamada a la API
@@ -36,13 +36,13 @@ export const insumosService = {
     });
   },
 
-/**
-   * Crea un nuevo insumo y lo añade a la lista.
-   * @param data - Los datos del nuevo insumo (sin el ID).
-   * @returns Una promesa que resuelve con el insumo creado.
-   */
-  
-create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
+  /**
+     * Crea un nuevo insumo y lo añade a la lista.
+     * @param data - Los datos del nuevo insumo (sin el ID).
+     * @returns Una promesa que resuelve con el insumo creado.
+     */
+
+  create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
     console.log("Creating new insumo...", data);
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -51,7 +51,7 @@ create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
           // Generamos un ID aleatorio o basado en timestamp para el mock
           id: Math.random().toString(36).substr(2, 9),
         };
-        
+
         console.log(`Insumo created successfully with ID: ${nuevoInsumo.id}`);
         resolve(nuevoInsumo);
       }, API_LATENCY);
@@ -69,7 +69,7 @@ create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         const index = INSUMOS_MOCK.findIndex((i) => i.id === id);
-        
+
         if (index === -1) {
           console.error("Update failed: Insumo not found.");
           reject(new Error("Insumo no encontrado"));
@@ -85,29 +85,29 @@ create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
       }, API_LATENCY);
     });
   },
-  
-  delete: (id: string): Promise<boolean> => {
-      console.log(`Solicitando eliminación del insumo con ID: ${id}...`);
-      
-      return new Promise((resolve, reject) => {
-          setTimeout(() => {
-              // Buscamos el índice del elemento en nuestro "mock"
-              const index = INSUMOS_MOCK.findIndex(insumo => insumo.id === id);
 
-              if (index !== -1) {
-                  // Eliminamos el elemento del array global (persistencia simulada)
-                  
-                  // INSUMOS_MOCK.splice(index, 1);
-                  
-                  console.log(`Insumo ${id} eliminado correctamente del Mock.`);
-                  resolve(true);
-              } else {
-                  // Si por alguna razón el ID no existe
-                  console.error(`Error: Insumo con ID ${id} no encontrado.`);
-                  reject(new Error("El insumo que intentas eliminar no existe en el sistema."));
-              }
-          }, API_LATENCY);
-      });
+  delete: (id: string): Promise<boolean> => {
+    console.log(`Solicitando eliminación del insumo con ID: ${id}...`);
+
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Buscamos el índice del elemento en nuestro "mock"
+        const index = INSUMOS_MOCK.findIndex(insumo => insumo.id === id);
+
+        if (index !== -1) {
+          // Eliminamos el elemento del array global (persistencia simulada)
+
+          // INSUMOS_MOCK.splice(index, 1);
+
+          console.log(`Insumo ${id} eliminado correctamente del Mock.`);
+          resolve(true);
+        } else {
+          // Si por alguna razón el ID no existe
+          console.error(`Error: Insumo con ID ${id} no encontrado.`);
+          reject(new Error("El insumo que intentas eliminar no existe en el sistema."));
+        }
+      }, API_LATENCY);
+    });
   },
 
   /**

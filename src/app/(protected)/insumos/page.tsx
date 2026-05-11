@@ -7,12 +7,8 @@ import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/use
 import { Plus, AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
 import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúrate de que el nombre coincida
 import { normalizeText } from "@/utils/formatters";
+import { AppColors } from "@/shared/constants";
 
-const C = {
-    bg: "#080b10", surface: "#13161e", border: "#1e2130",
-    orange: "#f97316", emerald: "#34d399", amber: "#fbbf24",
-    red: "#f87171", slate: "#475569",
-};
 
 export default function InsumosPage() {
     const { insumos, isLoading, error } = useInsumosStore();
@@ -57,7 +53,7 @@ export default function InsumosPage() {
 
             {/* Header */}
             <div className="px-6 py-5 border-b flex items-center justify-between"
-                style={{ borderColor: C.border, background: C.surface }}>
+                style={{ borderColor: AppColors.border, background: AppColors.surface }}>
                 <div>
                     <h1 className="text-xl font-black text-white">Meme Fábricas: Inventario</h1>
                     <p className="text-[10px] uppercase tracking-widest text-orange-500 font-bold">Control de Insumos RF6</p>
@@ -65,7 +61,7 @@ export default function InsumosPage() {
                 <button
                     onClick={() => abrirGestion()}
                     className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold shadow-lg shadow-orange-500/10 hover:scale-105 active:scale-95 transition-all"
-                    style={{ background: C.orange }}>
+                    style={{ background: AppColors.orange }}>
                     <Plus className="w-4 h-4" /> Movimiento de stock
                 </button>
             </div>
@@ -76,11 +72,11 @@ export default function InsumosPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[
                         { label: "Total Items", val: insumos.length, color: "#fff" },
-                        { label: "Stock Bajo", val: insumos.filter(i => i.stock < i.minimo && i.stock > 0).length, color: C.amber },
-                        { label: "Agotados", val: insumos.filter(i => i.stock === 0).length, color: C.red },
-                        { label: "Salud de Inv.", val: "88%", color: C.emerald },
+                        { label: "Stock Bajo", val: insumos.filter(i => i.stock < i.minimo && i.stock > 0).length, color: AppColors.amber },
+                        { label: "Agotados", val: insumos.filter(i => i.stock === 0).length, color: AppColors.red },
+                        { label: "Salud de Inv.", val: "88%", color: AppColors.emerald },
                     ].map(k => (
-                        <div key={k.label} className="p-4 rounded-2xl border bg-[#13161e]/50" style={{ borderColor: C.border }}>
+                        <div key={k.label} className="p-4 rounded-2xl border bg-[#13161e]/50" style={{ borderColor: AppColors.border }}>
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{k.label}</p>
                             <p className="text-2xl font-black mt-1" style={{ color: k.color }}>{k.val}</p>
                         </div>
@@ -88,7 +84,7 @@ export default function InsumosPage() {
                 </div>
 
                 {/* Filtros y Búsqueda */}
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#13161e] p-2 rounded-2xl border" style={{ borderColor: C.border }}>
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#13161e] p-2 rounded-2xl border" style={{ borderColor: AppColors.border }}>
                     <div className="relative w-full md:w-80">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                         <input
@@ -109,10 +105,10 @@ export default function InsumosPage() {
                 </div>
 
                 {/* Tabla de Insumos */}
-                <div className="rounded-2xl border overflow-hidden bg-[#13161e]" style={{ borderColor: C.border }}>
+                <div className="rounded-2xl border overflow-hidden bg-[#13161e]" style={{ borderColor: AppColors.border }}>
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b" style={{ borderColor: C.border, background: "#1a1f2e" }}>
+                            <tr className="border-b" style={{ borderColor: AppColors.border, background: "#1a1f2e" }}>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Insumo / Código</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Estado</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Existencia</th>
@@ -125,12 +121,12 @@ export default function InsumosPage() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             <div className="p-1 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                                                <Package className="w-4 h-4 shrink-0 " style={{ color: C.slate }} />
+                                                <Package className="w-4 h-4 shrink-0 " style={{ color: AppColors.slate }} />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded"
-                                                        style={{ background: `${C.orange}18`, color: C.orange }}>{ins.codigo}</span>
+                                                        style={{ background: `${AppColors.orange}18`, color: AppColors.orange }}>{ins.codigo}</span>
                                                     <span className="text-sm font-semibold text-white">{ins.nombre}</span>
                                                 </div>
                                             </div>

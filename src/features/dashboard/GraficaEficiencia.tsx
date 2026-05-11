@@ -18,7 +18,7 @@ import {
     Tooltip,
     Legend,
     ReferenceLine,
-    type TooltipProps,
+    type TooltipContentProps,
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Calendar, BarChart3 } from "lucide-react";
 
@@ -45,13 +45,11 @@ type VistaGrafica = "acumulado" | "diario" | "eficiencia";
 
 // ─── Tooltip personalizado ────────────────────────────────────
 
-const TooltipPersonalizado = ({
-    active,
-    payload,
-    label,
-}: TooltipProps<number, string>) => {
-    if (!active || !payload?.length) return null;
+const TooltipPersonalizado = (
+    props: TooltipContentProps<number, string>) => {
+    const { active, payload, label } = props;
 
+    if (!active || !payload?.length) return null;
     const items: { nombre: string; valor: number; color: string; sufijo: string }[] = [];
 
     payload.forEach((p) => {
@@ -328,7 +326,7 @@ export function GraficaEficiencia({
                                     tickLine={false}
                                     tickFormatter={(v) => `${v}%`}
                                 />
-                                <Tooltip content={<TooltipPersonalizado />} />
+                                <Tooltip content={<TooltipPersonalizado active={false} payload={[]} coordinate={undefined} accessibilityLayer={false} activeIndex={undefined} />} />
                                 <ReferenceLine
                                     y={100}
                                     stroke="#f97316"
@@ -379,7 +377,7 @@ export function GraficaEficiencia({
                                     axisLine={false}
                                     tickLine={false}
                                 />
-                                <Tooltip content={<TooltipPersonalizado />} />
+                                <Tooltip content={<TooltipPersonalizado active={false} payload={[]} coordinate={undefined} accessibilityLayer={false} activeIndex={undefined} />} />
                                 <Legend
                                     wrapperStyle={{ fontSize: "12px", paddingTop: "16px" }}
                                     formatter={(value) => {
