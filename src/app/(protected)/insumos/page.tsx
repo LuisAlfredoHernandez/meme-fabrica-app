@@ -4,10 +4,11 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
-import { Plus, AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
+import { AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
 import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúrate de que el nombre coincida
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
+import { Header } from "@/components/Header";
 
 
 export default function InsumosPage() {
@@ -40,34 +41,19 @@ export default function InsumosPage() {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-[#080b10] text-slate-300">
-
+        <div className="min-h-screen p-8 text-white">
             {modalConfig.open && (
                 <ModalGestionInsumo
-                    // Si pasas estos props al modal, puedes hacer que se inicialice en el modo correcto
                     // initialId={modalConfig.id} 
                     // initialMode={modalConfig.mode}
                     onClose={() => setModalConfig({ open: false })}
                 />
             )}
 
-            {/* Header */}
-            <div className="px-6 py-5 border-b flex items-center justify-between"
-                style={{ borderColor: AppColors.border, background: AppColors.surface }}>
-                <div>
-                    <h1 className="text-xl font-black text-white">Meme Fábricas: Inventario</h1>
-                    <p className="text-[10px] uppercase tracking-widest text-orange-500 font-bold">Control de Insumos RF6</p>
-                </div>
-                <button
-                    onClick={() => abrirGestion()}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold shadow-lg shadow-orange-500/10 hover:scale-105 active:scale-95 transition-all"
-                    style={{ background: AppColors.orange }}>
-                    <Plus className="w-4 h-4" /> Movimiento de stock
-                </button>
-            </div>
+            {/* Header pantalla*/}
+            <Header title="Inventario" subtitle="RF6 — Gestión Unificada de Inventario" buttonLabel="Movimiento de stock" onButtonClick={abrirGestion} />
 
             <div className="p-6 space-y-6">
-
                 {/* KPIs Rápidos */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[

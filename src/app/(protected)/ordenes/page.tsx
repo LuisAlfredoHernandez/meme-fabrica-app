@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useState } from "react";
 import {
-    Plus, Search,
+    Search,
     Clock, CheckCircle2, Pause,
     ArrowUpDown,
 } from "lucide-react";
@@ -14,6 +14,7 @@ import { useOrdenActions, useOrdenStore } from "@/features/ordenes/store/useOrde
 import { AppColors } from "@/shared/constants";
 import { ColaPrioridadesOrdenes } from "./componentes/ColaPrioridadOrdenes";
 import { TablaOrdenes } from "./componentes/TablaOrdenes";
+import { Header } from "@/components/Header";
 
 
 const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -53,25 +54,13 @@ export default function OrdenesPage() {
     }, [ordenes]); // Solo se recalcula si 'ordenes' cambia
 
     return (
-        <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="min-h-screen p-8 text-white" style={{ background: AppColors.bg }} >
             {modal && <ModalGestionOrdenes onClose={() => setModal(false)} />}
 
             {/* Header de página */}
-            <div className="px-6 py-5 border-b flex items-center justify-between"
-                style={{ borderColor: AppColors.border, background: AppColors.surface }}>
-                <div>
-                    <h1 className="text-lg font-black text-white">Órdenes de Producción</h1>
-                    <p className="text-xs mt-0.5" style={{ color: AppColors.slate }}>RF1 · RF7 — Gestión y cola de prioridades</p>
-                </div>
-                <button onClick={() => setModal(true)}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm  font-bold cursor-pointer hover:scale-105 transition-transform "
-                    style={{ background: AppColors.orange, boxShadow: `0 4px 16px ${AppColors.orange}30` }}>
-                    <Plus className="w-4 h-4" /> Gestionar Ordenes
-                </button>
-            </div>
+            <Header title="Órdenes de Producción" subtitle="RF1 · RF7 — Gestión y cola de prioridades" buttonLabel="Gestionar Ordenes" onButtonClick={() => setModal(true)} />
 
             <div className="p-6 space-y-5">
-
                 {/* Stats rápidas */}
                 <div className="grid grid-cols-4 gap-3">
                     {[
