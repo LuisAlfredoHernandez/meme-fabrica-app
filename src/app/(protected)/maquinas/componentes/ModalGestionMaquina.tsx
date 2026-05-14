@@ -25,7 +25,6 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
             serie: maquina?.serie || "",
             tipo: maquina?.tipo || undefined,
             capacidadPorHora: maquina?.capacidadPorHora || 0,
-            horasUso: maquina?.horasUso || 0
         }
     });
 
