@@ -1,42 +1,47 @@
 # === Etapa de Construcción (Builder) ===
-# Usamos una imagen base de Node.js con Alpine para mantenerla ligera.
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
+# 1. FIX: Instalar libc6-compat para que Next.js (SWC) funcione en Alpine
+# y pnpm en una sola capa para optimizar
+RUN apk add --no-cache libc6-compat && npm install -g pnpm@11.1.2
 
-# Instalar pnpm globalmente en la imagen.
-RUN npm install -g pnpm
-
-# Establecer el directorio de trabajo dentro del contenedor.
 WORKDIR /app
 
-# Copiar los archivos de definición de dependencias.
-COPY package.json pnpm-lock.yaml ./
+# Copiar los archivos de definición de dependencias primero para aprovechar la caché
+# ¡AQUÍ ESTÁ EL DETALLE! Faltaba copiar pnpm-workspace.yaml, que define los permisos de build.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Instalar todas las dependencias (incluidas las de desarrollo).
-RUN pnpm install
+# 2. FIX: Evita el error de TTY en pnpm v11 indicando entorno automatizado
+ENV CI=true
 
-# Copiar el resto del código fuente de la aplicación.
+# 3. CRÍTICO: Instalación limpia de dependencias (¡Aquí estaba el truco faltante!)
+RUN pnpm install --frozen-lockfile
+
+# Copiar el resto del código fuente (se hace DESPUÉS de instalar para no romper la caché de Docker)
 COPY . .
 
-# Construir la aplicación para producción.
+# Construir la aplicación para producción (usa output: "standalone" en next.config.ts)
 RUN pnpm build
 
 # === Etapa de Producción (Runner) ===
-# Empezamos desde una imagen fresca para mantenerla limpia y pequeña.
-FROM node:20-alpine AS runner
-
+FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Copiar las dependencias de producción y los artefactos de la build.
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/.next ./.next
+ENV NODE_ENV=production
+
+# Creamos un usuario de sistema para no correr como root (Seguridad)
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copiamos solo lo estrictamente necesario del builder
+# (El modo standalone copia node_modules esenciales automáticamente)
 COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Instalar solo las dependencias de producción.
-RUN npm install -g pnpm && pnpm install --prod
+USER nextjs
 
-# Exponer el puerto en el que se ejecutará la aplicación.
 EXPOSE 3000
+ENV PORT=3000
 
-# Comando para iniciar la aplicación en modo producción.
-CMD ["pnpm", "start"]
+# En modo standalone, Next genera un servidor de entrada en server.js
+CMD ["node", "server.js"]
