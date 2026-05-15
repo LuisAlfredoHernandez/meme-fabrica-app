@@ -95,9 +95,6 @@ export interface Maquina {
   capacidadPorHora: number; // piezas/hora estimadas
   operarioAsignado?: string; // Empleado.id
   estado: MaquinaStatus;
-  ultimoMantenimiento?: string; // ISO 8601
-  horasUso: number; // total acumulado
-  ubicacion?: string; // ej: "Zona A - Fila 2"
 }
 
 export interface Insumo {

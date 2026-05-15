@@ -12,9 +12,6 @@ export const maquinaSchema = z.object({
     capacidadPorHora: z.number().nonnegative("La capacidad debe ser un número positivo"),
     operarioAsignado: z.string().optional(),
     estado: z.enum(MAQUINAS_STATUS_LIST),
-    ultimoMantenimiento: z.string().optional(),
-    horasUso: z.number().min(0, "Las horas de uso no pueden ser negativas"),
-    ubicacion: z.string().optional(),
 });
 
 export type MaquinaFormData = z.infer<typeof maquinaSchema>;

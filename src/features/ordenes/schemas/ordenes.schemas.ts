@@ -33,7 +33,6 @@ export const ordenSchema = z.object({
     creadaPor: z.string().optional(),
     notas: z.string().optional(),
     cola: z.number().int().nonnegative().optional(),
-    // Si manejas las líneas dentro del mismo form:
     lineas: z.array(lineaOrdenSchema).min(1, "Debe haber al menos una línea"),
 });
 
