@@ -87,7 +87,6 @@ const MAQUINAS_POR_ETAPA: Record<
     ],
     estampado: [{ tipo: "plancha_dtf", label: "Plancha DTF" }],
     acabado: [
-        { tipo: "peso", label: "Peso" },
         { tipo: "plancha_dtf", label: "Plancha DTF" },
     ],
 };
@@ -358,7 +357,7 @@ export function FormularioRegistro({
                                 {ordenesActivas.map((o) => {
                                     // Sumamos todas las cantidades de las líneas para obtener el gran total
                                     const totalPiezas = o.lineas.reduce((acc, linea) => acc + linea.cantidad, 0);
-                                    const totalCompletadas = o.lineas.reduce((acc, linea) => acc + linea.cantidadCompletada, 0);
+                                    const totalCompletadas = o.lineas.reduce((acc, linea) => acc + (linea.cantidadCompletada ?? 0), 0);
                                     const restantes = totalPiezas - totalCompletadas;
 
                                     return (
@@ -382,7 +381,7 @@ export function FormularioRegistro({
                                             {(() => {
                                                 // Calculamos los totales desde el array de lineas
                                                 const totalPiezas = ordenSeleccionada.lineas.reduce((acc, l) => acc + l.cantidad, 0);
-                                                const totalCompletadas = ordenSeleccionada.lineas.reduce((acc, l) => acc + l.cantidadCompletada, 0);
+                                                const totalCompletadas = ordenSeleccionada.lineas.reduce((acc, l) => acc + (l.cantidadCompletada ?? 0), 0);
                                                 const porcentaje = totalPiezas > 0 ? Math.round((totalCompletadas / totalPiezas) * 100) : 0;
 
                                                 return (
