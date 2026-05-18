@@ -116,7 +116,7 @@ export const PRIORIDAD_LIST = ["baja", "normal", "alta", "urgente"] as const;
 export type Prioridad = typeof PRIORIDAD_LIST[number];
 export const TEMPORADA_LIST = ["verano", "invierno", "primavera", "otoño"] as const
 export type Temporada = typeof TEMPORADA_LIST[number];
-export const ESTADO_ORDEN_LIST = ["pendiente", "en_proceso", "pausada", "completada"] as const
+export const ESTADO_ORDEN_LIST = ["pendiente", "en_proceso", "pausada", "completada", "cancelada"] as const
 export type EstadoOrden = typeof ESTADO_ORDEN_LIST[number];
 
 
