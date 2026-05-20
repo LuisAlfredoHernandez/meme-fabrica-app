@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, ClipboardList, Users,
     Package, Brain, Settings, LogOut, Shield,
-    Factory, ScanLine
+    Factory, ScanLine, ClipboardCheck
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 const C = {
@@ -34,6 +34,7 @@ const NAV: NavItem[] = [
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["admin", "subjefe"] },
     { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["admin", "subjefe"] },
     { href: "/mi-estacion", icon: <ScanLine className="w-5 h-5" />, label: "Mi Estación", desc: "Captura diaria", roles: ["operario"] },
+    { href: "/validacion", icon: <ClipboardCheck className="w-5 h-5" />, label: "Validación", desc: "Certificar producción", roles: ["subjefe", "admin"] },
     { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["admin", "subjefe"] },
     { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["admin", "subjefe"] },
     { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["admin"], badge: "IA", badgeColor: "#818cf8" },

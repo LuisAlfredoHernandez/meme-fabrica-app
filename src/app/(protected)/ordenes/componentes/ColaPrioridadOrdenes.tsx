@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GripVertical, AlertCircle, Clock, CheckCircle2, Pause, ArrowUpDown } from "lucide-react";
+import { GripVertical, AlertCircle, Clock, CheckCircle2, Pause, ArrowUpDown, AlertTriangle } from "lucide-react";
 import { Orden, EstadoOrden } from "@/types";
 import { AppColors } from "@/shared/constants";
 
@@ -11,6 +11,7 @@ const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string
     en_proceso: { label: "En proceso", color: "#f97316", bg: "rgba(249,115,22,0.12)", icon: <ArrowUpDown className="w-3.5 h-3.5" /> },
     pausada: { label: "Pausada", color: "#fbbf24", bg: "rgba(251,191,36,0.12)", icon: <Pause className="w-3.5 h-3.5" /> },
     completada: { label: "Completada", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    cancelada: { label: "Cancelada", color: "#f87171", bg: "rgba(248,113,113,0.12)", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
 };
 
 interface ColaPrioridadesProps {
