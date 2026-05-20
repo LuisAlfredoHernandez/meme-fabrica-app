@@ -28,6 +28,16 @@ const MOCK_CREDENTIALS: Usuario[] = [
         estado: "activo",
         ultimaConexion: "Hace 2 horas"
     },
+    {
+        id: "u3",
+        correo: "operario1@meme.com",
+        password: "123",
+        nombre: "Ramon",
+        apellido: "Perez",
+        rol: "operario",
+        estado: "activo",
+        ultimaConexion: "Hace 1 horas"
+    },
 ];
 
 const API_LATENCY = 500;

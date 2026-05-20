@@ -8,7 +8,7 @@ const MOCK_OPERARIOS: Operario[] = [
   { id: "e2", nombre: "Josué", apellido: "Reyes", correo: "Josue11@gmail.com", rol: "operario", habilidades: [{ maquina: "cover", nivelEficiencia: 74 }, { maquina: "plana", nivelEficiencia: 90 }], estado: "activo", maquinaActual: "cover", ordenActual: "ORD-2026-0042" },
   { id: "e3", nombre: "María", apellido: "Santos", correo: "MariaSantos@gmail.com", rol: "operario", habilidades: [{ maquina: "corte", nivelEficiencia: 91 }], estado: "activo", maquinaActual: "corte", ordenActual: "ORD-2026-0043" },
   { id: "e4", nombre: "Rafael", apellido: "Núñez", correo: "rafaelN56@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 82 }, { maquina: "plana", nivelEficiencia: 65 }], estado: "inactivo" },
-  { id: "e6", nombre: "Luis", apellido: "Castro", correo: "CastroLuis@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 95 }, { maquina: "cover", nivelEficiencia: 88 }], estado: "activo", maquinaActual: "merrow", ordenActual: "ORD-2026-0043" },
+  { id: "e6", nombre: "Ramon", apellido: "Perez", correo: "operario1@meme.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 95 }, { maquina: "cover", nivelEficiencia: 88 }], estado: "activo", maquinaActual: "merrow", ordenActual: "ORD-2026-0043" },
 ];
 
 // Simulamos la latencia de una llamada a la API
