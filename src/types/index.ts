@@ -75,6 +75,7 @@ export interface Operario extends Usuario {
   habilidades: HabilidadMaquinaria[];
   maquinaActual?: TipoMaquina;
   ordenActual?: string;
+  fechaDeOrden?: string;
   /** Etapas en las que tiene experiencia */
   // etapasEspecializacion: HabilidadEtapa[];
 }
@@ -82,6 +83,8 @@ export interface Operario extends Usuario {
 export interface HabilidadMaquinaria {
   maquina: TipoMaquina;
   nivelEficiencia: number; // porcentaje 0-100
+  unidadesProducidas: number;
+  unidadesDefectuosas: number;
 }
 
 export interface Maquina {

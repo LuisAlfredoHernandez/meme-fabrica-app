@@ -28,7 +28,7 @@ export function EstacionesSelector() {
         if (existe) {
             field.onChange(habilidades.filter(h => h.maquina !== maquinaId));
         } else {
-            field.onChange([...habilidades, { maquina: maquinaId, nivelEficiencia: 0 }]);
+            field.onChange([...habilidades, { maquina: maquinaId, nivelEficiencia: 0, unidadesProducidas: 0, unidadesDefectuosas: 0 }]);
         }
     };
 

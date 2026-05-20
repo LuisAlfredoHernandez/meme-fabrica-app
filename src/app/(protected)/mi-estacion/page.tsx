@@ -6,7 +6,7 @@ import { useOperarioStore, useOperarioActions } from "@/features/operarios/store
 import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
 import { StatCard } from "@/components/StatCard";
 import { AppColors } from "@/shared/constants";
-import { CheckCircle2, AlertTriangle, Factory, Zap, Wrench } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Factory, Zap, Wrench, ClipboardList, Calendar } from "lucide-react";
 
 export default function MiEstacionPage() {
     const { user } = useAuthStore();
@@ -90,6 +90,30 @@ export default function MiEstacionPage() {
                 <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Mi Estación de Trabajo</h1>
                 <p className="text-slate-400 font-medium">Bienvenido <span className="text-white">{miOperario.nombre}</span>.</p>
             </div>
+
+            {/* Contexto de Tarea / Orden Asignada */}
+            {miOperario.ordenActual && (
+                <div className="mb-8 bg-gradient-to-r from-[#818cf8]/20 to-[#818cf8]/5 border border-[#818cf8]/20 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg shadow-[#818cf8]/10 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-[#818cf8]/20 flex items-center justify-center text-[#818cf8] shadow-inner">
+                            <ClipboardList className="w-7 h-7" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-widest text-[#818cf8] mb-1">Orden de Producción Activa</p>
+                            <p className="text-2xl font-black text-white">{miOperario.ordenActual}</p>
+                        </div>
+                    </div>
+                    {miOperario.fechaDeOrden && (
+                        <div className="md:text-right bg-[#080b10]/50 px-5 py-3 rounded-xl border border-[#818cf8]/10">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Asignada el</p>
+                            <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-[#818cf8]/70" /> 
+                                {new Date(miOperario.fechaDeOrden).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Kpis / Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

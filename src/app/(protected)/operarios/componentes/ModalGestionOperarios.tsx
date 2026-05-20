@@ -46,14 +46,14 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     }, [operarios, query]);
 
 
-    const onActualSubmit = async (data: Operario) => {
+    const onActualSubmit = async (data: OperarioFormData) => {
         try {
-            const operarioId = data.id
-            if (isExisting && operarioId) {
-                await updateOperario(operarioId, data);
+            if (isExisting && data.id) {
+                await updateOperario(data.id, data as Operario);
             } else {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { id, ...dataToCreate } = data;
-                await createOperario(dataToCreate);
+                await createOperario(dataToCreate as Omit<Operario, "id">);
             }
             onClose();
         } catch (error) {
