@@ -36,8 +36,8 @@ export default function ProtectedLayout({
         if (mounted && user) {
             if (user.rol === "operario" && pathname !== "/mi-estacion") {
                 router.push("/mi-estacion");
-            } else if ((user.rol === "admin" || user.rol === "subjefe") && pathname === "/") {
-                 router.push("/dashboard");
+            } else if ((user.rol === "administrador" || user.rol === "subjefe") && pathname === "/") {
+                router.push("/dashboard");
             }
         }
     }, [mounted, user, pathname, router]);

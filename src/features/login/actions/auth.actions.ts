@@ -5,7 +5,7 @@ import { Usuario } from '@/types';
 
 export async function loginAction(email: string, pass: string) {
     try {
-        const user = await authService.login(email, pass);
+        const { token, user } = await authService.login(email, pass);
 
         if (user) {
             const cookieStore = await cookies();
@@ -16,6 +16,13 @@ export async function loginAction(email: string, pass: string) {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
                 maxAge: 60 * 60 * 24, // 1 día
+            });
+            
+            cookieStore.set("access_token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: 60 * 60 * 24,
             });
 
             cookieStore.set("user_role", user.rol, { httpOnly: true });

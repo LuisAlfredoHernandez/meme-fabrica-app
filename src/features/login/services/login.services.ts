@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // features/auth/services/auth.service.ts
 // ─────────────────────────────────────────────────────────────
-import { Usuario } from "@/types";
+import { Usuario, Operario, LoginResponse } from "@/types";
 
 /**
  * Base de datos simulada de credenciales.
@@ -14,7 +14,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
         password: "12345678",
         nombre: "Juan",
         apellido: "Perez",
-        rol: "admin",
+        rol: "administrador",
         estado: "activo",
         ultimaConexion: "Ahora mismo"
     },
@@ -43,7 +43,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
 const API_LATENCY = 500;
 
 export const authService = {
-    login: async (email: string, pass: string): Promise<Usuario> => {
+    login: async (email: string, pass: string): Promise<{ token: string; user: Usuario | Operario }> => {
         console.log(`Intentando login para: ${email}...`);
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -62,7 +62,6 @@ export const authService = {
                 body: formData,
             });
 
-
             if (!response.ok) {
                 let errorMessage = "Credenciales inválidas.";
                 try {
@@ -74,16 +73,43 @@ export const authService = {
                 throw new Error(errorMessage);
             }
 
-            const user: Usuario = await response.json();
+            const data: LoginResponse = await response.json();
+            console.log(`Login exitoso, token recibido.`);
 
-            if (user.estado === "inactivo") {
-                throw new Error("Esta cuenta ha sido desactivada por el administrador.");
-            }
+            // Obtener el usuario actual con el token recibido
+            const user = await authService.getCurrentUser(data.access_token);
 
-            console.log(`Login exitoso: ${user.nombre || user.correo} (${user.rol || 'N/A'})`);
-            return user;
+            return { token: data.access_token, user };
         } catch (error: any) {
             console.error("Error en login:", error);
+            throw new Error(error.message || "Error al conectar con el servidor.");
+        }
+    },
+    getCurrentUser: async (token: string): Promise<Usuario | Operario> => {
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${API_URL}/usuarios/me`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+            });
+
+            if (!response.ok) {
+                let errorMessage = "No se pudo obtener la información del usuario.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorData.message || errorMessage;
+                } catch (e) {
+                }
+                throw new Error(errorMessage);
+            }
+
+            const user: Usuario | Operario = await response.json();
+            return user;
+        } catch (error: any) {
+            console.error("Error en getCurrentUser:", error);
             throw new Error(error.message || "Error al conectar con el servidor.");
         }
     },
