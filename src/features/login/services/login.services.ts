@@ -11,9 +11,9 @@ const MOCK_CREDENTIALS: Usuario[] = [
     {
         id: "u1",
         correo: "admin@meme.com",
-        password: "123",
-        nombre: "Luis",
-        apellido: "Hernández",
+        password: "12345678",
+        nombre: "Juan",
+        apellido: "Perez",
         rol: "admin",
         estado: "activo",
         ultimaConexion: "Ahora mismo"
@@ -21,7 +21,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
     {
         id: "u2",
         correo: "jefe@meme.com",
-        password: "123",
+        password: "12345678",
         nombre: "Carmen",
         apellido: "Méndez",
         rol: "subjefe",
@@ -43,32 +43,49 @@ const MOCK_CREDENTIALS: Usuario[] = [
 const API_LATENCY = 500;
 
 export const authService = {
-    /**
-     * Valida las credenciales contra el mock.
-     * @returns El objeto Usuario (sin contraseña) o lanza un error.
-     */
-    login: (email: string, pass: string): Promise<Usuario> => {
+    login: async (email: string, pass: string): Promise<Usuario> => {
         console.log(`Intentando login para: ${email}...`);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const formData = new URLSearchParams();
+            formData.append("username", email);
+            formData.append("password", pass);
 
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const user = MOCK_CREDENTIALS.find(u => u.correo === email && u.password === pass);
+            console.log("API_URL =", API_URL);
+            console.log("URL =", `${API_URL}/login`);
 
-                if (!user) {
-                    reject(new Error("Credenciales inválidas."));
-                    return;
+            const response = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: formData,
+            });
+
+
+            if (!response.ok) {
+                let errorMessage = "Credenciales inválidas.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorData.message || errorMessage;
+                } catch (e) {
                 }
+                console.log(errorMessage)
+                throw new Error(errorMessage);
+            }
 
-                if (user.estado === "inactivo") {
-                    reject(new Error("Esta cuenta ha sido desactivada por el administrador."));
-                    return;
-                }
+            const user: Usuario = await response.json();
 
-                // Devolvemos el usuario sin la propiedad 'pass' por seguridad
-                console.log(`Login exitoso: ${user.nombre} (${user.rol})`);
-                resolve(user);
-            }, API_LATENCY);
-        });
+            if (user.estado === "inactivo") {
+                throw new Error("Esta cuenta ha sido desactivada por el administrador.");
+            }
+
+            console.log(`Login exitoso: ${user.nombre || user.correo} (${user.rol || 'N/A'})`);
+            return user;
+        } catch (error: any) {
+            console.error("Error en login:", error);
+            throw new Error(error.message || "Error al conectar con el servidor.");
+        }
     },
 
     /**
