@@ -4,11 +4,11 @@
 import type { Operario } from "@/types";
 
 const MOCK_OPERARIOS: Operario[] = [
-  { id: "e1", nombre: "Carmen", apellido: "Méndez", correo: "carmen@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 92 }, { maquina: "cover", nivelEficiencia: 85 }], estado: "activo", maquinaActual: "merrow", ordenActual: "ORD-2026-0042" },
-  { id: "e2", nombre: "Josué", apellido: "Reyes", correo: "Josue11@gmail.com", rol: "operario", habilidades: [{ maquina: "cover", nivelEficiencia: 74 }, { maquina: "plana", nivelEficiencia: 90 }], estado: "activo", maquinaActual: "cover", ordenActual: "ORD-2026-0042" },
-  { id: "e3", nombre: "María", apellido: "Santos", correo: "MariaSantos@gmail.com", rol: "operario", habilidades: [{ maquina: "corte", nivelEficiencia: 91 }], estado: "activo", maquinaActual: "corte", ordenActual: "ORD-2026-0043" },
-  { id: "e4", nombre: "Rafael", apellido: "Núñez", correo: "rafaelN56@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 82 }, { maquina: "plana", nivelEficiencia: 65 }], estado: "inactivo" },
-  { id: "e6", nombre: "Luis", apellido: "Castro", correo: "CastroLuis@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 95 }, { maquina: "cover", nivelEficiencia: 88 }], estado: "activo", maquinaActual: "merrow", ordenActual: "ORD-2026-0043" },
+  { id: "e1", nombre: "Carmen", apellido: "Méndez", correo: "carmen@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 92, unidadesProducidas: 150, unidadesDefectuosas: 2 }, { maquina: "cover", nivelEficiencia: 85, unidadesProducidas: 50, unidadesDefectuosas: 1 }], estado: "activo", maquinaActual: "merrow", ordenActual: "ORD-2026-0042", fechaDeOrden: "2026-05-20T08:00:00Z" },
+  { id: "e2", nombre: "Josué", apellido: "Reyes", correo: "Josue11@gmail.com", rol: "operario", habilidades: [{ maquina: "cover", nivelEficiencia: 74, unidadesProducidas: 40, unidadesDefectuosas: 5 }, { maquina: "plana", nivelEficiencia: 90, unidadesProducidas: 100, unidadesDefectuosas: 0 }], estado: "activo", maquinaActual: "cover", ordenActual: "ORD-2026-0042", fechaDeOrden: "2026-05-20T09:30:00Z" },
+  { id: "e3", nombre: "María", apellido: "Santos", correo: "MariaSantos@gmail.com", rol: "operario", habilidades: [{ maquina: "corte", nivelEficiencia: 91, unidadesProducidas: 300, unidadesDefectuosas: 10 }], estado: "activo", maquinaActual: "corte", ordenActual: "ORD-2026-0043", fechaDeOrden: "2026-05-20T07:15:00Z" },
+  { id: "e4", nombre: "Rafael", apellido: "Núñez", correo: "rafaelN56@gmail.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 82, unidadesProducidas: 0, unidadesDefectuosas: 0 }, { maquina: "plana", nivelEficiencia: 65, unidadesProducidas: 0, unidadesDefectuosas: 0 }], estado: "inactivo" },
+  { id: "e6", nombre: "Ramon", apellido: "Perez", correo: "operario1@meme.com", rol: "operario", habilidades: [{ maquina: "merrow", nivelEficiencia: 95, unidadesProducidas: 200, unidadesDefectuosas: 1 }, { maquina: "cover", nivelEficiencia: 88, unidadesProducidas: 120, unidadesDefectuosas: 3 }], estado: "activo", maquinaActual: "merrow", ordenActual: "ORD-2026-0043", fechaDeOrden: "2026-05-20T08:45:00Z" },
 ];
 
 // Simulamos la latencia de una llamada a la API

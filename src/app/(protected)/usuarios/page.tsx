@@ -12,7 +12,7 @@ import { AppColors } from "@/shared/constants";
 
 
 const ROL_CFG: Record<string, { label: string; color: string; icon: any }> = {
-    admin: { label: "Dueño / Admin", color: "#f97316", icon: ShieldCheck },
+    administrador: { label: "Dueño / Admin", color: "#f97316", icon: ShieldCheck },
     subjefe: { label: "Jefe de Taller", color: "#818cf8", icon: UserCog },
     operario: { label: "Operario", color: "#34d399", icon: Clock },
 };
@@ -24,7 +24,7 @@ export default function UsuariosPage() {
 
     // Mock local para la vista
     const [usuarios, setUsuarios] = useState([
-        { id: "u1", nombre: "Luis", apellido: "Hernández", email: "l.hernandez@memefabrica.com", rol: "admin", estado: "activo", ultimaConexion: "Hace 10 min" },
+        { id: "u1", nombre: "Luis", apellido: "Hernández", email: "l.hernandez@memefabrica.com", rol: "administrador", estado: "activo", ultimaConexion: "Hace 10 min" },
         { id: "u2", nombre: "Carmen", apellido: "Méndez", email: "AppColors.mendez@memefabrica.com", rol: "subjefe", estado: "activo", ultimaConexion: "Ayer" },
         { id: "u3", nombre: "Josué", apellido: "Reyes", email: "j.reyes@memefabrica.com", rol: "operario", estado: "inactivo", ultimaConexion: "Hace 3 días" },
     ]);

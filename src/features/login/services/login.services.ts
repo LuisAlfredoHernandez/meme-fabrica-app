@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // features/auth/services/auth.service.ts
 // ─────────────────────────────────────────────────────────────
-import { Usuario } from "@/types";
+import { Usuario, Operario, LoginResponse } from "@/types";
 
 /**
  * Base de datos simulada de credenciales.
@@ -11,54 +11,107 @@ const MOCK_CREDENTIALS: Usuario[] = [
     {
         id: "u1",
         correo: "admin@meme.com",
-        password: "123",
-        nombre: "Luis",
-        apellido: "Hernández",
-        rol: "admin",
+        password: "12345678",
+        nombre: "Juan",
+        apellido: "Perez",
+        rol: "administrador",
         estado: "activo",
         ultimaConexion: "Ahora mismo"
     },
     {
         id: "u2",
         correo: "jefe@meme.com",
-        password: "123",
+        password: "12345678",
         nombre: "Carmen",
         apellido: "Méndez",
         rol: "subjefe",
         estado: "activo",
         ultimaConexion: "Hace 2 horas"
     },
+    {
+        id: "u3",
+        correo: "operario1@meme.com",
+        password: "123",
+        nombre: "Ramon",
+        apellido: "Perez",
+        rol: "operario",
+        estado: "activo",
+        ultimaConexion: "Hace 1 horas"
+    },
 ];
 
 const API_LATENCY = 500;
 
 export const authService = {
-    /**
-     * Valida las credenciales contra el mock.
-     * @returns El objeto Usuario (sin contraseña) o lanza un error.
-     */
-    login: (email: string, pass: string): Promise<Usuario> => {
+    login: async (email: string, pass: string): Promise<{ token: string; user: Usuario | Operario }> => {
         console.log(`Intentando login para: ${email}...`);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const formData = new URLSearchParams();
+            formData.append("username", email);
+            formData.append("password", pass);
 
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const user = MOCK_CREDENTIALS.find(u => u.correo === email && u.password === pass);
+            console.log("API_URL =", API_URL);
+            console.log("URL =", `${API_URL}/login`);
 
-                if (!user) {
-                    reject(new Error("Credenciales inválidas."));
-                    return;
+            const response = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Credenciales inválidas.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorData.message || errorMessage;
+                } catch (e) {
                 }
+                console.log(errorMessage)
+                throw new Error(errorMessage);
+            }
 
-                if (user.estado === "inactivo") {
-                    reject(new Error("Esta cuenta ha sido desactivada por el administrador."));
-                    return;
+            const data: LoginResponse = await response.json();
+            console.log(`Login exitoso, token recibido.`);
+
+            // Obtener el usuario actual con el token recibido
+            const user = await authService.getCurrentUser(data.access_token);
+
+            return { token: data.access_token, user };
+        } catch (error: any) {
+            console.error("Error en login:", error);
+            throw new Error(error.message || "Error al conectar con el servidor.");
+        }
+    },
+    getCurrentUser: async (token: string): Promise<Usuario | Operario> => {
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${API_URL}/usuarios/me`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+            });
+
+            if (!response.ok) {
+                let errorMessage = "No se pudo obtener la información del usuario.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorData.message || errorMessage;
+                } catch (e) {
                 }
+                throw new Error(errorMessage);
+            }
 
-                // Devolvemos el usuario sin la propiedad 'pass' por seguridad
-                console.log(`Login exitoso: ${user.nombre} (${user.rol})`);
-                resolve(user);
-            }, API_LATENCY);
-        });
+            const user: Usuario | Operario = await response.json();
+            return user;
+        } catch (error: any) {
+            console.error("Error en getCurrentUser:", error);
+            throw new Error(error.message || "Error al conectar con el servidor.");
+        }
     },
 
     /**
