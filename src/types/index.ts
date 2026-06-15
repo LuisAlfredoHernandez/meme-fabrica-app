@@ -54,7 +54,7 @@ export type TipoMaquina = typeof MAQUINAS_LIST[number];
 export const MAQUINAS_STATUS_LIST = ["activa", "inactiva", "depreciada"] as const;
 export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
-export const USUARIO_ROL = ["admin", "subjefe", "operario"] as const;
+export const USUARIO_ROL = ["administrador", "subjefe", "operario"] as const;
 export type RolUsuario = typeof USUARIO_ROL[number];
 
 export const USUARIO_STATUS = ["activo", "pendiente", "inactivo", "terminado"] as const;
@@ -75,6 +75,7 @@ export interface Operario extends Usuario {
   habilidades: HabilidadMaquinaria[];
   maquinaActual?: TipoMaquina;
   ordenActual?: string;
+  fechaDeOrden?: string;
   /** Etapas en las que tiene experiencia */
   // etapasEspecializacion: HabilidadEtapa[];
 }
@@ -82,6 +83,8 @@ export interface Operario extends Usuario {
 export interface HabilidadMaquinaria {
   maquina: TipoMaquina;
   nivelEficiencia: number; // porcentaje 0-100
+  unidadesProducidas: number;
+  unidadesDefectuosas: number;
 }
 
 export interface Maquina {
@@ -95,9 +98,6 @@ export interface Maquina {
   capacidadPorHora: number; // piezas/hora estimadas
   operarioAsignado?: string; // Empleado.id
   estado: MaquinaStatus;
-  ultimoMantenimiento?: string; // ISO 8601
-  horasUso: number; // total acumulado
-  ubicacion?: string; // ej: "Zona A - Fila 2"
 }
 
 export interface Insumo {
@@ -119,7 +119,7 @@ export const PRIORIDAD_LIST = ["baja", "normal", "alta", "urgente"] as const;
 export type Prioridad = typeof PRIORIDAD_LIST[number];
 export const TEMPORADA_LIST = ["verano", "invierno", "primavera", "otoño"] as const
 export type Temporada = typeof TEMPORADA_LIST[number];
-export const ESTADO_ORDEN_LIST = ["pendiente", "en_proceso", "pausada", "completada"] as const
+export const ESTADO_ORDEN_LIST = ["pendiente", "en_proceso", "pausada", "completada", "cancelada"] as const
 export type EstadoOrden = typeof ESTADO_ORDEN_LIST[number];
 
 
@@ -258,4 +258,9 @@ export interface PaginatedResponse<T> {
   pagina: number;
   porPagina: number;
   totalPaginas: number;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
 }

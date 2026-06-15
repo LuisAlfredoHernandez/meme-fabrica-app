@@ -2,10 +2,10 @@ import { Maquina, TipoMaquina, } from "@/types";
 
 // Simulación de base de datos inicial
 const MAQUINAS_MOCK: Maquina[] = [
-    { id: "MAC-001", codigo: "REC-01", tipo: "plana", nombre: "Recta Industrial", modelo: "Juki DDL-8700", serie: "JK-99210", estado: "activa", ubicacion: "Planta A", capacidadPorHora: 50, horasUso: 120 },
-    { id: "MAC-002", codigo: "OVE-01", tipo: "merrow", nombre: "Overlock 5 Hilos", modelo: "Siruba 757K", serie: "SR-11200", estado: "activa", ubicacion: "Planta A", capacidadPorHora: 45, horasUso: 85 },
-    { id: "MAC-003", codigo: "BOR-01", tipo: "cover", nombre: "Bordadora 12 Cabezales", modelo: "Tajima TFMX", serie: "TJ-44500", estado: "inactiva", ubicacion: "Planta B", capacidadPorHora: 20, horasUso: 300 },
-    { id: "MAC-004", codigo: "COR-01", tipo: "corte", nombre: "Cortadora de Tela", modelo: "Eastman 629X", serie: "EM-88122", estado: "depreciada", ubicacion: "Corte", capacidadPorHora: 100, horasUso: 1500 },
+    { id: "MAC-001", codigo: "REC-01", tipo: "plana", nombre: "Recta Industrial", modelo: "Juki DDL-8700", serie: "JK-99210", estado: "activa", capacidadPorHora: 50 },
+    { id: "MAC-002", codigo: "OVE-01", tipo: "merrow", nombre: "Overlock 5 Hilos", modelo: "Siruba 757K", serie: "SR-11200", estado: "activa", capacidadPorHora: 45 },
+    { id: "MAC-003", codigo: "BOR-01", tipo: "cover", nombre: "Bordadora 12 Cabezales", modelo: "Tajima TFMX", serie: "TJ-44500", estado: "inactiva", capacidadPorHora: 20, },
+    { id: "MAC-004", codigo: "COR-01", tipo: "corte", nombre: "Cortadora de Tela", modelo: "Eastman 629X", serie: "EM-88122", estado: "depreciada", capacidadPorHora: 100, },
 ];
 
 

@@ -7,7 +7,7 @@ import {
     Brain, AlertTriangle, TrendingUp, TrendingDown, Zap,
     RefreshCw, CheckCircle2, X, ArrowRight, UserCheck,
     BarChart3, Shield, Info, Clock, ChevronDown, Play,
-    AlertCircle, Database, GitCompare, Bell, Lock,
+    AlertCircle, Database, GitCompare, Bell,
 } from "lucide-react";
 import {
     ResponsiveContainer, ComposedChart, Area, Line,
@@ -419,36 +419,36 @@ export default function IAPage() {
                 {tabActiva === "cuellos" && (
                     <div className="space-y-3">
                         <p className="text-xs" style={{ color: AppColors.slate }}>RF15 — Detección de saturación en estaciones</p>
-                        {CUELLOS.map(AppColors => {
-                            const cfg = NIVEL_CFG[AppColors.nivel];
-                            const isExp = expCuello[AppColors.maquina];
+                        {CUELLOS.map(cuello => {
+                            const cfg = NIVEL_CFG[cuello.nivel];
+                            const isExp = expCuello[cuello.maquina];
                             return (
-                                <div key={AppColors.maquina} className="rounded-xl overflow-hidden"
+                                <div key={cuello.maquina} className="rounded-xl overflow-hidden"
                                     style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                                    <button onClick={() => setExp(p => ({ ...p, [AppColors.maquina]: !p[AppColors.maquina] }))}
+                                    <button onClick={() => setExp(p => ({ ...p, [cuello.maquina]: !p[cuello.maquina] }))}
                                         className="w-full flex items-start gap-3 p-4 text-left">
                                         <span style={{ color: cfg.color }}>{cfg.icon}</span>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs font-bold uppercase" style={{ color: cfg.color }}>{cfg.label}</span>
-                                                <span className="text-xs" style={{ color: AppColors.slate }}>· {AppColors.maquina}</span>
+                                                <span className="text-xs" style={{ color: AppColors.slate }}>· {cuello.maquina}</span>
                                             </div>
-                                            <p className="text-sm font-medium mt-1" style={{ color: "#e2e8f0" }}>{AppColors.msg}</p>
+                                            <p className="text-sm font-medium mt-1" style={{ color: "#e2e8f0" }}>{cuello.msg}</p>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
-                                            <span className="text-xl font-black font-mono" style={{ color: cfg.color }}>{AppColors.sat}%</span>
+                                            <span className="text-xl font-black font-mono" style={{ color: cfg.color }}>{cuello.sat}%</span>
                                             <ChevronDown className="w-4 h-4" style={{ color: AppColors.slate, transform: isExp ? "rotate(180deg)" : "none" }} />
                                         </div>
                                     </button>
                                     {isExp && (
                                         <div className="px-4 pb-4 pt-3 space-y-2" style={{ borderTop: `1px solid ${AppColors.border}` }}>
                                             <div className="h-2 rounded-full" style={{ background: "#1e293b" }}>
-                                                <div className="h-full rounded-full" style={{ width: `${AppColors.sat}%`, background: cfg.color }} />
+                                                <div className="h-full rounded-full" style={{ width: `${cuello.sat}%`, background: cfg.color }} />
                                             </div>
                                             <p className="text-xs flex items-center gap-2" style={{ color: "#94a3b8" }}>
                                                 <Clock className="w-3.5 h-3.5" style={{ color: AppColors.slate }} />
                                                 Impacto estimado: <strong className="text-white">
-                                                    {AppColors.impacto > 0 ? `${AppColors.impacto} hrs de retraso` : "Sin impacto inmediato"}
+                                                    {cuello.impacto > 0 ? `${cuello.impacto} hrs de retraso` : "Sin impacto inmediato"}
                                                 </strong>
                                             </p>
                                         </div>

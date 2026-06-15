@@ -3,10 +3,12 @@ import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/
 import { ModalGestionMaquina } from "./componentes/ModalGestionMaquina";
 import { useEffect, useState } from "react";
 import { Maquina } from "@/types";
-import { Plus, Settings, } from "lucide-react";
+import { Settings } from "lucide-react";
 import { StatusBadge } from "./componentes/StatusBadge.";
 import { MetricCard } from "./componentes/MetricCard";
 import { AppColors } from "@/shared/constants";
+import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 export default function MaquinasPage() {
@@ -21,27 +23,15 @@ export default function MaquinasPage() {
 
     return (
         <div className="min-h-screen p-8 text-white" style={{ background: AppColors.bg }}>
-            {/* Header de Pantalla */}
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold">Maquinaria y Equipos</h1>
-                    <p className="text-sm text-slate-500">Gestión de activos y estado operativo</p>
-                </div>
-                <button
-                    onClick={() => { setSelectedMaquina(null); setIsModalOpen(true); }}
-                    className="px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20"
-                    style={{ background: AppColors.orange }}
-                >
-                    <Plus className="w-5 h-5" /> Nueva máquina
-                </button>
-            </div>
+            {/* Header de página */}
+            <Header title="Maquinaria y Equipos" subtitle="Gestión de activos y estado operativo" buttonLabel="Nueva máquina" onButtonClick={() => { setSelectedMaquina(null); setIsModalOpen(true) }} />
 
             {/* Cards de Métricas */}
             <div className="grid grid-cols-4 gap-6 mb-8">
-                <MetricCard title="Total Equipos" value={maquinas.length} />
-                <MetricCard title="Activas" value={maquinas.filter(m => m.estado === 'activa').length} color={AppColors.emerald} />
-                <MetricCard title="En Mantenimiento" value={maquinas.filter(m => m.estado === 'inactiva').length} color={AppColors.amber} />
-                <MetricCard title="Depreciadas" value={maquinas.filter(m => m.estado === 'depreciada').length} color={AppColors.red} />
+                <StatCard label="Total Equipos" valor={maquinas.length} />
+                <StatCard label="Activas" valor={maquinas.filter(m => m.estado === 'activa').length} labelColor={AppColors.emerald} />
+                <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'inactiva').length} labelColor={AppColors.amber} />
+                <StatCard label="Depreciadas" valor={maquinas.filter(m => m.estado === 'depreciada').length} labelColor={AppColors.red} />
             </div>
 
             {/* Tabla Estilo Insumos */}

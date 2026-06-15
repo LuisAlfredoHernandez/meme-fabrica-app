@@ -4,10 +4,12 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
-import { Plus, AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
+import { AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
 import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúrate de que el nombre coincida
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
+import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 
 
 export default function InsumosPage() {
@@ -40,34 +42,19 @@ export default function InsumosPage() {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-[#080b10] text-slate-300">
-
+        <div className="min-h-screen p-8 text-white">
             {modalConfig.open && (
                 <ModalGestionInsumo
-                    // Si pasas estos props al modal, puedes hacer que se inicialice en el modo correcto
                     // initialId={modalConfig.id} 
                     // initialMode={modalConfig.mode}
                     onClose={() => setModalConfig({ open: false })}
                 />
             )}
 
-            {/* Header */}
-            <div className="px-6 py-5 border-b flex items-center justify-between"
-                style={{ borderColor: AppColors.border, background: AppColors.surface }}>
-                <div>
-                    <h1 className="text-xl font-black text-white">Meme Fábricas: Inventario</h1>
-                    <p className="text-[10px] uppercase tracking-widest text-orange-500 font-bold">Control de Insumos RF6</p>
-                </div>
-                <button
-                    onClick={() => abrirGestion()}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold shadow-lg shadow-orange-500/10 hover:scale-105 active:scale-95 transition-all"
-                    style={{ background: AppColors.orange }}>
-                    <Plus className="w-4 h-4" /> Movimiento de stock
-                </button>
-            </div>
+            {/* Header pantalla*/}
+            <Header title="Inventario" subtitle="RF6 — Gestión Unificada de Inventario" buttonLabel="Movimiento de stock" onButtonClick={abrirGestion} />
 
             <div className="p-6 space-y-6">
-
                 {/* KPIs Rápidos */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[
@@ -75,11 +62,8 @@ export default function InsumosPage() {
                         { label: "Stock Bajo", val: insumos.filter(i => i.stock < i.minimo && i.stock > 0).length, color: AppColors.amber },
                         { label: "Agotados", val: insumos.filter(i => i.stock === 0).length, color: AppColors.red },
                         { label: "Salud de Inv.", val: "88%", color: AppColors.emerald },
-                    ].map(k => (
-                        <div key={k.label} className="p-4 rounded-2xl border bg-[#13161e]/50" style={{ borderColor: AppColors.border }}>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{k.label}</p>
-                            <p className="text-2xl font-black mt-1" style={{ color: k.color }}>{k.val}</p>
-                        </div>
+                    ].map((k, idx) => (
+                        <StatCard key={idx} label={k.label} valor={k.val} labelColor={k.color} />
                     ))}
                 </div>
 
@@ -109,17 +93,16 @@ export default function InsumosPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b" style={{ borderColor: AppColors.border, background: "#1a1f2e" }}>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Insumo / Código</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Estado</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase">Existencia</th>
-                                {/* <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase text-right">Acciones</th> */}
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Insumo / Código</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Estado</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Existencia</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtrados.map((ins) => (
-                                <tr key={ins.id} className="border-t-[0.5px] hover:bg-white/[0.02] transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
+                                <tr key={ins.id} className="hover:bg-white/[0.02] border-b border-[#1e2130] transition-colors">
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
                                             <div className="p-1 rounded-lg bg-orange-500/10 border border-orange-500/20">
                                                 <Package className="w-4 h-4 shrink-0 " style={{ color: AppColors.slate }} />
                                             </div>
@@ -155,7 +138,6 @@ export default function InsumosPage() {
                                             </div>
                                         </div>
                                     </td>
-
                                 </tr>
                             ))}
                         </tbody>

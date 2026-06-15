@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { MAQUINAS_LIST, USUARIO_ROL, USUARIO_STATUS } from "@/types";
 
-// 1. Esquema base que coincide con la interface Usuario
 export const usuarioSchema = z.object({
     id: z.string().optional(),
     nombre: z.string().min(2, "El nombre es demasiado corto"),
@@ -12,18 +11,18 @@ export const usuarioSchema = z.object({
     password: z.string().optional(), // Opcional para ediciones
 });
 
-// 2. Esquema de Habilidad (coincide con HabilidadMaquinaria)
 export const habilidadMaquinariaSchema = z.object({
     maquina: z.enum(MAQUINAS_LIST),
     nivelEficiencia: z.number().min(0).max(100),
+    unidadesProducidas: z.number().min(0).nullish(),
+    unidadesDefectuosas: z.number().min(0).nullish(),
 });
 
-// 3. Esquema de Operario (Extiende de Usuario)
 export const operarioSchema = usuarioSchema.extend({
     habilidades: z.array(habilidadMaquinariaSchema).min(1, "Selecciona al menos una máquina"),
     maquinaActual: z.enum(MAQUINAS_LIST).optional(),
-    ordenActual: z.string().optional(),
+    ordenActual: z.string().nullish(),
+    fechaDeOrden: z.string().nullish(),
 });
 
-// Esto genera el tipo automáticamente a partir del esquema
 export type OperarioFormData = z.infer<typeof operarioSchema>;
