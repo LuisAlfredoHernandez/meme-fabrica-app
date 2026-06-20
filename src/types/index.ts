@@ -51,7 +51,7 @@ export type TipoProducto =
 export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"] as const;
 export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
-export const MAQUINAS_STATUS_LIST = ["activa", "inactiva", "depreciada"] as const;
+export const MAQUINAS_STATUS_LIST = ["operativa", "mantenimiento", "fuera_servicio"] as const;
 export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
 export const USUARIO_ROL = ["administrador", "subjefe", "operario"] as const;
@@ -104,7 +104,7 @@ export interface Insumo {
   id: string;
   nombre: string;
   codigo?: string;
-  tipo: "tela" | "zipper" | "goma" | "boton" | "hilo" | "otro";
+  tipo: "tela" | "accesorio" | "zipper" | "goma" | "boton" | "hilo" | "otro";
   unidad: "metros" | "unidades" | "rollos" | "kg";
   stock: number;
   minimo: number;

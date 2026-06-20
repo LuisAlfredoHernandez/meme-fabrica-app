@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Maquina } from "@/types";
 import { Settings } from "lucide-react";
 import { StatusBadge } from "./componentes/StatusBadge.";
-import { MetricCard } from "./componentes/MetricCard";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";
@@ -51,7 +50,7 @@ export default function MaquinasPage() {
                             <tr key={m.id} className="hover:bg-white/[0.02] border-b border-[#1e2130] transition-colors">
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">
-                                        <span className="font-mono text-xs text-orange-500 font-bold">{m.id}</span>
+                                        <span className="font-mono text-xs text-orange-500 font-bold">{m.codigo}</span>
                                         <span className="font-semibold text-sm">{m.nombre}</span>
                                     </div>
                                 </td>

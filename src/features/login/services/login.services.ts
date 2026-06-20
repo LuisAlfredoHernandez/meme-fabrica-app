@@ -51,9 +51,6 @@ export const authService = {
             formData.append("username", email);
             formData.append("password", pass);
 
-            console.log("API_URL =", API_URL);
-            console.log("URL =", `${API_URL}/login`);
-
             const response = await fetch(`${API_URL}/login`, {
                 method: "POST",
                 headers: {

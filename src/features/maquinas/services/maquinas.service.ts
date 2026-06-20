@@ -1,55 +1,71 @@
-import { Maquina, TipoMaquina, } from "@/types";
+import { Maquina, TipoMaquina, MAQUINAS_LIST } from "@/types";
 
-// Simulación de base de datos inicial
-const MAQUINAS_MOCK: Maquina[] = [
-    { id: "MAC-001", codigo: "REC-01", tipo: "plana", nombre: "Recta Industrial", modelo: "Juki DDL-8700", serie: "JK-99210", estado: "activa", capacidadPorHora: 50 },
-    { id: "MAC-002", codigo: "OVE-01", tipo: "merrow", nombre: "Overlock 5 Hilos", modelo: "Siruba 757K", serie: "SR-11200", estado: "activa", capacidadPorHora: 45 },
-    { id: "MAC-003", codigo: "BOR-01", tipo: "cover", nombre: "Bordadora 12 Cabezales", modelo: "Tajima TFMX", serie: "TJ-44500", estado: "inactiva", capacidadPorHora: 20, },
-    { id: "MAC-004", codigo: "COR-01", tipo: "corte", nombre: "Cortadora de Tela", modelo: "Eastman 629X", serie: "EM-88122", estado: "depreciada", capacidadPorHora: 100, },
-];
-
-
-
-const MAQUINAS_ALL_TYPES_MOCK: TipoMaquina[] = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"]
-
-const API_LATENCY = 800;
+/**
+ * Helper interno para obtener headers con autenticación de manera agnóstica.
+ */
+const getAuthHeaders = (token?: string) => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 export const maquinasService = {
-    getAll: (): Promise<Maquina[]> => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve([...MAQUINAS_MOCK]), API_LATENCY);
-        });
-    },
+  getAll: async (token?: string): Promise<Maquina[]> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/maquinas`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      });
 
-    getAllTypes: (): Promise<TipoMaquina[]> => {
-        return new Promise((resolve) => {
-            setTimeout(() => resolve([...MAQUINAS_ALL_TYPES_MOCK]), API_LATENCY);
-        });
-    },
+      if (!response.ok) throw new Error("No se pudo obtener la lista de máquinas.");
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en maquinasService.getAll:", error);
+      throw new Error(error.message || "Error al conectar con el servidor.");
+    }
+  },
 
-    create: (data: Omit<Maquina, "id">): Promise<Maquina> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const nueva: Maquina = {
-                    ...data,
-                    id: `MAC-${Math.floor(100 + Math.random() * 900)}`,
-                };
-                MAQUINAS_MOCK.push(nueva);
-                resolve(nueva);
-            }, API_LATENCY);
-        });
-    },
+  getAllTypes: async (token?: string): Promise<TipoMaquina[]> => {
+    // Los tipos usualmente son constantes, retornamos la constante desde types
+    return [...MAQUINAS_LIST];
+  },
 
-    update: (id: string, data: Partial<Maquina>): Promise<Maquina> => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const index = MAQUINAS_MOCK.findIndex((m) => m.id === id);
-                if (index === -1) return reject(new Error("Máquina no encontrada"));
+  create: async (data: Omit<Maquina, "id">, token?: string): Promise<Maquina> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/maquinas`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+      });
 
-                const actualizada = { ...MAQUINAS_MOCK[index], ...data };
-                MAQUINAS_MOCK[index] = actualizada;
-                resolve(actualizada);
-            }, API_LATENCY);
-        });
-    },
+      if (!response.ok) throw new Error("No se pudo crear la máquina.");
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en maquinasService.create:", error);
+      throw new Error(error.message || "Error al crear la máquina.");
+    }
+  },
+
+  update: async (id: string, data: Partial<Maquina>, token?: string): Promise<Maquina> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/maquinas/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error(`No se pudo actualizar la máquina con ID: ${id}`);
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en maquinasService.update:", error);
+      throw new Error(error.message || "Error al actualizar la máquina.");
+    }
+  },
 };
