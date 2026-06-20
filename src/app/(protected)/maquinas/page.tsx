@@ -28,9 +28,9 @@ export default function MaquinasPage() {
             {/* Cards de Métricas */}
             <div className="grid grid-cols-4 gap-6 mb-8">
                 <StatCard label="Total Equipos" valor={maquinas.length} />
-                <StatCard label="Activas" valor={maquinas.filter(m => m.estado === 'activa').length} labelColor={AppColors.emerald} />
-                <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'inactiva').length} labelColor={AppColors.amber} />
-                <StatCard label="Depreciadas" valor={maquinas.filter(m => m.estado === 'depreciada').length} labelColor={AppColors.red} />
+                <StatCard label="Operativas" valor={maquinas.filter(m => m.estado === 'operativa').length} labelColor={AppColors.emerald} />
+                <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'mantenimiento').length} labelColor={AppColors.amber} />
+                <StatCard label="Fuera de Servicio" valor={maquinas.filter(m => m.estado === 'fuera_servicio').length} labelColor={AppColors.red} />
             </div>
 
             {/* Tabla Estilo Insumos */}

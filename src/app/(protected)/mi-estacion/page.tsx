@@ -52,12 +52,12 @@ export default function MiEstacionPage() {
         if (!miMaquina || motivoFalla.trim() === "") return;
 
         const success = await updateMaquina(miMaquina.id, {
-            estado: "inactiva",
+            estado: "mantenimiento",
             // Podríamos guardar el motivo en un registro, pero por ahora cambiamos el estado
         });
 
         if (success) {
-            alert(`Falla reportada exitosamente en ${miMaquina.nombre}. La máquina está ahora inactiva.`);
+            alert(`Falla reportada exitosamente en ${miMaquina.nombre}. La máquina está ahora en mantenimiento.`);
             setMotivoFalla("");
             setShowFallaForm(false);
         }
@@ -107,7 +107,7 @@ export default function MiEstacionPage() {
                         <div className="md:text-right bg-[#080b10]/50 px-5 py-3 rounded-xl border border-[#818cf8]/10">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Asignada el</p>
                             <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-[#818cf8]/70" /> 
+                                <Calendar className="w-4 h-4 text-[#818cf8]/70" />
                                 {new Date(miOperario.fechaDeOrden).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })}
                             </p>
                         </div>
@@ -133,9 +133,9 @@ export default function MiEstacionPage() {
                 <StatCard
                     label="Estado de Máquina"
                     valor={miMaquina?.estado ? miMaquina.estado.toUpperCase() : "Desconocido"}
-                    icon={miMaquina?.estado === "activa" ? CheckCircle2 : AlertTriangle}
-                    color={miMaquina?.estado === "activa" ? "#34d399" : "#f43f5e"}
-                    labelColor={miMaquina?.estado === "activa" ? "#34d399" : "#f43f5e"}
+                    icon={miMaquina?.estado === "operativa" ? CheckCircle2 : AlertTriangle}
+                    color={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
+                    labelColor={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
                 />
             </div>
 
@@ -177,10 +177,10 @@ export default function MiEstacionPage() {
 
                         <button
                             type="submit"
-                            disabled={miMaquina?.estado !== "activa"}
+                            disabled={miMaquina?.estado !== "operativa"}
                             className="w-full mt-4 py-4 rounded-xl font-black text-white transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] disabled:hover:shadow-none border border-orange-400/20"
                         >
-                            {miMaquina?.estado !== "activa" ? "Máquina Inactiva - No se puede reportar" : "Guardar Producción"}
+                            {miMaquina?.estado !== "operativa" ? "Máquina Inactiva - No se puede reportar" : "Guardar Producción"}
                         </button>
                     </form>
                 </div>
@@ -188,14 +188,14 @@ export default function MiEstacionPage() {
                 {/* Formulario de Falla */}
                 <div className="bg-[#13161e] border border-[#1e2130] p-6 rounded-3xl hover:border-slate-800 transition-colors shadow-lg shadow-black/50 flex flex-col">
                     <div className="flex items-center gap-3 mb-6 shrink-0">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner transition-colors ${miMaquina?.estado === "activa" ? "bg-[#34d399]/10 text-[#34d399]" : "bg-red-500/10 text-red-500"}`}>
-                            {miMaquina?.estado === "activa" ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner transition-colors ${miMaquina?.estado === "operativa" ? "bg-[#34d399]/10 text-[#34d399]" : "bg-red-500/10 text-red-500"}`}>
+                            {miMaquina?.estado === "operativa" ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                         </div>
                         <h2 className="text-xl font-bold text-white">Estado de la Máquina</h2>
                     </div>
 
                     <div className="flex-1">
-                        {miMaquina?.estado === "activa" ? (
+                        {miMaquina?.estado === "operativa" ? (
                             <div className="flex flex-col h-full justify-center">
                                 {!showFallaForm ? (
                                     <div className="text-center py-4 animate-in fade-in duration-500">
