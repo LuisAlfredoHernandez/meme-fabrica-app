@@ -82,7 +82,9 @@ export default function MiEstacionPage() {
 
     // Calcular eficiencia
     const habilidadEnMaquina = miOperario.habilidades.find(h => h.maquina === miOperario.maquinaActual);
-    const eficiencia = habilidadEnMaquina ? `${habilidadEnMaquina.nivelEficiencia}%` : "N/A";
+    const eficiencia = habilidadEnMaquina && habilidadEnMaquina.nivel_eficiencia !== undefined
+        ? `${habilidadEnMaquina.nivel_eficiencia}%`
+        : "N/A";
 
     return (
         <div className="p-8 overflow-y-auto max-h-screen custom-scrollbar">
@@ -92,7 +94,7 @@ export default function MiEstacionPage() {
             </div>
 
             {/* Contexto de Tarea / Orden Asignada */}
-            {miOperario.ordenActual && (
+            {miOperario.orden_actual_id && (
                 <div className="mb-8 bg-gradient-to-r from-[#818cf8]/20 to-[#818cf8]/5 border border-[#818cf8]/20 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg shadow-[#818cf8]/10 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-[#818cf8]/20 flex items-center justify-center text-[#818cf8] shadow-inner">
@@ -100,18 +102,9 @@ export default function MiEstacionPage() {
                         </div>
                         <div>
                             <p className="text-xs font-bold uppercase tracking-widest text-[#818cf8] mb-1">Orden de Producción Activa</p>
-                            <p className="text-2xl font-black text-white">{miOperario.ordenActual}</p>
+                            <p className="text-2xl font-black text-white">{miOperario.orden_actual_id}</p>
                         </div>
                     </div>
-                    {miOperario.fechaDeOrden && (
-                        <div className="md:text-right bg-[#080b10]/50 px-5 py-3 rounded-xl border border-[#818cf8]/10">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Asignada el</p>
-                            <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-[#818cf8]/70" />
-                                {new Date(miOperario.fechaDeOrden).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })}
-                            </p>
-                        </div>
-                    )}
                 </div>
             )}
 

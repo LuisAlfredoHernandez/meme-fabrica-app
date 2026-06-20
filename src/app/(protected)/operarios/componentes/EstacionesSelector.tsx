@@ -13,7 +13,7 @@ const MAQUINAS_OPTIONS: { id: TipoMaquina; label: string; color: string }[] = [
 ];
 
 export function EstacionesSelector() {
-    const { control } = useFormContext<OperarioFormData>();
+    const { control, setValue } = useFormContext<OperarioFormData>();
 
     const { field } = useController({
         name: "habilidades",
@@ -25,10 +25,17 @@ export function EstacionesSelector() {
 
     const toggleMaquina = (maquinaId: TipoMaquina) => {
         const existe = habilidades.some(h => h.maquina === maquinaId);
-        if (existe) {
-            field.onChange(habilidades.filter(h => h.maquina !== maquinaId));
+        const nuevasHabilidades = existe
+            ? habilidades.filter(h => h.maquina !== maquinaId)
+            : [...habilidades, { maquina: maquinaId, nivel_eficiencia: 0 }];
+
+        field.onChange(nuevasHabilidades);
+
+        // Sincronizar maquinaActual con la primera habilidad seleccionada
+        if (nuevasHabilidades.length > 0) {
+            setValue("maquinaActual", nuevasHabilidades[0].maquina, { shouldValidate: true });
         } else {
-            field.onChange([...habilidades, { maquina: maquinaId, nivelEficiencia: 0, unidadesProducidas: 0, unidadesDefectuosas: 0 }]);
+            setValue("maquinaActual", "" as any, { shouldValidate: true });
         }
     };
 

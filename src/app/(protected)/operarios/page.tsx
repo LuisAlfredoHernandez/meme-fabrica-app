@@ -57,7 +57,7 @@ export default function OperariosPage() {
         if (!asignando || !asignando.id) return;
         await updateOperario(asignando.id, {
             maquinaActual: maquina as TipoMaquina,
-            ordenActual: orden,
+            orden_actual_id: orden,
             estado: "activo" // Al asignar tarea, pasa a estar activo automáticamente
         });
         setAsig(null); // Cerramos modal
@@ -146,7 +146,8 @@ export default function OperariosPage() {
                                     <div className="space-y-3">
                                         {o.habilidades.map(hab => {
                                             const cfg = MAQUINAS_CFG[hab.maquina];
-                                            const colorBarra = hab.nivelEficiencia >= 85 ? AppColors.emerald : hab.nivelEficiencia >= 70 ? AppColors.amber : AppColors.red;
+                                            const nivel = hab.nivel_eficiencia ?? 0;
+                                            const colorBarra = nivel >= 85 ? AppColors.emerald : nivel >= 70 ? AppColors.amber : AppColors.red;
                                             return (
                                                 <div key={hab.maquina}>
                                                     <div className="flex justify-between items-center mb-1">
@@ -155,11 +156,11 @@ export default function OperariosPage() {
                                                             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.color }} />
                                                             {cfg.label}
                                                         </span>
-                                                        <span className="text-[10px] font-bold font-mono" style={{ color: colorBarra }}>{hab.nivelEficiencia}%</span>
+                                                        <span className="text-[10px] font-bold font-mono" style={{ color: colorBarra }}>{nivel}%</span>
                                                     </div>
                                                     <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                                                         <div className="h-full rounded-full transition-all duration-1000"
-                                                            style={{ width: `${hab.nivelEficiencia}%`, background: colorBarra }} />
+                                                            style={{ width: `${nivel}%`, background: colorBarra }} />
                                                     </div>
                                                 </div>
                                             );
@@ -179,7 +180,7 @@ export default function OperariosPage() {
                                                 }}>
                                                     {o.maquinaActual}
                                                 </p>
-                                                <p className="text-[10px] text-slate-500 truncate font-medium">{o.ordenActual}</p>
+                                                <p className="text-[10px] text-slate-500 truncate font-medium">{o.orden_actual_id}</p>
                                             </div>
                                         </div>
                                     )}

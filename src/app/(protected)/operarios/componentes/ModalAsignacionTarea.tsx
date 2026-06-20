@@ -29,8 +29,8 @@ interface Props {
 }
 
 export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
-    const [selectedMaq, setSelectedMaq] = useState(operario.maquinaActual || "");
-    const [selectedOrd, setSelectedOrd] = useState(operario.ordenActual || "");
+    const [selectedMaq, setSelectedMaq] = useState<string>(operario.maquinaActual || "");
+    const [selectedOrd, setSelectedOrd] = useState(operario.orden_actual_id || "");
 
     // CONSTRAINT: Solo máquinas que el operario tenga en sus habilidades
     const maquinasHabilitadas = Object.entries(MAQUINAS_CFG).filter(([key]) =>
@@ -79,7 +79,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                     return (
                                         <button
                                             key={key}
-                                            onClick={() => setSelectedMaq(`${key.toUpperCase()}-01`)} // Simulación de ID de estación
+                                            onClick={() => setSelectedMaq(key.toUpperCase())} // Simulación de ID de estación
                                             className="flex items-center justify-between p-3 rounded-2xl border-2 transition-all text-left"
                                             style={{
                                                 borderColor: isSelected ? cfg.color : AppColors.border,
@@ -90,7 +90,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                                 <p className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-slate-400'}`}>
                                                     {cfg.label}
                                                 </p>
-                                                <p className="text-[9px] text-slate-500 font-mono">EST-01</p>
+                                                <p className="text-[9px] text-slate-500 font-mono">{key}</p>
                                             </div>
                                             {isSelected && <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: cfg.color }} />}
                                         </button>
