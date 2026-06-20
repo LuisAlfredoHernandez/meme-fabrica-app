@@ -1,128 +1,152 @@
 // ─────────────────────────────────────────────────────────────
-// features/insumos/services/insumos.service.ts — Mocks & Service
+// features/insumos/services/insumos.service.ts
 // ─────────────────────────────────────────────────────────────
 import type { Insumo } from "@/types";
+
 export type TipoInsumo = "tela" | "accesorio";
 
-export const INSUMOS_MOCK: Insumo[] = [
-  { id: "i1", codigo: "TEL-001", nombre: "Tela micro azul rey", tipo: "tela", unidad: "metros", stock: 45, minimo: 20, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0042"] },
-  { id: "i2", codigo: "TEL-002", nombre: "Tela licra negra", tipo: "tela", unidad: "metros", stock: 12, minimo: 15, proveedor: "ImportaTex", vinculadoA: ["ORD-2026-0043"] },
-  { id: "i3", codigo: "TEL-003", nombre: "Tela mono beige", tipo: "tela", unidad: "metros", stock: 80, minimo: 10, proveedor: "Textiles RD", vinculadoA: ["ORD-2026-0044"] },
-  { id: "i4", codigo: "ACC-001", nombre: "Zippers negros #5", tipo: "zipper", unidad: "unidades", stock: 320, minimo: 100, proveedor: "AccesoriosDO", vinculadoA: ["ORD-2026-0042"] },
-  { id: "i5", codigo: "ACC-002", nombre: "Gomas elásticas 2cm", tipo: "hilo", unidad: "metros", stock: 8, minimo: 20, proveedor: "ElásticosCaribeño", vinculadoA: ["ORD-2026-0043"] },
-  { id: "i6", codigo: "ACC-003", nombre: "Hilo poliéster negro", tipo: "boton", unidad: "rollos", stock: 15, minimo: 8, proveedor: "HilosNatl", vinculadoA: ["ORD-2026-0042", "ORD-2026-0043"] },
-  { id: "i7", codigo: "ACC-004", nombre: "Botones metálicos 18mm", tipo: "goma", unidad: "unidades", stock: 0, minimo: 50, proveedor: "AccesoriosDO", vinculadoA: [] },
-];
-
-// Simulamos la latencia de una llamada a la API
-const API_LATENCY = 500; // 0.5 segundos
+/**
+ * Helper interno para obtener headers con autenticación de manera agnóstica.
+ * En un entorno real se recomienda enviar el token o utilizar un interceptor de fetch.
+ */
+const getAuthHeaders = (token?: string) => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 /**
- * Servicio para la gestión de insumos.
- * Imita las llamadas a una API REST utilizando los datos mockeados.
+ * Servicio para la gestión de insumos conectándose a la API Real.
  */
 export const insumosService = {
   /**
    * Obtiene todos los insumos disponibles.
    * @returns Una promesa que resuelve con la lista de insumos.
    */
-  getAll: (): Promise<Insumo[]> => {
-    console.log("Fetching all insumos from mock service...");
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("Insumos fetched successfully.");
-        resolve(INSUMOS_MOCK);
-      }, API_LATENCY);
-    });
+  getAll: async (token?: string): Promise<Insumo[]> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/insumos`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error("No se pudo obtener la lista de insumos.");
+      }
+
+      const data: Insumo[] = await response.json();
+      return data;
+    } catch (error: any) {
+      console.error("Error en insumosService.getAll:", error);
+      throw new Error(error.message || "Error al conectar con el servidor.");
+    }
   },
 
   /**
-     * Crea un nuevo insumo y lo añade a la lista.
-     * @param data - Los datos del nuevo insumo (sin el ID).
-     * @returns Una promesa que resuelve con el insumo creado.
-     */
+   * Crea un nuevo insumo y lo añade a la lista.
+   * @param data - Los datos del nuevo insumo (sin el ID).
+   * @returns Una promesa que resuelve con el insumo creado.
+   */
+  create: async (data: Omit<Insumo, "id">, token?: string): Promise<Insumo> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/insumos`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+      });
 
-  create: (data: Omit<Insumo, "id">): Promise<Insumo> => {
-    console.log("Creating new insumo...", data);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const nuevoInsumo: Insumo = {
-          ...data,
-          // Generamos un ID aleatorio o basado en timestamp para el mock
-          id: Math.random().toString(36).substr(2, 9),
-        };
+      if (!response.ok) {
+        throw new Error("No se pudo crear el insumo.");
+      }
 
-        console.log(`Insumo created successfully with ID: ${nuevoInsumo.id}`);
-        resolve(nuevoInsumo);
-      }, API_LATENCY);
-    });
+      const nuevoInsumo: Insumo = await response.json();
+      return nuevoInsumo;
+    } catch (error: any) {
+      console.error("Error en insumosService.create:", error);
+      throw new Error(error.message || "Error al crear el insumo.");
+    }
   },
 
   /**
    * Actualiza un insumo existente por su ID.
    * @param id - El ID del insumo a actualizar.
    * @param data - Los campos parciales a modificar.
-   * @returns Una promesa que resuelve con el insumo actualizado o lanza error si no existe.
+   * @returns Una promesa que resuelve con el insumo actualizado.
    */
-  update: (id: string, data: Partial<Insumo>): Promise<Insumo> => {
-    console.log(`Updating insumo with id: ${id}...`, data);
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const index = INSUMOS_MOCK.findIndex((i) => i.id === id);
+  update: async (id: string, data: Partial<Insumo>, token?: string): Promise<Insumo> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/insumos/${id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+      });
 
-        if (index === -1) {
-          console.error("Update failed: Insumo not found.");
-          reject(new Error("Insumo no encontrado"));
-          return;
-        }
+      if (!response.ok) {
+        throw new Error(`No se pudo actualizar el insumo con ID: ${id}`);
+      }
 
-        // Combinamos los datos antiguos con los nuevos
-        const insumoActualizado = { ...INSUMOS_MOCK[index], ...data };
-        INSUMOS_MOCK[index] = insumoActualizado;
-
-        console.log(`Insumo ${id} updated successfully.`);
-        resolve(insumoActualizado);
-      }, API_LATENCY);
-    });
+      const insumoActualizado: Insumo = await response.json();
+      return insumoActualizado;
+    } catch (error: any) {
+      console.error("Error en insumosService.update:", error);
+      throw new Error(error.message || "Error al actualizar el insumo.");
+    }
   },
 
-  delete: (id: string): Promise<boolean> => {
-    console.log(`Solicitando eliminación del insumo con ID: ${id}...`);
+  /**
+   * Elimina un insumo del sistema.
+   * @param id - El ID del insumo a eliminar.
+   * @returns Una promesa que resuelve a true si fue eliminado.
+   */
+  delete: async (id: string, token?: string): Promise<boolean> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/insumos/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(token),
+      });
 
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Buscamos el índice del elemento en nuestro "mock"
-        const index = INSUMOS_MOCK.findIndex(insumo => insumo.id === id);
+      if (!response.ok) {
+        throw new Error(`Error al eliminar el insumo con ID: ${id}`);
+      }
 
-        if (index !== -1) {
-          // Eliminamos el elemento del array global (persistencia simulada)
-
-          // INSUMOS_MOCK.splice(index, 1);
-
-          console.log(`Insumo ${id} eliminado correctamente del Mock.`);
-          resolve(true);
-        } else {
-          // Si por alguna razón el ID no existe
-          console.error(`Error: Insumo con ID ${id} no encontrado.`);
-          reject(new Error("El insumo que intentas eliminar no existe en el sistema."));
-        }
-      }, API_LATENCY);
-    });
+      return true;
+    } catch (error: any) {
+      console.error("Error en insumosService.delete:", error);
+      throw new Error(error.message || "Error al intentar eliminar.");
+    }
   },
 
   /**
    * Obtiene un insumo por su ID.
    * @param id - El ID del insumo a buscar.
-   * @returns Una promesa que resuelve con el insumo o undefined si no se encuentra.
+   * @returns Una promesa que resuelve con el insumo o lanza un error.
    */
-  getById: (id: string): Promise<Insumo | undefined> => {
-    console.log(`Fetching insumo with id: ${id}`);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const insumo = INSUMOS_MOCK.find((i) => i.id === id);
-        console.log(insumo ? `Found insumo: ${insumo.nombre}` : "Insumo not found.");
-        resolve(insumo);
-      }, API_LATENCY);
-    });
+  getById: async (id: string, token?: string): Promise<Insumo | undefined> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/insumos/${id}`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) return undefined;
+        throw new Error(`No se pudo obtener el insumo con ID: ${id}`);
+      }
+
+      const insumo: Insumo = await response.json();
+      return insumo;
+    } catch (error: any) {
+      console.error("Error en insumosService.getById:", error);
+      throw new Error(error.message || "Error al conectar con el servidor.");
+    }
   },
 };

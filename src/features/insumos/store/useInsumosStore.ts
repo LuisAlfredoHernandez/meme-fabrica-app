@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { insumosService } from "@/features/insumos/services/insumos.service";
+import {
+  fetchInsumosAction,
+  createInsumoAction,
+  updateInsumoAction,
+  deleteInsumoAction
+} from "@/features/insumos/actions/insumos.actions";
 import type { Insumo } from "@/types";
 
 interface InsumosState {
@@ -29,7 +34,7 @@ export const useInsumosStore = create<InsumosState>()(
         fetchInsumos: async () => {
           set({ isLoading: true, error: null }, false, "insumos/fetch_start");
           try {
-            const data = await insumosService.getAll();
+            const data = await fetchInsumosAction();
             set({ insumos: data, isLoading: false }, false, "insumos/fetch_success");
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error desconocido";
@@ -40,7 +45,7 @@ export const useInsumosStore = create<InsumosState>()(
         createInsumo: async (newInsumoData) => {
           set({ isLoading: true, error: null }, false, "insumos/create_start");
           try {
-            const created = await insumosService.create(newInsumoData);
+            const created = await createInsumoAction(newInsumoData);
 
             // Actualizamos el estado local agregando el nuevo elemento
             set(
@@ -62,7 +67,7 @@ export const useInsumosStore = create<InsumosState>()(
         updateInsumo: async (id, data) => {
           set({ isLoading: true, error: null }, false, "insumos/update_start");
           try {
-            const updated = await insumosService.update(id, data);
+            const updated = await updateInsumoAction(id, data);
 
             // Mapeamos el array actual para reemplazar solo el insumo editado
             set(
@@ -84,7 +89,7 @@ export const useInsumosStore = create<InsumosState>()(
         deleteInsumo: async (id) => {
           set({ isLoading: true, error: null }, false, "insumos/delete_start");
           try {
-            await insumosService.delete(id);
+            await deleteInsumoAction(id);
             set((state) => ({
               insumos: state.insumos.filter(i => i.id !== id),
               isLoading: false
