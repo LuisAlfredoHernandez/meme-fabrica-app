@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { maquinasService } from "@/features/maquinas/services/maquinas.service";
-import { Maquina, TipoMaquina } from "@/types";
+import { Maquina, TipoMaquina, ReporteAveria } from "@/types";
 
 /**
  * Obtiene el token de manera segura en el servidor.
@@ -30,4 +30,9 @@ export async function createMaquinaAction(data: Omit<Maquina, "id">): Promise<Ma
 export async function updateMaquinaAction(id: string, data: Partial<Maquina>): Promise<Maquina> {
   const token = await getToken();
   return maquinasService.update(id, data, token);
+}
+
+export async function reportarAveriaAction(data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">): Promise<ReporteAveria> {
+  const token = await getToken();
+  return maquinasService.reportarAveria(data, token);
 }

@@ -1,4 +1,4 @@
-import { Maquina, TipoMaquina, MAQUINAS_LIST } from "@/types";
+import { Maquina, TipoMaquina, MAQUINAS_LIST, ReporteAveria } from "@/types";
 
 /**
  * Helper interno para obtener headers con autenticación de manera agnóstica.
@@ -66,6 +66,23 @@ export const maquinasService = {
     } catch (error: any) {
       console.error("Error en maquinasService.update:", error);
       throw new Error(error.message || "Error al actualizar la máquina.");
+    }
+  },
+
+  reportarAveria: async (data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">, token?: string): Promise<ReporteAveria> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/reportes-averia`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error("No se pudo enviar el reporte de avería.");
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en maquinasService.reportarAveria:", error);
+      throw new Error(error.message || "Error al enviar el reporte de avería.");
     }
   },
 };

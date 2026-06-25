@@ -1,18 +1,18 @@
 "use client";
 // ─────────────────────────────────────────────────────────────
-// app/operarios/page.tsx — RF2 + RF3 (Colores por Máquina)
+// app/operarios/page.tsx — Gestión de Operarios y Asignación de Órdenes/Tareas
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from "react";
-import { Search, X, Zap, Cpu, Users, UserCheck, UserMinus } from "lucide-react";
+import { Search, X, Zap, Cpu, Users, UserCheck, UserMinus, ClipboardList } from "lucide-react";
 import { Operario, TipoMaquina } from "@/types";
-import { normalizeText } from "@/utils/formatters"
-import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore"
+import { normalizeText } from "@/utils/formatters";
+import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore";
+import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/store/useAsignacionStore";
 import { ModalGestionOperario } from "./componentes/ModalGestionOperarios";
 import { ModalAsignacionTarea } from "./componentes/ModalAsignacionTarea";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";
-
 
 const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos: string[] }> = {
     merrow: { label: "Merrow", color: "#f97316", codigos: ["MERROW-01", "MERROW-02", "MERROW-03"] },
@@ -30,18 +30,20 @@ const ESTADO_CFG = {
     terminado: { color: "#f70909", label: "Terminado", bg: "rgba(248,113,113,0.12)", icon: UserMinus },
 };
 
-// ... (Componente ModalAsignacion se asume implementado externamente)
-
 export default function OperariosPage() {
     const [busqueda, setBusq] = useState("");
     const [asignando, setAsig] = useState<Operario | null>(null);
 
-    const { operarios, isLoading, error } = useOperarioStore();
+    const { operarios } = useOperarioStore();
     const { fetchOperarios, updateOperario } = useOperarioActions();
+
+    const { asignaciones } = useAsignacionStore();
+    const { fetchAsignaciones, createAsignacion, deleteAsignacion } = useAsignacionActions();
 
     useEffect(() => {
         fetchOperarios();
-    }, [fetchOperarios]);
+        fetchAsignaciones();
+    }, [fetchOperarios, fetchAsignaciones]);
 
     const filtrados = operarios.filter(o =>
         normalizeText(`${o.nombre} ${o.apellido}`).includes(normalizeText(busqueda))
@@ -53,13 +55,26 @@ export default function OperariosPage() {
 
     const [modalAbierto, setModalAbierto] = useState(false);
 
-    const handleConfirmarAsignacion = async (maquina: string, orden: string) => {
+    const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string) => {
         if (!asignando || !asignando.id) return;
-        await updateOperario(asignando.id, {
-            maquinaActual: maquina as TipoMaquina,
-            orden_actual_id: orden,
-            estado: "activo" // Al asignar tarea, pasa a estar activo automáticamente
+        
+        const success = await createAsignacion({
+            orden_id: ordenId,
+            operario_id: asignando.id,
+            tarea,
+            piezas_requeridas: piezasRequeridas,
+            piezas_completadas: 0,
+            estado: "pendiente",
+            notas
         });
+
+        if (success) {
+            // Opcionalmente actualizar el estado del operario y vincular a la orden más reciente
+            await updateOperario(asignando.id, {
+                orden_actual_id: ordenId,
+                estado: "activo"
+            });
+        }
         setAsig(null); // Cerramos modal
     };
 
@@ -72,7 +87,7 @@ export default function OperariosPage() {
                 />
             )}
 
-            {/* MODAL 2: ASIGNACIÓN DE TAREA (EL QUE CREAMOS RECIÉN) */}
+            {/* Modal de Asignación */}
             {asignando && (
                 <ModalAsignacionTarea
                     operario={asignando}
@@ -81,24 +96,10 @@ export default function OperariosPage() {
                 />
             )}
 
-            {/* En el mapeo de tus operarios, actualiza el botón de "Asignar Estación" para que también pueda editar: */}
-            {/* <button onClick={() => handleOpenGestion(o)} ... > */}
-            {asignando && <div className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-sm flex items-center justify-center p-4">
-                {/* Placeholder para el Modal de asignación basado en tu lógica previa */}
-                <div className="bg-[#13161e] p-6 rounded-2xl border border-[#1e2130] w-full max-w-sm">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-white font-bold">Asignar Tarea: {asignando.nombre}</h2>
-                        <X className="w-5 h-5 text-slate-500 cursor-pointer" onClick={() => setAsig(null)} />
-                    </div>
-                    <p className="text-xs text-slate-400 mb-6">Selecciona una estación de trabajo disponible.</p>
-                    <button onClick={() => setAsig(null)} className="w-full h-11 bg-orange-500 text-white rounded-xl font-bold">Confirmar</button>
-                </div>
-            </div>}
-
             {/* Header pantalla */}
             <Header title={"Operarios & Rendimiento"} subtitle="Gestión de recursos humanos en planta" buttonLabel={"Gestionar operarios"} onButtonClick={() => setModalAbierto(true)} />
 
-            {/* Card de statuss de operarios */}
+            {/* Card de status de operarios */}
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
@@ -122,7 +123,9 @@ export default function OperariosPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filtrados.map(o => {
-                        const est = ESTADO_CFG[o.estado];
+                        const est = ESTADO_CFG[o.estado] || ESTADO_CFG.pendiente;
+                        const oAsignaciones = asignaciones.filter(a => a.operario_id === o.id);
+                        
                         return (
                             <div key={o.id} className="rounded-2xl border bg-[#13161e] overflow-hidden flex flex-col hover:border-white/10 transition-colors" style={{ borderColor: AppColors.border }}>
                                 <div className="p-4 border-b flex items-center gap-4" style={{ borderColor: AppColors.border }}>
@@ -132,7 +135,7 @@ export default function OperariosPage() {
                                     <div className="flex-1">
                                         <h3 className="text-sm font-bold text-white">{o.nombre} {o.apellido}</h3>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase">ID-{o.id}</span>
+                                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-white/5 text-slate-500 uppercase">ID-{o.id?.slice(0, 5)}</span>
                                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: est.bg, color: est.color }}>{est.label}</span>
                                         </div>
                                     </div>
@@ -143,15 +146,14 @@ export default function OperariosPage() {
                                         <Zap className="w-3 h-3 text-amber-400 fill-amber-400" /> Rendimiento por Máquina
                                     </p>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 border-b pb-4" style={{ borderColor: AppColors.border }}>
                                         {o.habilidades.map(hab => {
-                                            const cfg = MAQUINAS_CFG[hab.maquina];
+                                            const cfg = MAQUINAS_CFG[hab.maquina] || MAQUINAS_CFG.otro;
                                             const nivel = hab.nivel_eficiencia ?? 0;
                                             const colorBarra = nivel >= 85 ? AppColors.emerald : nivel >= 70 ? AppColors.amber : AppColors.red;
                                             return (
                                                 <div key={hab.maquina}>
                                                     <div className="flex justify-between items-center mb-1">
-                                                        {/* Color de la máquina aplicado al texto del label */}
                                                         <span className="text-xs font-bold capitalize flex items-center gap-2" style={{ color: cfg.color }}>
                                                             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.color }} />
                                                             {cfg.label}
@@ -167,29 +169,59 @@ export default function OperariosPage() {
                                         })}
                                     </div>
 
-                                    {o.estado === "activo" && o.maquinaActual && (
-                                        <div className="mt-4 p-3 rounded-xl bg-[#0d1018] border border-white/5 flex items-center gap-3">
-                                            <div className="p-2 bg-white/5 rounded-lg">
-                                                <Cpu className="w-4 h-4 text-slate-400" />
+                                    {/* Listado de Tareas Asignadas */}
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                                            <ClipboardList className="w-3.5 h-3.5 text-orange-500" /> Órdenes Asignadas ({oAsignaciones.length})
+                                        </p>
+                                        
+                                        {oAsignaciones.length > 0 ? (
+                                            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                                {oAsignaciones.map(asig => {
+                                                    const pct = asig.piezas_requeridas > 0 ? Math.round((asig.piezas_completadas / asig.piezas_requeridas) * 100) : 0;
+                                                    return (
+                                                        <div key={asig.id} className="p-3 rounded-xl bg-[#0d1018] border border-white/5 space-y-1.5">
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="text-[9px] font-black text-orange-400 font-mono uppercase tracking-tight">
+                                                                        {asig.orden?.numero || 'ORD-N/A'}
+                                                                    </p>
+                                                                    <p className="text-xs font-bold text-white truncate">{asig.tarea}</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (confirm(`¿Estás seguro de quitar la tarea "${asig.tarea}" asignada a ${o.nombre}?`)) {
+                                                                            await deleteAsignacion(asig.id);
+                                                                        }
+                                                                    }}
+                                                                    className="text-red-400 hover:text-red-300 text-[10px] font-bold px-2 py-1 rounded bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 transition-all shrink-0"
+                                                                >
+                                                                    Quitar
+                                                                </button>
+                                                            </div>
+                                                            <div className="flex justify-between items-center text-[10px] text-slate-500 font-medium">
+                                                                <span>Progreso: {asig.piezas_completadas}/{asig.piezas_requeridas} uds.</span>
+                                                                <span className="font-bold text-slate-300 font-mono">{pct}%</span>
+                                                            </div>
+                                                            <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                                                                <div className="h-full bg-orange-500 transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Estación Activa</p>
-                                                {/* Color dinámico basado en el tipo de máquina actual */}
-                                                <p className="text-xs font-black truncate" style={{
-                                                    color: MAQUINAS_CFG[o.maquinaActual.split('-')[0].toLowerCase() as TipoMaquina]?.color || '#fff'
-                                                }}>
-                                                    {o.maquinaActual}
-                                                </p>
-                                                <p className="text-[10px] text-slate-500 truncate font-medium">{o.orden_actual_id}</p>
+                                        ) : (
+                                            <div className="p-3 rounded-xl bg-[#0d1018]/50 border border-white/5 text-center text-xs text-slate-500 font-semibold italic">
+                                                Sin tareas asignadas
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="px-4 pb-4 mt-auto">
                                     <button onClick={() => setAsig(o)}
                                         className="w-full h-10 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-all">
-                                        {o.maquinaActual ? "Reasignar Tarea" : "Asignar Estación"}
+                                        Asignar Tarea / Orden
                                     </button>
                                 </div>
                             </div>

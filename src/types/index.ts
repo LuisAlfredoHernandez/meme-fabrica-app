@@ -137,6 +137,37 @@ export interface Orden {
   cola: number
 }
 
+// ─── Asignación de Órdenes a Operarios ────────────────────────
+export interface AsignacionOrden {
+  id: string;
+  orden_id: string;
+  operario_id: string;
+  tarea: string;
+  piezas_requeridas: number;
+  piezas_completadas: number;
+  estado: "pendiente" | "en_proceso" | "completada";
+  fecha_asignacion: string;
+  notas?: string;
+  orden?: {
+    id: string;
+    numero: string;
+    cliente: string;
+  };
+}
+
+// ─── Reporte de Averías de Máquinas ──────────────────────────
+export interface ReporteAveria {
+  id?: string;
+  maquina_id: string;
+  operario_id: string;
+  descripcion: string;
+  tipo_falla: string;
+  gravedad: string;
+  detiene_produccion: boolean;
+  fecha_reporte?: string;
+  estado?: string;
+}
+
 // ─── Registro de Producción ──────────────────────────────────
 
 export interface RegistroProduccion {

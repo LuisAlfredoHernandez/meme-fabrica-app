@@ -104,6 +104,9 @@ export const authService = {
             }
 
             const user: Usuario | Operario = await response.json();
+            if (user && user.rol === ("supervisor" as any)) {
+                user.rol = "subjefe";
+            }
             return user;
         } catch (error: any) {
             console.error("Error en getCurrentUser:", error);

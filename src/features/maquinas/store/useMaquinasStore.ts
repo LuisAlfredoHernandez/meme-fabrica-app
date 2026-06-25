@@ -4,9 +4,10 @@ import {
     fetchMaquinasAction, 
     fetchAllMaquinaTypesAction, 
     createMaquinaAction, 
-    updateMaquinaAction 
+    updateMaquinaAction,
+    reportarAveriaAction
 } from "@/features/maquinas/actions/maquinas.actions";
-import { Maquina, TipoMaquina } from "@/types";
+import { Maquina, TipoMaquina, ReporteAveria } from "@/types";
 
 interface MaquinasState {
     maquinas: Maquina[];
@@ -18,6 +19,7 @@ interface MaquinasState {
         fetchAllMaquinaTypes: () => Promise<void>;
         createMaquina: (data: Omit<Maquina, "id">) => Promise<boolean>;
         updateMaquina: (id: string, data: Partial<Maquina>) => Promise<boolean>;
+        reportarAveria: (data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">) => Promise<boolean>;
         reset: () => void;
     };
 }
@@ -82,6 +84,27 @@ export const useMaquinasStore = create<MaquinasState>()(
                         return true;
                     } catch (e) {
                         set({ isLoading: false, error: "Error al actualizar" }, false, "maquinas/update_error");
+                        return false;
+                    }
+                },
+
+                reportarAveria: async (data) => {
+                    set({ isLoading: true }, false, "maquinas/reportar_averia_start");
+                    try {
+                        await reportarAveriaAction(data);
+                        set(
+                            (state) => ({
+                                maquinas: state.maquinas.map((m) =>
+                                    m.id === data.maquina_id ? { ...m, estado: "mantenimiento" as any } : m
+                                ),
+                                isLoading: false
+                            }),
+                            false,
+                            "maquinas/reportar_averia_success"
+                        );
+                        return true;
+                    } catch (e) {
+                        set({ isLoading: false, error: "Error al reportar avería" }, false, "maquinas/reportar_averia_error");
                         return false;
                     }
                 },
