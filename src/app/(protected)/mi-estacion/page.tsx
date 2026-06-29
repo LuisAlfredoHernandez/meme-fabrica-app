@@ -37,7 +37,6 @@ export default function MiEstacionPage() {
         tipo: "info" | "warning" | "error" | "success";
     }
     const [toasts, setToasts] = useState<ToastNotification[]>([]);
-    const [isWsConnected, setIsWsConnected] = useState(false);
 
     const addToast = (titulo: string, mensaje: string, tipo: "info" | "warning" | "error" | "success") => {
         const id = Math.random().toString(36).substring(2, 9);
@@ -110,94 +109,6 @@ export default function MiEstacionPage() {
         fetchAsignaciones();
         fetchOrdenes();
     }, [fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
-
-    useEffect(() => {
-        const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
-        const wsProtocol = apiUrl.startsWith("https") ? "wss:" : "ws:";
-        
-        let wsHost = "";
-        try {
-            const urlObj = new URL(apiUrl);
-            wsHost = urlObj.host;
-            if (typeof window !== "undefined") {
-                const currentHost = window.location.hostname;
-                // Si estamos en localhost/127.0.0.1, usamos la interfaz exacta del navegador
-                if (currentHost === "localhost" || currentHost === "127.0.0.1") {
-                    wsHost = `${currentHost}:${urlObj.port || (wsProtocol === "wss:" ? "443" : "80")}`;
-                }
-            }
-        } catch (e) {
-            wsHost = apiUrl.replace(/^https?:\/\//, "");
-        }
-        
-        const wsUrl = `${wsProtocol}//${wsHost}/ws/updates`;
-        console.log("Intentando conexión WebSocket en:", wsUrl);
-
-        let socket: WebSocket | null = null;
-        let reconnectTimeout: NodeJS.Timeout;
-
-        const connect = () => {
-            socket = new WebSocket(wsUrl);
-
-            socket.onopen = () => {
-                console.log("WebSocket conectado con éxito.");
-                setIsWsConnected(true);
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const message = JSON.parse(event.data);
-                    console.log("Mensaje de WebSocket recibido:", message);
-                    if (
-                        message.event === "order_created" ||
-                        message.event === "order_updated" ||
-                        message.event === "order_deleted"
-                    ) {
-                        fetchAsignaciones();
-                        fetchOrdenes();
-                    }
-                } catch (err) {
-                    console.error("Error al procesar mensaje de WebSocket:", err);
-                }
-            };
-
-            socket.onerror = (error) => {
-                console.warn("Error en WebSocket (se usará fallback de polling):", error);
-                setIsWsConnected(false);
-            };
-
-            socket.onclose = () => {
-                console.log("WebSocket desconectado. Reintentando en 10 segundos...");
-                setIsWsConnected(false);
-                reconnectTimeout = setTimeout(connect, 10000);
-            };
-        };
-
-        connect();
-
-        return () => {
-            if (socket) {
-                socket.onclose = null; // Evitar reconexión en desmontaje
-                socket.close();
-            }
-            clearTimeout(reconnectTimeout);
-        };
-    }, [fetchAsignaciones, fetchOrdenes]);
-
-    // Fallback de polling activo si no hay conexión de WebSocket
-    useEffect(() => {
-        if (isWsConnected) return;
-
-        console.log("Activando fallback de polling (cada 5 segundos)... En espera de reconexión WebSocket.");
-        const interval = setInterval(() => {
-            fetchOperarios();
-            fetchMaquinas();
-            fetchAsignaciones();
-            fetchOrdenes();
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [isWsConnected, fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
 
     // Detección de cambios en tiempo real en las órdenes del operario
     useEffect(() => {
