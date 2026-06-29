@@ -78,7 +78,8 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
     };
 
     // Handler del Formulario (Solo se ejecuta si Zod aprueba la validación)
-    const onSubmit = (data: InsumoFormData) => {
+    const onSubmitAction = (data: InsumoFormData) => {
+        console.log("executed")
         if (mode === "salida") {
             setPendingData(data);
             setShowConfirm(true); // Requiere confirmación
@@ -119,7 +120,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
             )}
 
             <form
-                onSubmit={handleSubmit(onSubmit)}
+                onSubmit={handleSubmit(onSubmitAction, (err) => console.log("Errores de validación del formulario:", err))}
                 className="w-full max-w-md flex flex-col rounded-2xl shadow-2xl overflow-hidden border"
                 style={{ background: AppColors.surface, borderColor: AppColors.border }}
             >

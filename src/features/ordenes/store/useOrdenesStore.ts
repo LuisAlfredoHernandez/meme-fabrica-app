@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { ordenesService } from "@/features/ordenes/services/ordenes.service";
+import {
+    fetchOrdenesAction,
+    createOrdenAction,
+    updateOrdenAction,
+    deleteOrdenAction
+} from "@/features/ordenes/actions/ordenes.actions";
 import type { Orden } from "@/types";
 
 interface OrdenState {
@@ -9,7 +14,7 @@ interface OrdenState {
     error: string | null;
     actions: {
         fetchOrdenes: () => Promise<void>;
-        createOrden: (operario: Omit<Orden, "id">) => Promise<boolean>;
+        createOrden: (data: Omit<Orden, "id">) => Promise<boolean>;
         updateOrden: (id: string, data: Partial<Orden>) => Promise<boolean>;
         updateCola: (ordenesReordenadas: Orden[]) => Promise<void>;
         deleteOrden: (id: string) => Promise<boolean>;
@@ -30,7 +35,7 @@ export const useOrdenStore = create<OrdenState>()(
                 fetchOrdenes: async () => {
                     set({ isLoading: true, error: null }, false, "ordenes/fetch_start");
                     try {
-                        const data = await ordenesService.getAll();
+                        const data = await fetchOrdenesAction();
                         set({ ordenes: data, isLoading: false }, false, "ordenes/fetch_success");
                     } catch (e) {
                         const errorMessage = e instanceof Error ? e.message : "Error desconocido";
@@ -41,7 +46,7 @@ export const useOrdenStore = create<OrdenState>()(
                 createOrden: async (newOrdenData) => {
                     set({ isLoading: true, error: null }, false, "ordenes/create_start");
                     try {
-                        const created = await ordenesService.create(newOrdenData);
+                        const created = await createOrdenAction(newOrdenData);
 
                         // Actualizamos el estado local agregando el nuevo elemento
                         set(
@@ -63,9 +68,9 @@ export const useOrdenStore = create<OrdenState>()(
                 updateOrden: async (id, data) => {
                     set({ isLoading: true, error: null }, false, "ordenes/update_start");
                     try {
-                        const updated = await ordenesService.update(id, data);
+                        const updated = await updateOrdenAction(id, data);
 
-                        // Mapeamos el array actual para reemplazar solo el operario editado
+                        // Mapeamos el array actual para reemplazar solo el elemento editado
                         set(
                             (state) => ({
                                 ordenes: state.ordenes.map((i) => (i.id === id ? updated : i)),
@@ -84,7 +89,6 @@ export const useOrdenStore = create<OrdenState>()(
 
                 updateCola: async (ordenesReordenadas: Orden[]) => {
                     // 1. Actualización inmediata de la UI (Optimistic Update)
-                    // Esto hace que el drag and drop se sienta instantáneo
                     set(
                         (state) => ({
                             ordenes: state.ordenes.map((original) => {
@@ -97,30 +101,32 @@ export const useOrdenStore = create<OrdenState>()(
                     );
 
                     try {
-                        // 2. Sincronizar con el servicio (Llamadas en paralelo)
-                        // Solo enviamos el ID y el nuevo número de cola
+                        // 2. Sincronizar con el servicio a través de Server Actions en paralelo
                         await Promise.all(
                             ordenesReordenadas.map((o) =>
-                                ordenesService.update(o.id, { cola: o.cola })
+                                updateOrdenAction(o.id, { cola: o.cola })
                             )
                         );
                     } catch (e) {
-                        // 3. Opcional: Revertir o manejar error si la API falla
                         console.error("Error al sincronizar la cola con la DB", e);
-                        // Podrías llamar a fetchOrdenes() aquí para recuperar el estado real
+                        // Opcional: recargar datos reales si hay error
+                        const data = await fetchOrdenesAction();
+                        set({ ordenes: data }, false, "ordenes/update_cola_rollback");
                     }
                 },
 
                 deleteOrden: async (id) => {
                     set({ isLoading: true, error: null }, false, "ordenes/delete_start");
                     try {
-                        await ordenesService.delete(id);
+                        await deleteOrdenAction(id);
                         set((state) => ({
                             ordenes: state.ordenes.filter(i => i.id !== id),
                             isLoading: false
                         }), false, "ordenes/delete_success");
+                        return true;
                     } catch (e) {
                         set({ isLoading: false, error: "ordenes/delete_error" });
+                        return false;
                     }
                 },
 

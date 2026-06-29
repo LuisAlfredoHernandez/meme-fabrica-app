@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { ValidacionReporte } from "../schemas/validacion.schema";
-import { validacionService } from "../services/validacion.service";
+import { fetchPendientesAction, validarReporteAction } from "../actions/validacion.actions";
 
 interface ValidacionState {
     pendientes: ValidacionReporte[];
@@ -21,7 +21,7 @@ export const useValidacionStore = create<ValidacionState & { actions: Validacion
         fetchPendientes: async () => {
             set({ isLoading: true, error: null });
             try {
-                const data = await validacionService.getPendientes();
+                const data = await fetchPendientesAction();
                 set({ pendientes: data, isLoading: false });
             } catch (error) {
                 set({ error: "Error al cargar reportes pendientes", isLoading: false });
@@ -30,7 +30,7 @@ export const useValidacionStore = create<ValidacionState & { actions: Validacion
         validarReporte: async (id: string, buenas: number, defectuosas: number) => {
             set({ isLoading: true, error: null });
             try {
-                const success = await validacionService.validarReporte(id, buenas, defectuosas);
+                const success = await validarReporteAction(id, buenas, defectuosas);
                 if (success) {
                     set(state => ({
                         pendientes: state.pendientes.filter(p => p.id !== id),
@@ -47,5 +47,6 @@ export const useValidacionStore = create<ValidacionState & { actions: Validacion
         }
     }
 }));
+
 
 export const useValidacionActions = () => useValidacionStore(state => state.actions);

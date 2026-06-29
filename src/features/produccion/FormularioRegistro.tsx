@@ -161,7 +161,7 @@ export function FormularioRegistro({
             const tiposValidos = MAQUINAS_POR_ETAPA[form.etapa as EtapaProduccion].map(
                 (x) => x.tipo
             );
-            return tiposValidos.includes(m.tipo) && m.estado === "activa";
+            return tiposValidos.includes(m.tipo) && m.estado === "operativa";
         })
         : [];
 

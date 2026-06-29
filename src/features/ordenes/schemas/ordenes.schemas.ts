@@ -19,15 +19,15 @@ export const lineaOrdenSchema = z.object({
 });
 
 export const ordenSchema = z.object({
-    id: z.string().optional(), // Opcional porque en creación no existe
-    numero: z.string().min(1, "El número de orden es obligatorio"),
+    id: z.string().optional(),
+    numero: z.string().optional(),
     cliente: z.string().min(2, "Nombre de cliente inválido"),
     tipo: z.enum(TipoOP_LIST),
-    estado: z.enum(ESTADO_ORDEN_LIST),
+    estado: z.enum(ESTADO_ORDEN_LIST).optional(),
     temporada: z.enum(TEMPORADA_LIST).optional(),
     prioridad: z.enum(PRIORIDAD_LIST),
     fechaCreacion: z.string().optional(),
-    fechaEntregaEstimada: z.string(),
+    fechaEntregaEstimada: z.string().min(10, "La fecha de entrega es obligatoria"),
     fechaEntregaPredicha: z.string().datetime().optional(),
     fechaEntregaReal: z.string().datetime().optional(),
     creadaPor: z.string().optional(),

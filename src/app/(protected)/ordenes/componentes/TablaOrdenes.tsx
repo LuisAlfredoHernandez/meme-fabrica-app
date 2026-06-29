@@ -57,7 +57,7 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                 <table className="w-full text-sm">
                     <thead>
                         <tr style={{ background: AppColors.surface }}>
-                            {["Orden / Cliente", "Tipo", "Prenda", "Avance", "Estado", "Prioridad", "Entrega", "Fecha", "Acciones"].map(h => (
+                            {["Orden / Cliente", "Tipo", "Prenda", "Avance", "Estado", "Prioridad", "Fecha", "Acciones"].map(h => (
                                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: AppColors.slate }}>{h}</th>
                             ))}
                         </tr>
@@ -121,14 +121,9 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                                     </td>
 
                                     <td className="px-4 py-3">
-                                        <span className="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-semibold"
-                                            style={{ background: est.bg, color: est.color }}>
-                                            {est.icon}{est.label}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3">
                                         <span className="text-xs font-bold capitalize" style={{ color: prio.color }}>{o.prioridad}</span>
                                     </td>
+
                                     <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>
                                         {new Date(o.fechaEntregaEstimada).toLocaleDateString()}
                                     </td>

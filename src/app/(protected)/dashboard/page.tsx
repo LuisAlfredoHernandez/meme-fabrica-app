@@ -26,16 +26,16 @@ const DATOS_SEMANA = [
 ];
 
 const MAQUINAS_USO = [
-    { codigo: "MERROW-01", tipo: "Merrow", uso: 94, estado: "activa", piezasHoy: 42 },
-    { codigo: "MERROW-02", tipo: "Merrow", uso: 71, estado: "activa", piezasHoy: 35 },
-    { codigo: "MERROW-03", tipo: "Merrow", uso: 78, estado: "activa", piezasHoy: 38 },
-    { codigo: "COVER-01", tipo: "Cover", uso: 58, estado: "activa", piezasHoy: 28 },
-    { codigo: "COVER-02", tipo: "Cover", uso: 44, estado: "activa", piezasHoy: 20 },
-    { codigo: "PLANA-01", tipo: "Plana", uso: 35, estado: "activa", piezasHoy: 18 },
-    { codigo: "CORTE-01", tipo: "Corte", uso: 62, estado: "activa", piezasHoy: 55 },
+    { codigo: "MERROW-01", tipo: "Merrow", uso: 94, estado: "operativa", piezasHoy: 42 },
+    { codigo: "MERROW-02", tipo: "Merrow", uso: 71, estado: "operativa", piezasHoy: 35 },
+    { codigo: "MERROW-03", tipo: "Merrow", uso: 78, estado: "operativa", piezasHoy: 38 },
+    { codigo: "COVER-01", tipo: "Cover", uso: 58, estado: "operativa", piezasHoy: 28 },
+    { codigo: "COVER-02", tipo: "Cover", uso: 44, estado: "operativa", piezasHoy: 20 },
+    { codigo: "PLANA-01", tipo: "Plana", uso: 35, estado: "operativa", piezasHoy: 18 },
+    { codigo: "CORTE-01", tipo: "Corte", uso: 62, estado: "operativa", piezasHoy: 55 },
     { codigo: "CORTE-02", tipo: "Corte", uso: 0, estado: "mantenimiento", piezasHoy: 0 },
-    { codigo: "DTF-01", tipo: "DTF", uso: 33, estado: "activa", piezasHoy: 12 },
-    { codigo: "DTF-02", tipo: "DTF", uso: 28, estado: "activa", piezasHoy: 10 },
+    { codigo: "DTF-01", tipo: "DTF", uso: 33, estado: "operativa", piezasHoy: 12 },
+    { codigo: "DTF-02", tipo: "DTF", uso: 28, estado: "operativa", piezasHoy: 10 },
 ];
 
 const OPERARIOS_RENDIMIENTO = [
@@ -73,7 +73,7 @@ export default function DashboardPage() {
     const totalHoy = DATOS_SEMANA[DATOS_SEMANA.length - 2].real;
     const metaHoy = DATOS_SEMANA[DATOS_SEMANA.length - 2].meta;
     const efGlobal = Math.round(DATOS_SEMANA.reduce((a, d) => a + d.eficiencia, 0) / DATOS_SEMANA.length);
-    const maqsActivas = MAQUINAS_USO.filter(m => m.estado === "activa").length;
+    const maqsActivas = MAQUINAS_USO.filter(m => m.estado === "operativa").length;
 
     return (
         <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>

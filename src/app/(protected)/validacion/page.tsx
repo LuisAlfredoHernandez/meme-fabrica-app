@@ -80,7 +80,7 @@ export default function ValidacionPage() {
                 {/* Lista de pendientes */}
                 <div className="lg:col-span-7 bg-[#13161e] border border-[#1e2130] rounded-3xl p-6 shadow-lg shadow-black/50">
                     <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-orange-500" /> Reportes en Espera
+                        <Clock className="w-5 h-5 text-orange-500" /> Reportes de tareas en espera
                     </h2>
 
                     {isLoading ? (
@@ -99,8 +99,8 @@ export default function ValidacionPage() {
                                     key={report.id}
                                     onClick={() => handleSelectReport(report)}
                                     className={`p-4 rounded-2xl border cursor-pointer transition-all duration-300 ${selectedReport?.id === report.id
-                                            ? "bg-[#818cf8]/10 border-[#818cf8]/50 shadow-[0_0_15px_rgba(129,140,248,0.2)]"
-                                            : "bg-[#080b10] border-[#1e2130] hover:border-slate-600 hover:bg-[#1a1d27]"
+                                        ? "bg-[#818cf8]/10 border-[#818cf8]/50 shadow-[0_0_15px_rgba(129,140,248,0.2)]"
+                                        : "bg-[#080b10] border-[#1e2130] hover:border-slate-600 hover:bg-[#1a1d27]"
                                         }`}
                                 >
                                     <div className="flex justify-between items-start mb-2">

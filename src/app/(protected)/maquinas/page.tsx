@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Maquina } from "@/types";
 import { Settings } from "lucide-react";
 import { StatusBadge } from "./componentes/StatusBadge.";
-import { MetricCard } from "./componentes/MetricCard";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";
@@ -29,9 +28,9 @@ export default function MaquinasPage() {
             {/* Cards de Métricas */}
             <div className="grid grid-cols-4 gap-6 mb-8">
                 <StatCard label="Total Equipos" valor={maquinas.length} />
-                <StatCard label="Activas" valor={maquinas.filter(m => m.estado === 'activa').length} labelColor={AppColors.emerald} />
-                <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'inactiva').length} labelColor={AppColors.amber} />
-                <StatCard label="Depreciadas" valor={maquinas.filter(m => m.estado === 'depreciada').length} labelColor={AppColors.red} />
+                <StatCard label="Operativas" valor={maquinas.filter(m => m.estado === 'operativa').length} labelColor={AppColors.emerald} />
+                <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'mantenimiento').length} labelColor={AppColors.amber} />
+                <StatCard label="Fuera de Servicio" valor={maquinas.filter(m => m.estado === 'fuera_servicio').length} labelColor={AppColors.red} />
             </div>
 
             {/* Tabla Estilo Insumos */}
@@ -51,7 +50,7 @@ export default function MaquinasPage() {
                             <tr key={m.id} className="hover:bg-white/[0.02] border-b border-[#1e2130] transition-colors">
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">
-                                        <span className="font-mono text-xs text-orange-500 font-bold">{m.id}</span>
+                                        <span className="font-mono text-xs text-orange-500 font-bold">{m.codigo}</span>
                                         <span className="font-semibold text-sm">{m.nombre}</span>
                                     </div>
                                 </td>

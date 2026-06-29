@@ -51,7 +51,7 @@ export type TipoProducto =
 export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"] as const;
 export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
-export const MAQUINAS_STATUS_LIST = ["activa", "inactiva", "depreciada"] as const;
+export const MAQUINAS_STATUS_LIST = ["operativa", "mantenimiento", "fuera_servicio"] as const;
 export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
 export const USUARIO_ROL = ["administrador", "subjefe", "operario"] as const;
@@ -73,18 +73,15 @@ export interface Usuario {
 
 export interface Operario extends Usuario {
   habilidades: HabilidadMaquinaria[];
-  maquinaActual?: TipoMaquina;
-  ordenActual?: string;
-  fechaDeOrden?: string;
-  /** Etapas en las que tiene experiencia */
-  // etapasEspecializacion: HabilidadEtapa[];
+  maquinaActual: TipoMaquina;
+  orden_actual_id?: string;
+  piezas_buenas?: number;
+  piezas_defectuosas?: number;
 }
 
 export interface HabilidadMaquinaria {
   maquina: TipoMaquina;
-  nivelEficiencia: number; // porcentaje 0-100
-  unidadesProducidas: number;
-  unidadesDefectuosas: number;
+  nivel_eficiencia?: number; // porcentaje 0-100
 }
 
 export interface Maquina {
@@ -104,7 +101,7 @@ export interface Insumo {
   id: string;
   nombre: string;
   codigo?: string;
-  tipo: "tela" | "zipper" | "goma" | "boton" | "hilo" | "otro";
+  tipo: "tela" | "accesorio" | "zipper" | "goma" | "boton" | "hilo" | "otro";
   unidad: "metros" | "unidades" | "rollos" | "kg";
   stock: number;
   minimo: number;
@@ -117,7 +114,7 @@ export const TipoOP_LIST = ["MTO", "MTS"] as const;
 export type TipoOP = typeof TipoOP_LIST[number];
 export const PRIORIDAD_LIST = ["baja", "normal", "alta", "urgente"] as const;
 export type Prioridad = typeof PRIORIDAD_LIST[number];
-export const TEMPORADA_LIST = ["verano", "invierno", "primavera", "otoño"] as const
+export const TEMPORADA_LIST = ["verano", "invierno", "primavera", "otoño", "OTRO"] as const
 export type Temporada = typeof TEMPORADA_LIST[number];
 export const ESTADO_ORDEN_LIST = ["pendiente", "en_proceso", "pausada", "completada", "cancelada"] as const
 export type EstadoOrden = typeof ESTADO_ORDEN_LIST[number];
@@ -140,6 +137,37 @@ export interface Orden {
   creadaPor: string; // Empleado.id
   notas?: string;
   cola: number
+}
+
+// ─── Asignación de Órdenes a Operarios ────────────────────────
+export interface AsignacionOrden {
+  id: string;
+  orden_id: string;
+  operario_id: string;
+  tarea: string;
+  piezas_requeridas: number;
+  piezas_completadas: number;
+  estado: "pendiente" | "en_proceso" | "completada";
+  fecha_asignacion: string;
+  notas?: string;
+  orden?: {
+    id: string;
+    numero: string;
+    cliente: string;
+  };
+}
+
+// ─── Reporte de Averías de Máquinas ──────────────────────────
+export interface ReporteAveria {
+  id?: string;
+  maquina_id: string;
+  operario_id: string;
+  descripcion: string;
+  tipo_falla: string;
+  gravedad: string;
+  detiene_produccion: boolean;
+  fecha_reporte?: string;
+  estado?: string;
 }
 
 // ─── Registro de Producción ──────────────────────────────────
