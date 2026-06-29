@@ -11,6 +11,7 @@ async function getToken() {
 
 export async function fetchPendientesAction(): Promise<ValidacionReporte[]> {
   const token = await getToken();
+  console.log("[fetchPendientesAction] Token presente:", !!token, token ? `(longitud: ${token.length})` : "(ninguno)");
   return validacionService.getPendientes(token);
 }
 

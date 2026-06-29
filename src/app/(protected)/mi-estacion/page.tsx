@@ -6,13 +6,14 @@ import { useOperarioStore, useOperarioActions } from "@/features/operarios/store
 import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
 import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/store/useAsignacionStore";
 import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { StatCard } from "@/components/StatCard";
-import { ToastContainer } from "@/components/ToastContainer";
+
 import { TareaAsignadaCard } from "@/features/operarios/components/TareaAsignadaCard";
 import { FormularioReporteAvance } from "@/features/operarios/components/FormularioReporteAvance";
 import { FormularioReporteFalla } from "@/features/maquinas/components/FormularioReporteFalla";
 import { AppColors } from "@/shared/constants";
-import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
 
 export default function MiEstacionPage() {
     const { user } = useAuthStore();
@@ -28,23 +29,9 @@ export default function MiEstacionPage() {
 
     const { ordenes } = useOrdenStore();
     const { fetchOrdenes } = useOrdenActions();
+    const { addNotification } = useNotificationActions();
 
-    // Estado local para notificaciones (Toasts)
-    interface ToastNotification {
-        id: string;
-        titulo: string;
-        mensaje: string;
-        tipo: "info" | "warning" | "error" | "success";
-    }
-    const [toasts, setToasts] = useState<ToastNotification[]>([]);
 
-    const addToast = (titulo: string, mensaje: string, tipo: "info" | "warning" | "error" | "success") => {
-        const id = Math.random().toString(36).substring(2, 9);
-        setToasts((prev) => [...prev, { id, titulo, mensaje, tipo }]);
-        setTimeout(() => {
-            setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, 6000);
-    };
 
     // Referencia para rastrear los estados anteriores de las órdenes asignadas
     const prevOrdersRef = useRef<{ [key: string]: { estado: string; prioridad: string } } | null>(null);
@@ -149,32 +136,25 @@ export default function MiEstacionPage() {
                     if (curr.estado === "cancelada") tipo = "error";
                     if (curr.estado === "completada") tipo = "success";
 
-                    addToast(
+                    addNotification(
                         `Orden ${curr.numero} Actualizada`,
                         `El estado cambió de "${prev.estado.toUpperCase()}" a "${curr.estado.toUpperCase()}".`,
                         tipo
                     );
                 }
-
+ 
                 // Validar cambios de prioridad
                 if (curr.prioridad !== prev.prioridad) {
                     let tipo: "info" | "warning" | "error" = "info";
                     if (curr.prioridad === "urgente") tipo = "error";
                     else if (curr.prioridad === "alta") tipo = "warning";
-
-                    addToast(
+ 
+                    addNotification(
                         `Prioridad Modificada — ${curr.numero}`,
                         `La prioridad cambió de "${prev.prioridad.toUpperCase()}" a "${curr.prioridad.toUpperCase()}".`,
                         tipo
                     );
                 }
-            } else {
-                // Nueva orden detectada como asignada
-                addToast(
-                    `Nueva Orden Asignada`,
-                    `Se te ha asignado la Orden ${curr.numero} (${curr.prioridad.toUpperCase()}).`,
-                    "success"
-                );
             }
         });
 
@@ -236,7 +216,7 @@ export default function MiEstacionPage() {
             </div>
 
             {/* Kpis / Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <StatCard
                     label="Máquina Actual"
                     valor={miOperario.maquinaActual ? miOperario.maquinaActual.toUpperCase() : "Ninguna"}
@@ -247,8 +227,8 @@ export default function MiEstacionPage() {
                     label="Eficiencia Estimada"
                     valor={eficiencia}
                     icon={Zap}
-                    color="#34d399"
-                    labelColor="#34d399"
+                    color="#818cf8"
+                    labelColor="#818cf8"
                 />
                 <StatCard
                     label="Estado de Máquina"
@@ -256,6 +236,20 @@ export default function MiEstacionPage() {
                     icon={miMaquina?.estado === "operativa" ? CheckCircle2 : AlertTriangle}
                     color={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
                     labelColor={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
+                />
+                <StatCard
+                    label="Unidades Buenas"
+                    valor={miOperario.piezas_buenas ?? 0}
+                    icon={CheckCircle2}
+                    color="#34d399"
+                    labelColor="#34d399"
+                />
+                <StatCard
+                    label="Unidades Defectuosas"
+                    valor={miOperario.piezas_defectuosas ?? 0}
+                    icon={AlertCircle}
+                    color="#f43f5e"
+                    labelColor="#f43f5e"
                 />
             </div>
 
@@ -277,11 +271,6 @@ export default function MiEstacionPage() {
                 />
             </div>
 
-            {/* Contenedor de Notificaciones Toasts */}
-            <ToastContainer
-                toasts={toasts}
-                onClose={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))}
-            />
         </div>
     );
 }

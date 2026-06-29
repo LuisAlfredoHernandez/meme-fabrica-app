@@ -19,7 +19,11 @@ export const validacionService = {
                 headers: getAuthHeaders(token),
             });
 
-            if (!response.ok) throw new Error("No se pudieron obtener los reportes pendientes.");
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error("[validacionService.getPendientes] Error response:", response.status, errText);
+                throw new Error("No se pudieron obtener los reportes pendientes.");
+            }
             const data = await response.json();
             return data.map((item: any) => ({
                 id: item.id,

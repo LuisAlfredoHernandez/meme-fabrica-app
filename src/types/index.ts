@@ -75,6 +75,8 @@ export interface Operario extends Usuario {
   habilidades: HabilidadMaquinaria[];
   maquinaActual: TipoMaquina;
   orden_actual_id?: string;
+  piezas_buenas?: number;
+  piezas_defectuosas?: number;
 }
 
 export interface HabilidadMaquinaria {
