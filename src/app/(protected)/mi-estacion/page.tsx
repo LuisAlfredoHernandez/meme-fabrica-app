@@ -37,6 +37,7 @@ export default function MiEstacionPage() {
         tipo: "info" | "warning" | "error" | "success";
     }
     const [toasts, setToasts] = useState<ToastNotification[]>([]);
+    const [isWsConnected, setIsWsConnected] = useState(false);
 
     const addToast = (titulo: string, mensaje: string, tipo: "info" | "warning" | "error" | "success") => {
         const id = Math.random().toString(36).substring(2, 9);
@@ -58,8 +59,33 @@ export default function MiEstacionPage() {
         ? maquinas.find(m => m.tipo === miOperario.maquinaActual) || null
         : null;
 
+    const PRIORIDAD_VALORES: Record<string, number> = {
+        urgente: 4,
+        alta: 3,
+        normal: 2,
+        baja: 1
+    };
+
     const misAsignaciones = miOperario
-        ? asignaciones.filter(a => a.operario_id === miOperario.id)
+        ? [...asignaciones]
+            .filter(a => a.operario_id === miOperario.id)
+            .sort((a, b) => {
+                const ordenA = ordenes.find(o => o.id === a.orden_id);
+                const ordenB = ordenes.find(o => o.id === b.orden_id);
+
+                const prioA = PRIORIDAD_VALORES[ordenA?.prioridad || "normal"] || 0;
+                const prioB = PRIORIDAD_VALORES[ordenB?.prioridad || "normal"] || 0;
+
+                // 1. Prioridad de la orden (Urgente > Alta > Normal > Baja) - más significativa
+                if (prioA !== prioB) {
+                    return prioB - prioA;
+                }
+
+                // 2. Fecha de entrega estimada (más antigua/cercana primero) - desempate
+                const dateA = ordenA?.fechaEntregaEstimada ? new Date(ordenA.fechaEntregaEstimada).getTime() : Infinity;
+                const dateB = ordenB?.fechaEntregaEstimada ? new Date(ordenB.fechaEntregaEstimada).getTime() : Infinity;
+                return dateA - dateB;
+            })
         : [];
 
     const ORDEN_ESTADO_STYLE: Record<string, { label: string; bg: string; text: string }> = {
@@ -83,47 +109,95 @@ export default function MiEstacionPage() {
         fetchMaquinas();
         fetchAsignaciones();
         fetchOrdenes();
+    }, [fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
 
-        // Obtener la URL del WebSocket basada en el endpoint de la API
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    useEffect(() => {
+        const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
         const wsProtocol = apiUrl.startsWith("https") ? "wss:" : "ws:";
-        const wsHost = apiUrl.replace(/^https?:\/\//, "");
-        const wsUrl = `${wsProtocol}//${wsHost}/ws/updates`;
-
-        console.log("Estableciendo WebSocket en:", wsUrl);
-        const socket = new WebSocket(wsUrl);
-
-        socket.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                console.log("Mensaje de WebSocket recibido:", message);
-                
-                // Si ocurre algún cambio en las órdenes, refrescamos los datos
-                if (
-                    message.event === "order_created" ||
-                    message.event === "order_updated" ||
-                    message.event === "order_deleted"
-                ) {
-                    fetchAsignaciones();
-                    fetchOrdenes();
+        
+        let wsHost = "";
+        try {
+            const urlObj = new URL(apiUrl);
+            wsHost = urlObj.host;
+            if (typeof window !== "undefined") {
+                const currentHost = window.location.hostname;
+                // Si estamos en localhost/127.0.0.1, usamos la interfaz exacta del navegador
+                if (currentHost === "localhost" || currentHost === "127.0.0.1") {
+                    wsHost = `${currentHost}:${urlObj.port || (wsProtocol === "wss:" ? "443" : "80")}`;
                 }
-            } catch (err) {
-                console.error("Error al procesar mensaje de WebSocket:", err);
             }
+        } catch (e) {
+            wsHost = apiUrl.replace(/^https?:\/\//, "");
+        }
+        
+        const wsUrl = `${wsProtocol}//${wsHost}/ws/updates`;
+        console.log("Intentando conexión WebSocket en:", wsUrl);
+
+        let socket: WebSocket | null = null;
+        let reconnectTimeout: NodeJS.Timeout;
+
+        const connect = () => {
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log("WebSocket conectado con éxito.");
+                setIsWsConnected(true);
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log("Mensaje de WebSocket recibido:", message);
+                    if (
+                        message.event === "order_created" ||
+                        message.event === "order_updated" ||
+                        message.event === "order_deleted"
+                    ) {
+                        fetchAsignaciones();
+                        fetchOrdenes();
+                    }
+                } catch (err) {
+                    console.error("Error al procesar mensaje de WebSocket:", err);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.warn("Error en WebSocket (se usará fallback de polling):", error);
+                setIsWsConnected(false);
+            };
+
+            socket.onclose = () => {
+                console.log("WebSocket desconectado. Reintentando en 10 segundos...");
+                setIsWsConnected(false);
+                reconnectTimeout = setTimeout(connect, 10000);
+            };
         };
 
-        socket.onclose = () => {
-            console.log("WebSocket desconectado");
-        };
-
-        socket.onerror = (error) => {
-            console.error("Error en WebSocket:", error);
-        };
+        connect();
 
         return () => {
-            socket.close();
+            if (socket) {
+                socket.onclose = null; // Evitar reconexión en desmontaje
+                socket.close();
+            }
+            clearTimeout(reconnectTimeout);
         };
-    }, [fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
+    }, [fetchAsignaciones, fetchOrdenes]);
+
+    // Fallback de polling activo si no hay conexión de WebSocket
+    useEffect(() => {
+        if (isWsConnected) return;
+
+        console.log("Activando fallback de polling (cada 5 segundos)... En espera de reconexión WebSocket.");
+        const interval = setInterval(() => {
+            fetchOperarios();
+            fetchMaquinas();
+            fetchAsignaciones();
+            fetchOrdenes();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [isWsConnected, fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
 
     // Detección de cambios en tiempo real en las órdenes del operario
     useEffect(() => {
@@ -218,16 +292,15 @@ export default function MiEstacionPage() {
     const eficiencia = habilidadEnMaquina && habilidadEnMaquina.nivel_eficiencia !== undefined
         ? `${habilidadEnMaquina.nivel_eficiencia}%`
         : "N/A";
-
     return (
-        <div className="p-8 overflow-y-auto max-h-screen custom-scrollbar">
-            <div className="mb-8">
+        <div className="w-full h-full overflow-y-auto custom-scrollbar p-6">
+            <div className="mb-6">
                 <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Mi Estación de Trabajo</h1>
                 <p className="text-slate-400 font-medium">Bienvenido <span className="text-white">{miOperario.nombre}</span>.</p>
             </div>
 
             {/* Listado de Tareas Asignadas */}
-            <div className="mb-8 space-y-4">
+            <div className="mb-6 space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                     <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignaciones.length})
                 </h2>
@@ -252,7 +325,7 @@ export default function MiEstacionPage() {
             </div>
 
             {/* Kpis / Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <StatCard
                     label="Máquina Actual"
                     valor={miOperario.maquinaActual ? miOperario.maquinaActual.toUpperCase() : "Ninguna"}
