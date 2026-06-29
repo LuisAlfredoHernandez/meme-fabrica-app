@@ -13,16 +13,13 @@ export const usuarioSchema = z.object({
 
 export const habilidadMaquinariaSchema = z.object({
     maquina: z.enum(MAQUINAS_LIST),
-    nivelEficiencia: z.number().min(0).max(100),
-    unidadesProducidas: z.number().min(0).nullish(),
-    unidadesDefectuosas: z.number().min(0).nullish(),
+    nivel_eficiencia: z.number().min(0).max(100).optional(),
 });
 
 export const operarioSchema = usuarioSchema.extend({
     habilidades: z.array(habilidadMaquinariaSchema).min(1, "Selecciona al menos una máquina"),
-    maquinaActual: z.enum(MAQUINAS_LIST).optional(),
-    ordenActual: z.string().nullish(),
-    fechaDeOrden: z.string().nullish(),
+    maquinaActual: z.enum(MAQUINAS_LIST),
+    orden_actual_id: z.string().optional().nullable(),
 });
 
 export type OperarioFormData = z.infer<typeof operarioSchema>;

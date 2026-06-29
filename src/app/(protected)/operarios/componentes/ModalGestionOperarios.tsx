@@ -29,6 +29,8 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
             correo: "",
             estado: "inactivo",
             rol: "operario",
+            password: "",
+            maquinaActual: "" as any,
             habilidades: []
         }
     });
@@ -199,6 +201,21 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                 className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                             />
                         </div>
+
+                        {!isExisting && (
+                            <div className="space-y-1 pt-2 border-t border-white/5">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                                    Contraseña
+                                </label>
+                                <input
+                                    type="password"
+                                    placeholder="Contraseña del operario"
+                                    required
+                                    {...register("password")}
+                                    className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
+                                />
+                            </div>
+                        )}
 
                         {/* Selector de estados del formulario */}
                         <StatusSelector />

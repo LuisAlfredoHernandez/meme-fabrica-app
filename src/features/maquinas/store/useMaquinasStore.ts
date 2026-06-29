@@ -1,7 +1,13 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { maquinasService } from "@/features/maquinas/services/maquinas.service";
-import { Maquina, TipoMaquina } from "@/types";
+import { 
+    fetchMaquinasAction, 
+    fetchAllMaquinaTypesAction, 
+    createMaquinaAction, 
+    updateMaquinaAction,
+    reportarAveriaAction
+} from "@/features/maquinas/actions/maquinas.actions";
+import { Maquina, TipoMaquina, ReporteAveria } from "@/types";
 
 interface MaquinasState {
     maquinas: Maquina[];
@@ -13,6 +19,7 @@ interface MaquinasState {
         fetchAllMaquinaTypes: () => Promise<void>;
         createMaquina: (data: Omit<Maquina, "id">) => Promise<boolean>;
         updateMaquina: (id: string, data: Partial<Maquina>) => Promise<boolean>;
+        reportarAveria: (data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">) => Promise<boolean>;
         reset: () => void;
     };
 }
@@ -29,7 +36,7 @@ export const useMaquinasStore = create<MaquinasState>()(
                 fetchMaquinas: async () => {
                     set({ isLoading: true, error: null }, false, "maquinas/fetch_start");
                     try {
-                        const data = await maquinasService.getAll();
+                        const data = await fetchMaquinasAction();
                         set({ maquinas: data, isLoading: false }, false, "maquinas/fetch_success");
                     } catch (e) {
                         set({ isLoading: false, error: "Error al cargar máquinas" }, false, "maquinas/fetch_error");
@@ -39,7 +46,7 @@ export const useMaquinasStore = create<MaquinasState>()(
                 fetchAllMaquinaTypes: async () => {
                     set({ isLoading: true, error: null }, false, "maquinasAllTypes/fetch_start");
                     try {
-                        const data = await maquinasService.getAllTypes();
+                        const data = await fetchAllMaquinaTypesAction();
                         set({ maquinaTypes: data, isLoading: false }, false, "maquinasAllTypes/fetch_success");
                     } catch (e) {
                         set({ isLoading: false, error: "Error al cargar los tipos de máquinas" }, false, "maquinasAllTypes/fetch_error");
@@ -49,7 +56,7 @@ export const useMaquinasStore = create<MaquinasState>()(
                 createMaquina: async (data) => {
                     set({ isLoading: true }, false, "maquinas/create_start");
                     try {
-                        const nueva = await maquinasService.create(data);
+                        const nueva = await createMaquinaAction(data);
                         set(
                             (state) => ({ maquinas: [...state.maquinas, nueva], isLoading: false }),
                             false,
@@ -65,7 +72,7 @@ export const useMaquinasStore = create<MaquinasState>()(
                 updateMaquina: async (id, data) => {
                     set({ isLoading: true }, false, "maquinas/update_start");
                     try {
-                        const actualizada = await maquinasService.update(id, data);
+                        const actualizada = await updateMaquinaAction(id, data);
                         set(
                             (state) => ({
                                 maquinas: state.maquinas.map((m) => (m.id === id ? actualizada : m)),
@@ -77,6 +84,27 @@ export const useMaquinasStore = create<MaquinasState>()(
                         return true;
                     } catch (e) {
                         set({ isLoading: false, error: "Error al actualizar" }, false, "maquinas/update_error");
+                        return false;
+                    }
+                },
+
+                reportarAveria: async (data) => {
+                    set({ isLoading: true }, false, "maquinas/reportar_averia_start");
+                    try {
+                        await reportarAveriaAction(data);
+                        set(
+                            (state) => ({
+                                maquinas: state.maquinas.map((m) =>
+                                    m.id === data.maquina_id ? { ...m, estado: "mantenimiento" as any } : m
+                                ),
+                                isLoading: false
+                            }),
+                            false,
+                            "maquinas/reportar_averia_success"
+                        );
+                        return true;
+                    } catch (e) {
+                        set({ isLoading: false, error: "Error al reportar avería" }, false, "maquinas/reportar_averia_error");
                         return false;
                     }
                 },

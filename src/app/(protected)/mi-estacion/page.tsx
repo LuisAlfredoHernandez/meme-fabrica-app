@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
+import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/store/useAsignacionStore";
+import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { StatCard } from "@/components/StatCard";
+
+import { TareaAsignadaCard } from "@/features/operarios/components/TareaAsignadaCard";
+import { FormularioReporteAvance } from "@/features/operarios/components/FormularioReporteAvance";
+import { FormularioReporteFalla } from "@/features/maquinas/components/FormularioReporteFalla";
 import { AppColors } from "@/shared/constants";
-import { CheckCircle2, AlertTriangle, Factory, Zap, Wrench, ClipboardList, Calendar } from "lucide-react";
+import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
 
 export default function MiEstacionPage() {
     const { user } = useAuthStore();
@@ -15,7 +22,19 @@ export default function MiEstacionPage() {
     const { fetchOperarios } = useOperarioActions();
 
     const { maquinas, isLoading: loadingMaquinas } = useMaquinasStore();
-    const { fetchMaquinas, updateMaquina } = useMaquinasActions();
+    const { fetchMaquinas, reportarAveria } = useMaquinasActions();
+
+    const { asignaciones } = useAsignacionStore();
+    const { fetchAsignaciones, reportarAvance } = useAsignacionActions();
+
+    const { ordenes } = useOrdenStore();
+    const { fetchOrdenes } = useOrdenActions();
+    const { addNotification } = useNotificationActions();
+
+
+
+    // Referencia para rastrear los estados anteriores de las órdenes asignadas
+    const prevOrdersRef = useRef<{ [key: string]: { estado: string; prioridad: string } } | null>(null);
 
     // Derivamos el operario y la máquina directamente del estado de los stores
     const miOperario = user && operarios.length > 0
@@ -26,42 +45,121 @@ export default function MiEstacionPage() {
         ? maquinas.find(m => m.tipo === miOperario.maquinaActual) || null
         : null;
 
-    // Form states
-    const [piezasProducidas, setPiezasProducidas] = useState<number | "">("");
-    const [piezasDefectuosas, setPiezasDefectuosas] = useState<number | "">("");
-    const [motivoFalla, setMotivoFalla] = useState("");
-    const [showFallaForm, setShowFallaForm] = useState(false);
+    const PRIORIDAD_VALORES: Record<string, number> = {
+        urgente: 4,
+        alta: 3,
+        normal: 2,
+        baja: 1
+    };
+
+    const misAsignaciones = miOperario
+        ? [...asignaciones]
+            .filter(a => a.operario_id === miOperario.id)
+            .sort((a, b) => {
+                const ordenA = ordenes.find(o => o.id === a.orden_id);
+                const ordenB = ordenes.find(o => o.id === b.orden_id);
+
+                const prioA = PRIORIDAD_VALORES[ordenA?.prioridad || "normal"] || 0;
+                const prioB = PRIORIDAD_VALORES[ordenB?.prioridad || "normal"] || 0;
+
+                // 1. Prioridad de la orden (Urgente > Alta > Normal > Baja) - más significativa
+                if (prioA !== prioB) {
+                    return prioB - prioA;
+                }
+
+                // 2. Fecha de entrega estimada (más antigua/cercana primero) - desempate
+                const dateA = ordenA?.fechaEntregaEstimada ? new Date(ordenA.fechaEntregaEstimada).getTime() : Infinity;
+                const dateB = ordenB?.fechaEntregaEstimada ? new Date(ordenB.fechaEntregaEstimada).getTime() : Infinity;
+                return dateA - dateB;
+            })
+        : [];
+
+    const ORDEN_ESTADO_STYLE: Record<string, { label: string; bg: string; text: string }> = {
+        pendiente: { label: "Pendiente", bg: "bg-slate-500/10", text: "text-slate-400" },
+        en_proceso: { label: "En proceso", bg: "bg-orange-500/10", text: "text-orange-400" },
+        pausada: { label: "Pausada", bg: "bg-amber-500/10", text: "text-amber-400" },
+        completada: { label: "Completada", bg: "bg-emerald-500/10", text: "text-emerald-400" },
+        cancelada: { label: "Cancelada", bg: "bg-red-500/10", text: "text-red-400" },
+    };
+
+    const ORDEN_PRIO_STYLE: Record<string, { color: string; bg: string }> = {
+        baja: { color: "#64748b", bg: "rgba(100,116,139,0.12)" },
+        normal: { color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+        alta: { color: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
+        urgente: { color: "#f87171", bg: "rgba(248,113,113,0.15)" },
+    };
 
     useEffect(() => {
+        // Carga inicial
         fetchOperarios();
         fetchMaquinas();
-    }, [fetchOperarios, fetchMaquinas]);
+        fetchAsignaciones();
+        fetchOrdenes();
+    }, [fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
 
-    const handleReportarProduccion = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (piezasProducidas === "" || piezasDefectuosas === "") return;
+    // Detección de cambios en tiempo real en las órdenes del operario
+    useEffect(() => {
+        if (misAsignaciones.length === 0 || ordenes.length === 0) {
+            return;
+        }
 
-        // Simular envío
-        alert(`Reporte enviado: ${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas.`);
-        setPiezasProducidas("");
-        setPiezasDefectuosas("");
-    };
-
-    const handleReportarFalla = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!miMaquina || motivoFalla.trim() === "") return;
-
-        const success = await updateMaquina(miMaquina.id, {
-            estado: "inactiva",
-            // Podríamos guardar el motivo en un registro, pero por ahora cambiamos el estado
+        const currentStates: { [key: string]: { numero: string; estado: string; prioridad: string } } = {};
+        
+        misAsignaciones.forEach(asig => {
+            const ord = ordenes.find(o => o.id === asig.orden_id);
+            if (ord) {
+                currentStates[ord.id] = {
+                    numero: ord.numero,
+                    estado: ord.estado,
+                    prioridad: ord.prioridad
+                };
+            }
         });
 
-        if (success) {
-            alert(`Falla reportada exitosamente en ${miMaquina.nombre}. La máquina está ahora inactiva.`);
-            setMotivoFalla("");
-            setShowFallaForm(false);
+        // Inicialización en la primera carga (no lanzar toasts)
+        if (prevOrdersRef.current === null) {
+            prevOrdersRef.current = currentStates;
+            return;
         }
-    };
+
+        const prevStates = prevOrdersRef.current;
+
+        Object.keys(currentStates).forEach(id => {
+            const curr = currentStates[id];
+            const prev = prevStates[id];
+
+            if (prev) {
+                // Validar cambios de estado
+                if (curr.estado !== prev.estado) {
+                    let tipo: "info" | "warning" | "error" | "success" = "info";
+                    if (curr.estado === "pausada") tipo = "warning";
+                    if (curr.estado === "cancelada") tipo = "error";
+                    if (curr.estado === "completada") tipo = "success";
+
+                    addNotification(
+                        `Orden ${curr.numero} Actualizada`,
+                        `El estado cambió de "${prev.estado.toUpperCase()}" a "${curr.estado.toUpperCase()}".`,
+                        tipo
+                    );
+                }
+ 
+                // Validar cambios de prioridad
+                if (curr.prioridad !== prev.prioridad) {
+                    let tipo: "info" | "warning" | "error" = "info";
+                    if (curr.prioridad === "urgente") tipo = "error";
+                    else if (curr.prioridad === "alta") tipo = "warning";
+ 
+                    addNotification(
+                        `Prioridad Modificada — ${curr.numero}`,
+                        `La prioridad cambió de "${prev.prioridad.toUpperCase()}" a "${curr.prioridad.toUpperCase()}".`,
+                        tipo
+                    );
+                }
+            }
+        });
+
+        prevOrdersRef.current = currentStates;
+    }, [ordenes, misAsignaciones]);
 
     if (loadingOperarios || loadingMaquinas) {
         return (
@@ -82,41 +180,43 @@ export default function MiEstacionPage() {
 
     // Calcular eficiencia
     const habilidadEnMaquina = miOperario.habilidades.find(h => h.maquina === miOperario.maquinaActual);
-    const eficiencia = habilidadEnMaquina ? `${habilidadEnMaquina.nivelEficiencia}%` : "N/A";
-
+    const eficiencia = habilidadEnMaquina && habilidadEnMaquina.nivel_eficiencia !== undefined
+        ? `${habilidadEnMaquina.nivel_eficiencia}%`
+        : "N/A";
     return (
-        <div className="p-8 overflow-y-auto max-h-screen custom-scrollbar">
-            <div className="mb-8">
+        <div className="w-full h-full overflow-y-auto custom-scrollbar p-6">
+            <div className="mb-6">
                 <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Mi Estación de Trabajo</h1>
                 <p className="text-slate-400 font-medium">Bienvenido <span className="text-white">{miOperario.nombre}</span>.</p>
             </div>
 
-            {/* Contexto de Tarea / Orden Asignada */}
-            {miOperario.ordenActual && (
-                <div className="mb-8 bg-gradient-to-r from-[#818cf8]/20 to-[#818cf8]/5 border border-[#818cf8]/20 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg shadow-[#818cf8]/10 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-[#818cf8]/20 flex items-center justify-center text-[#818cf8] shadow-inner">
-                            <ClipboardList className="w-7 h-7" />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-[#818cf8] mb-1">Orden de Producción Activa</p>
-                            <p className="text-2xl font-black text-white">{miOperario.ordenActual}</p>
-                        </div>
+            {/* Listado de Tareas Asignadas */}
+            <div className="mb-6 space-y-4">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignaciones.length})
+                </h2>
+
+                {misAsignaciones.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {misAsignaciones.map(asig => (
+                            <TareaAsignadaCard
+                                key={asig.id}
+                                asig={asig}
+                                ordenCompleta={ordenes.find(o => o.id === asig.orden_id)}
+                                prioridadStyle={ORDEN_PRIO_STYLE}
+                                estadoStyle={ORDEN_ESTADO_STYLE}
+                            />
+                        ))}
                     </div>
-                    {miOperario.fechaDeOrden && (
-                        <div className="md:text-right bg-[#080b10]/50 px-5 py-3 rounded-xl border border-[#818cf8]/10">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Asignada el</p>
-                            <p className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-[#818cf8]/70" /> 
-                                {new Date(miOperario.fechaDeOrden).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' })}
-                            </p>
-                        </div>
-                    )}
-                </div>
-            )}
+                ) : (
+                    <div className="p-6 text-center rounded-3xl bg-[#13161e] border border-white/5 text-slate-500 font-semibold italic text-sm">
+                        No tienes tareas asignadas por el supervisor en este momento.
+                    </div>
+                )}
+            </div>
 
             {/* Kpis / Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <StatCard
                     label="Máquina Actual"
                     valor={miOperario.maquinaActual ? miOperario.maquinaActual.toUpperCase() : "Ninguna"}
@@ -127,138 +227,50 @@ export default function MiEstacionPage() {
                     label="Eficiencia Estimada"
                     valor={eficiencia}
                     icon={Zap}
-                    color="#34d399"
-                    labelColor="#34d399"
+                    color="#818cf8"
+                    labelColor="#818cf8"
                 />
                 <StatCard
                     label="Estado de Máquina"
                     valor={miMaquina?.estado ? miMaquina.estado.toUpperCase() : "Desconocido"}
-                    icon={miMaquina?.estado === "activa" ? CheckCircle2 : AlertTriangle}
-                    color={miMaquina?.estado === "activa" ? "#34d399" : "#f43f5e"}
-                    labelColor={miMaquina?.estado === "activa" ? "#34d399" : "#f43f5e"}
+                    icon={miMaquina?.estado === "operativa" ? CheckCircle2 : AlertTriangle}
+                    color={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
+                    labelColor={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
+                />
+                <StatCard
+                    label="Unidades Buenas"
+                    valor={miOperario.piezas_buenas ?? 0}
+                    icon={CheckCircle2}
+                    color="#34d399"
+                    labelColor="#34d399"
+                />
+                <StatCard
+                    label="Unidades Defectuosas"
+                    valor={miOperario.piezas_defectuosas ?? 0}
+                    icon={AlertCircle}
+                    color="#f43f5e"
+                    labelColor="#f43f5e"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Formulario de Producción */}
-                <div className="bg-[#13161e] border border-[#1e2130] p-6 rounded-3xl hover:border-slate-800 transition-colors shadow-lg shadow-black/50">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 shadow-inner">
-                            <CheckCircle2 className="w-5 h-5" />
-                        </div>
-                        <h2 className="text-xl font-bold text-white">Reporte de Producción</h2>
-                    </div>
-
-                    <form onSubmit={handleReportarProduccion} className="space-y-5">
-                        <div className="group">
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-hover:text-orange-400 transition-colors">Unidades Producidas (Buenas)</label>
-                            <input
-                                type="number"
-                                min="0"
-                                required
-                                value={piezasProducidas}
-                                onChange={(e) => setPiezasProducidas(Number(e.target.value))}
-                                className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all hover:border-slate-700"
-                                placeholder="Ej. 50"
-                            />
-                        </div>
-                        <div className="group">
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-hover:text-orange-400 transition-colors">Unidades Defectuosas</label>
-                            <input
-                                type="number"
-                                min="0"
-                                required
-                                value={piezasDefectuosas}
-                                onChange={(e) => setPiezasDefectuosas(Number(e.target.value))}
-                                className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all hover:border-slate-700"
-                                placeholder="Ej. 2"
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={miMaquina?.estado !== "activa"}
-                            className="w-full mt-4 py-4 rounded-xl font-black text-white transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] disabled:hover:shadow-none border border-orange-400/20"
-                        >
-                            {miMaquina?.estado !== "activa" ? "Máquina Inactiva - No se puede reportar" : "Guardar Producción"}
-                        </button>
-                    </form>
-                </div>
+                <FormularioReporteAvance
+                    misAsignaciones={misAsignaciones}
+                    ordenes={ordenes}
+                    maquinaEstado={miMaquina?.estado}
+                    maquinaActual={miOperario.maquinaActual}
+                    reportarAvance={reportarAvance}
+                />
 
                 {/* Formulario de Falla */}
-                <div className="bg-[#13161e] border border-[#1e2130] p-6 rounded-3xl hover:border-slate-800 transition-colors shadow-lg shadow-black/50 flex flex-col">
-                    <div className="flex items-center gap-3 mb-6 shrink-0">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner transition-colors ${miMaquina?.estado === "activa" ? "bg-[#34d399]/10 text-[#34d399]" : "bg-red-500/10 text-red-500"}`}>
-                            {miMaquina?.estado === "activa" ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-                        </div>
-                        <h2 className="text-xl font-bold text-white">Estado de la Máquina</h2>
-                    </div>
-
-                    <div className="flex-1">
-                        {miMaquina?.estado === "activa" ? (
-                            <div className="flex flex-col h-full justify-center">
-                                {!showFallaForm ? (
-                                    <div className="text-center py-4 animate-in fade-in duration-500">
-                                        <div className="w-20 h-20 rounded-full bg-[#34d399]/10 flex items-center justify-center mx-auto mb-6 border border-[#34d399]/20 shadow-[0_0_15px_rgba(52,211,153,0.1)] transition-transform hover:scale-110 duration-500">
-                                            <CheckCircle2 className="w-10 h-10 text-[#34d399]" />
-                                        </div>
-                                        <h3 className="text-white font-bold text-xl mb-2">Máquina Operativa</h3>
-                                        <p className="text-slate-400 mb-8 font-medium px-4 text-sm">Si experimentas problemas técnicos, cambia el estado de tu máquina a inactiva.</p>
-                                        <button
-                                            onClick={() => setShowFallaForm(true)}
-                                            className="group flex items-center justify-center gap-3 w-full px-6 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#1e2130] to-[#13161e] border border-[#1e2130] hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 active:scale-95"
-                                        >
-                                            <Wrench className="w-5 h-5 text-slate-500 group-hover:text-red-400 transition-colors" />
-                                            <span className="group-hover:text-red-400 transition-colors">Marcar como Inactiva</span>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <form onSubmit={handleReportarFalla} className="space-y-4 animate-in slide-in-from-bottom-4 fade-in duration-300">
-                                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-2">
-                                            <p className="text-sm font-medium text-red-400">Estás a punto de reportar la máquina como inactiva. Por favor describe la falla.</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Motivo de la Inactividad / Falla</label>
-                                            <textarea
-                                                required
-                                                value={motivoFalla}
-                                                onChange={(e) => setMotivoFalla(e.target.value)}
-                                                rows={3}
-                                                className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all hover:border-slate-700 resize-none shadow-inner"
-                                                placeholder="Ej. Ruido en el motor, aguja rota, recalentamiento..."
-                                            />
-                                        </div>
-                                        <div className="flex gap-4 pt-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => { setShowFallaForm(false); setMotivoFalla(""); }}
-                                                className="flex-1 py-4 rounded-xl font-bold text-slate-400 border border-[#1e2130] hover:bg-[#1e2130] hover:text-white transition-colors"
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="flex-1 py-4 rounded-xl font-black text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 transition-all shadow-lg shadow-red-500/25 active:scale-95"
-                                            >
-                                                Confirmar Falla
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex flex-col h-full justify-center text-center py-4 animate-in fade-in duration-500">
-                                <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6 border border-red-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)] relative">
-                                    <AlertTriangle className="w-10 h-10 text-red-500" />
-                                    <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full animate-ping"></span>
-                                </div>
-                                <h3 className="text-white font-bold text-xl mb-2">Máquina Fuera de Servicio</h3>
-                                <p className="text-slate-400 font-medium px-4">El reporte ha sido enviado. Un técnico o supervisor revisará la máquina pronto.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <FormularioReporteFalla
+                    miMaquina={miMaquina}
+                    miOperarioId={miOperario.id}
+                    reportarAveria={reportarAveria}
+                />
             </div>
+
         </div>
     );
 }

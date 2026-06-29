@@ -20,7 +20,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
         defaultValues: {
             nombre: maquina?.nombre || "",
             codigo: maquina?.codigo || "",
-            estado: maquina?.estado || "inactiva",
+            estado: maquina?.estado || "mantenimiento",
             modelo: maquina?.modelo || "",
             serie: maquina?.serie || "",
             tipo: maquina?.tipo || undefined,
@@ -100,7 +100,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-slate-400">Estado Operativo</label>
                             <div className="grid grid-cols-3 gap-2">
-                                {(['activa', 'inactiva', 'depreciada'] as MaquinaStatus[]).map(status => (
+                                {(['operativa', 'mantenimiento', 'fuera_servicio'] as MaquinaStatus[]).map(status => (
                                     <button
                                         key={status}
                                         type="button"
@@ -108,7 +108,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                         className={`py-2 rounded-lg text-[10px] font-bold uppercase border transition-all ${estadoActual === status ? 'border-orange-500 bg-orange-500/10 text-orange-500' : 'border-[#1e2130] text-slate-500'
                                             }`}
                                     >
-                                        {status}
+                                        {status.replace('_', ' ')}
                                     </button>
                                 ))}
                             </div>

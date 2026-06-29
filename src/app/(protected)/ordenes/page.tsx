@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
     Search,
     Clock, CheckCircle2, Pause,
-    ArrowUpDown,
+    ArrowUpDown, XCircle,
 } from "lucide-react";
 import { ModalGestionOrdenes } from "./componentes/ModalGestionOrdenes";
 import { EstadoOrden } from "@/types";
@@ -23,6 +23,7 @@ const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string
     en_proceso: { label: "En proceso", color: "#f97316", bg: "rgba(249,115,22,0.12)", icon: <ArrowUpDown className="w-3.5 h-3.5" /> },
     pausada: { label: "Pausada", color: "#fbbf24", bg: "rgba(251,191,36,0.12)", icon: <Pause className="w-3.5 h-3.5" /> },
     completada: { label: "Completada", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+    cancelada: { label: "Cancelada", color: "#ef4444", bg: "rgba(239,68,68,0.12)", icon: <XCircle className="w-3.5 h-3.5" /> },
 };
 
 // ── Página principal ───────────────────────────────────────

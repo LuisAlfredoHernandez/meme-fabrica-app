@@ -4,9 +4,9 @@ import { MaquinaStatus } from "@/types";
 
 export function StatusBadge({ status }: { status: MaquinaStatus }) {
     const config = {
-        activa: { color: AppColors.emerald, label: "Operativa" },
-        inactiva: { color: AppColors.amber, label: "Mantenimiento" },
-        depreciada: { color: AppColors.red, label: "Fuera de Servicio" }
+        operativa: { color: AppColors.emerald, label: "Operativa" },
+        mantenimiento: { color: AppColors.amber, label: "Mantenimiento" },
+        fuera_servicio: { color: AppColors.red, label: "Fuera de Servicio" }
     };
 
     return (

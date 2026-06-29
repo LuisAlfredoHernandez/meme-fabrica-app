@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { operariosService } from "@/features/operarios/services/operarios.service";
+import {
+  fetchOperariosAction,
+  createOperarioAction,
+  updateOperarioAction,
+  deleteOperarioAction,
+} from "@/features/operarios/actions/operarios.actions";
 import type { Operario } from "@/types";
 
 interface OperarioState {
@@ -29,7 +34,7 @@ export const useOperarioStore = create<OperarioState>()(
         fetchOperarios: async () => {
           set({ isLoading: true, error: null }, false, "operarios/fetch_start");
           try {
-            const data = await operariosService.getAll();
+            const data = await fetchOperariosAction();
             set({ operarios: data, isLoading: false }, false, "operarios/fetch_success");
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error desconocido";
@@ -40,7 +45,7 @@ export const useOperarioStore = create<OperarioState>()(
         createOperario: async (newOperarioData) => {
           set({ isLoading: true, error: null }, false, "operarios/create_start");
           try {
-            const created = await operariosService.create(newOperarioData);
+            const created = await createOperarioAction(newOperarioData);
             // Actualizamos el estado local agregando el nuevo elemento
             set(
               (state) => ({
@@ -61,7 +66,7 @@ export const useOperarioStore = create<OperarioState>()(
         updateOperario: async (id, data) => {
           set({ isLoading: true, error: null }, false, "operarios/update_start");
           try {
-            const updated = await operariosService.update(id, data);
+            const updated = await updateOperarioAction(id, data);
 
             // Mapeamos el array actual para reemplazar solo el operario editado
             set(
@@ -83,7 +88,7 @@ export const useOperarioStore = create<OperarioState>()(
         deleteOperario: async (id) => {
           set({ isLoading: true, error: null }, false, "operarios/delete_start");
           try {
-            await operariosService.delete(id);
+            await deleteOperarioAction(id);
             set((state) => ({
               operarios: state.operarios.filter(i => i.id !== id),
               isLoading: false

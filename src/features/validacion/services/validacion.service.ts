@@ -1,57 +1,66 @@
 import { ValidacionReporte } from "../schemas/validacion.schema";
 
-// Datos en memoria para simular el backend
-const mockValidaciones: ValidacionReporte[] = [
-    {
-        id: "val-1",
-        operarioId: "e1",
-        operarioNombre: "Carmen Méndez",
-        ordenId: "ORD-2026-0042",
-        maquinaId: "merrow",
-        fechaReporte: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // Hace 30 minutos
-        piezasReportadas: 50,
-        estado: "pendiente",
-    },
-    {
-        id: "val-2",
-        operarioId: "e2",
-        operarioNombre: "Josué Reyes",
-        ordenId: "ORD-2026-0042",
-        maquinaId: "cover",
-        fechaReporte: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // Hace 1 hora
-        piezasReportadas: 100,
-        estado: "pendiente",
-    },
-    {
-        id: "val-3",
-        operarioId: "e3",
-        operarioNombre: "María Santos",
-        ordenId: "ORD-2026-0043",
-        maquinaId: "corte",
-        fechaReporte: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // Hace 2 horas
-        piezasReportadas: 300,
-        estado: "pendiente",
-    }
-];
+const getAuthHeaders = (token?: string) => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 export const validacionService = {
-    async getPendientes(): Promise<ValidacionReporte[]> {
-        // Simular latencia de red
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return mockValidaciones.filter(v => v.estado === "pendiente");
+    async getPendientes(token?: string): Promise<ValidacionReporte[]> {
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${API_URL}/reportes-avance/pendientes`, {
+                method: "GET",
+                headers: getAuthHeaders(token),
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error("[validacionService.getPendientes] Error response:", response.status, errText);
+                throw new Error("No se pudieron obtener los reportes pendientes.");
+            }
+            const data = await response.json();
+            return data.map((item: any) => ({
+                id: item.id,
+                operarioId: item.operario_id,
+                operarioNombre: item.operario_nombre,
+                ordenId: item.orden_id,
+                maquinaId: item.maquina_id || "Desconocida",
+                fechaReporte: item.fecha_reporte,
+                piezasReportadas: item.piezas_reportadas,
+                piezasValidadasBuenas: item.piezas_buenas,
+                piezasValidadasDefectuosas: item.piezas_defectuosas,
+                estado: item.estado,
+            }));
+        } catch (error) {
+            console.error("Error en validacionService.getPendientes:", error);
+            throw error;
+        }
     },
 
-    async validarReporte(id: string, buenas: number, defectuosas: number): Promise<boolean> {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const index = mockValidaciones.findIndex(v => v.id === id);
-        if (index === -1) return false;
+    async validarReporte(id: string, buenas: number, defectuosas: number, token?: string): Promise<boolean> {
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${API_URL}/reportes-avance/${id}/validar`, {
+                method: "POST",
+                headers: getAuthHeaders(token),
+                body: JSON.stringify({
+                    piezas_buenas: buenas,
+                    piezas_defectuosas: defectuosas,
+                    estado: "validado"
+                }),
+            });
 
-        mockValidaciones[index] = {
-            ...mockValidaciones[index],
-            estado: "validado",
-            piezasValidadasBuenas: buenas,
-            piezasValidadasDefectuosas: defectuosas
-        };
-        return true;
+            if (!response.ok) throw new Error(`No se pudo validar el reporte con ID: ${id}`);
+            return true;
+        } catch (error) {
+            console.error("Error en validacionService.validarReporte:", error);
+            return false;
+        }
     }
 };

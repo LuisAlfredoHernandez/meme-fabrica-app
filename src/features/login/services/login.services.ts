@@ -51,9 +51,6 @@ export const authService = {
             formData.append("username", email);
             formData.append("password", pass);
 
-            console.log("API_URL =", API_URL);
-            console.log("URL =", `${API_URL}/login`);
-
             const response = await fetch(`${API_URL}/login`, {
                 method: "POST",
                 headers: {
@@ -107,6 +104,9 @@ export const authService = {
             }
 
             const user: Usuario | Operario = await response.json();
+            if (user && user.rol === ("supervisor" as any)) {
+                user.rol = "subjefe";
+            }
             return user;
         } catch (error: any) {
             console.error("Error en getCurrentUser:", error);

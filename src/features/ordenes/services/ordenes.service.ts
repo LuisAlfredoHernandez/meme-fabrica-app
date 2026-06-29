@@ -1,194 +1,286 @@
-
-// ─────────────────────────────────────────────────────────────
-// features/ordenes/services/ordenes.service.ts — Mocks
-
-import { Orden } from "@/types";
-
-
-export const ORDENES_MOCK: Orden[] = [
-    {
-        id: "o1",
-        numero: "ORD-2026-0042",
-        cliente: "Boutique Bella",
-        tipo: "MTO",
-        estado: "en_proceso",
-        temporada: "primavera",
-        prioridad: "urgente",
-        fechaCreacion: "2026-03-01",
-        fechaEntregaEstimada: "2026-03-17",
-        creadaPor: "u1",
-        cola: 1,
-        lineas: [
-            { productoTipo: "licra", descripcion: "Licra deportiva", cantidad: 150, cantidadCompletada: 104, talla: "M", color: "Azul Rey", insumos: [] }
-        ]
-    },
-    {
-        id: "o2",
-        numero: "ORD-2026-0043",
-        cliente: "ModaRD Store",
-        tipo: "MTO",
-        estado: "en_proceso",
-        temporada: "verano",
-        prioridad: "alta",
-        fechaCreacion: "2026-03-05",
-        fechaEntregaEstimada: "2026-03-22",
-        creadaPor: "u1",
-        cola: 2,
-        lineas: [
-            { productoTipo: "jogger", descripcion: "Jogger tela micro", cantidad: 200, cantidadCompletada: 55, talla: "L", color: "Negro", insumos: [] }
-        ]
-    },
-    {
-        id: "o3",
-        numero: "ORD-2026-0044",
-        cliente: "Stock interno",
-        tipo: "MTS",
-        estado: "pendiente",
-        temporada: "invierno",
-        prioridad: "normal",
-        fechaCreacion: "2026-03-08",
-        fechaEntregaEstimada: "2026-03-30",
-        creadaPor: "u2",
-        cola: 3,
-        lineas: [
-            { productoTipo: "t_shirt", descripcion: "T-shirt básico", cantidad: 300, cantidadCompletada: 0, talla: "S", color: "Blanco", insumos: [] }
-        ]
-    },
-    {
-        id: "o4",
-        numero: "ORD-2026-0045",
-        cliente: "Zoe Boutique",
-        tipo: "MTO",
-        estado: "completada",
-        temporada: "verano",
-        prioridad: "alta",
-        fechaCreacion: "2026-02-28",
-        fechaEntregaEstimada: "2026-03-10",
-        creadaPor: "u1",
-        cola: 4,
-        lineas: [
-            { productoTipo: "vestido", descripcion: "Vestido verano", cantidad: 80, cantidadCompletada: 80, talla: "S", color: "Floral", insumos: [] }
-        ]
-    },
-    {
-        id: "o5",
-        numero: "ORD-2026-0046",
-        cliente: "Stock interno",
-        tipo: "MTS",
-        estado: "pausada",
-        temporada: "otoño",
-        prioridad: "baja",
-        fechaCreacion: "2026-03-09",
-        fechaEntregaEstimada: "2026-04-05",
-        creadaPor: "u2",
-        cola: 5,
-        lineas: [
-            { productoTipo: "licra", descripcion: "Short licra", cantidad: 120, cantidadCompletada: 0, talla: "M", color: "Gris", insumos: [] }
-        ]
-    },
-];
-
-const API_LATENCY = 500;
+import { Orden, Temporada } from "@/types";
 
 /**
- * Servicio para la gestión de órdenes de producción.
- * Simula operaciones CRUD sobre el estado de la fábrica.
+ * Mappings for Temporada enum to reconcile frontend lowercase Spanish values with backend TitleCase/ASCII values.
+ */
+const API_TEMPORADA_TO_FRONTEND: Record<string, Temporada> = {
+  "Primavera": "primavera",
+  "Verano": "verano",
+  "Otono": "otoño",
+  "Invierno": "invierno",
+};
+
+const FRONTEND_TEMPORADA_TO_API: Record<string, string> = {
+  "primavera": "Primavera",
+  "verano": "Verano",
+  "otoño": "Otono",
+  "invierno": "Invierno",
+};
+
+/**
+ * Helpers to map between the API's snake_case structure and the frontend's camelCase state.
+ */
+export const mapApiToFrontend = (api: any): Orden => {
+  return {
+    id: api.id,
+    numero: api.numero,
+    cliente: api.cliente,
+    tipo: api.tipo,
+    estado: api.estado,
+    temporada: api.temporada ? (API_TEMPORADA_TO_FRONTEND[api.temporada] || "primavera") : "primavera",
+    prioridad: api.prioridad,
+    fechaCreacion: api.fecha_creacion ? api.fecha_creacion.split("T")[0] : "",
+    fechaEntregaEstimada: api.fecha_entrega_estimada ? api.fecha_entrega_estimada.split("T")[0] : "",
+    fechaEntregaPredicha: api.fecha_entrega_predicha ? api.fecha_entrega_predicha.split("T")[0] : undefined,
+    fechaEntregaReal: api.fecha_entrega_real ? api.fecha_entrega_real.split("T")[0] : undefined,
+    creadaPor: "", // The backend does not maintain a creada_por field on the Orden entity.
+    notas: api.notas || "",
+    cola: api.cola || 0,
+    lineas: (api.lineas || []).map((linea: any) => ({
+      productoTipo: linea.producto_tipo || "otro",
+      descripcion: linea.descripcion,
+      cantidad: linea.cantidad,
+      cantidadCompletada: linea.cantidad_completada || 0,
+      talla: linea.talla,
+      color: linea.color || "",
+      insumos: (linea.insumos || []).map((ins: any) => ({
+        insumoId: ins.insumo_id,
+        cantidadRequerida: ins.cantidad_requerida,
+        unidad: ins.unidad,
+      })),
+    })),
+  };
+};
+
+export const mapFrontendToApi = (frontend: any): any => {
+  return {
+    cliente: frontend.cliente,
+    tipo: frontend.tipo,
+    prioridad: frontend.prioridad,
+    temporada: frontend.temporada ? (FRONTEND_TEMPORADA_TO_API[frontend.temporada] || frontend.temporada) : null,
+    fecha_entrega_estimada: frontend.fechaEntregaEstimada
+      ? (frontend.fechaEntregaEstimada.includes("T")
+          ? frontend.fechaEntregaEstimada
+          : `${frontend.fechaEntregaEstimada}T00:00:00Z`)
+      : new Date().toISOString(),
+    notas: frontend.notas || "",
+    lineas: (frontend.lineas || []).map((linea: any) => {
+      // Infers product type from description if not explicitly set
+      let prodTipo = linea.productoTipo || "otro";
+      if (!linea.productoTipo && linea.descripcion) {
+        const descLower = linea.descripcion.toLowerCase();
+        if (descLower.includes("licra")) prodTipo = "licra";
+        else if (descLower.includes("jogger")) prodTipo = "jogger";
+        else if (descLower.includes("vestido")) prodTipo = "vestido";
+        else if (descLower.includes("t-shirt") || descLower.includes("t_shirt")) prodTipo = "t_shirt";
+        else if (descLower.includes("short")) prodTipo = "short";
+        else if (descLower.includes("blusa")) prodTipo = "blusa";
+      }
+
+      return {
+        producto_tipo: prodTipo,
+        descripcion: linea.descripcion,
+        cantidad: Number(linea.cantidad),
+        cantidad_completada: Number(linea.cantidadCompletada || 0),
+        talla: linea.talla,
+        color: linea.color || "",
+        insumos: (linea.insumos || []).map((ins: any) => ({
+          insumo_id: ins.insumoId,
+          cantidad_requerida: Number(ins.cantidadRequerida),
+          unidad: ins.unidad,
+        })),
+      };
+    }),
+  };
+};
+
+export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
+  const payload: any = {};
+
+  if (data.cliente !== undefined) payload.cliente = data.cliente;
+  if (data.tipo !== undefined) payload.tipo = data.tipo;
+  if (data.estado !== undefined) payload.estado = data.estado;
+  if (data.prioridad !== undefined) payload.prioridad = data.prioridad;
+  if (data.temporada !== undefined) {
+    payload.temporada = data.temporada ? (FRONTEND_TEMPORADA_TO_API[data.temporada] || data.temporada) : null;
+  }
+  if (data.fechaEntregaEstimada !== undefined) {
+    payload.fecha_entrega_estimada = data.fechaEntregaEstimada
+      ? (data.fechaEntregaEstimada.includes("T")
+          ? data.fechaEntregaEstimada
+          : `${data.fechaEntregaEstimada}T00:00:00Z`)
+      : null;
+  }
+  if (data.notas !== undefined) payload.notas = data.notas;
+  if (data.cola !== undefined) payload.cola = data.cola;
+  if (data.lineas !== undefined) {
+    payload.lineas = data.lineas.map((linea: any) => {
+      let prodTipo = linea.productoTipo || "otro";
+      if (!linea.productoTipo && linea.descripcion) {
+        const descLower = linea.descripcion.toLowerCase();
+        if (descLower.includes("licra")) prodTipo = "licra";
+        else if (descLower.includes("jogger")) prodTipo = "jogger";
+        else if (descLower.includes("vestido")) prodTipo = "vestido";
+        else if (descLower.includes("t-shirt") || descLower.includes("t_shirt")) prodTipo = "t_shirt";
+        else if (descLower.includes("short")) prodTipo = "short";
+        else if (descLower.includes("blusa")) prodTipo = "blusa";
+      }
+
+      return {
+        producto_tipo: prodTipo,
+        descripcion: linea.descripcion,
+        cantidad: Number(linea.cantidad),
+        cantidad_completada: Number(linea.cantidadCompletada || 0),
+        talla: linea.talla,
+        color: linea.color || "",
+        insumos: (linea.insumos || []).map((ins: any) => ({
+          insumo_id: ins.insumoId,
+          cantidad_requerida: Number(ins.cantidadRequerida),
+          unidad: ins.unidad,
+        })),
+      };
+    });
+  }
+
+  return payload;
+};
+
+const getAuthHeaders = (token?: string) => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+/**
+ * Service to manage production orders by communicating with the backend API.
  */
 export const ordenesService = {
-    /**
-     * Obtiene todas las órdenes de la cola de producción.
-     */
-    getAll: (): Promise<Orden[]> => {
-        console.log("Fetching all orders from mock service...");
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log("Orders fetched successfully.");
-                resolve(ORDENES_MOCK);
-            }, API_LATENCY);
-        });
-    },
+  /**
+   * Fetches all orders from the production queue.
+   */
+  getAll: async (token?: string): Promise<Orden[]> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/ordenes`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      });
 
-    /**
-     * Registra una nueva orden en el sistema.
-     * @param data - Datos de la orden sin el ID.
-     */
-    create: (data: Omit<Orden, "id">): Promise<Orden> => {
-        console.log("Creating new order...", data);
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const nuevaOrden: Orden = {
-                    ...data,
-                    // Generación de ID único para el mock
-                    id: `o${Math.random().toString(36).substr(2, 5)}`,
-                };
-                
-                // Persistencia simulada
-                ORDENES_MOCK.push(nuevaOrden);
-                
-                console.log(`Order created successfully with ID: ${nuevaOrden.id}`);
-                resolve(nuevaOrden);
-            }, API_LATENCY);
-        });
-    },
+      if (!response.ok) {
+        throw new Error("No se pudo obtener la lista de órdenes.");
+      }
 
-    /**
-     * Actualiza el progreso o datos de una orden (ej: aumentar completadas).
-     */
-    update: (id: string, data: Partial<Orden>): Promise<Orden> => {
-        console.log(`Updating order with id: ${id}...`, data);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const index = ORDENES_MOCK.findIndex((o) => o.id === id);
-                
-                if (index === -1) {
-                    console.error("Update failed: Order not found.");
-                    reject(new Error("Orden de producción no encontrada"));
-                    return;
-                }
+      const data: any[] = await response.json();
+      return data.map(mapApiToFrontend);
+    } catch (error: any) {
+      console.error("Error en ordenesService.getAll:", error);
+      throw new Error(error.message || "Error al conectar con el servidor.");
+    }
+  },
 
-                const ordenActualizada = { ...ORDENES_MOCK[index], ...data };
-                ORDENES_MOCK[index] = ordenActualizada;
+  /**
+   * Creates a new production order.
+   */
+  create: async (data: Omit<Orden, "id">, token?: string): Promise<Orden> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const mappedData = mapFrontendToApi(data);
 
-                console.log(`Order ${id} updated successfully.`);
-                resolve(ordenActualizada);
-            }, API_LATENCY);
-        });
-    },
+      const response = await fetch(`${API_URL}/ordenes`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(mappedData),
+      });
 
-    /**
-     * Elimina una orden del sistema.
-     */
-    delete: (id: string): Promise<boolean> => {
-        console.log(`Solicitando eliminación de la orden con ID: ${id}...`);
-        
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const index = ORDENES_MOCK.findIndex(orden => orden.id === id);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error response details:", errorText);
+        throw new Error("No se pudo crear la orden.");
+      }
 
-                if (index !== -1) {
-                    // Eliminación real del array para el mock
-                    ORDENES_MOCK.splice(index, 1);
-                    console.log(`Orden ${id} eliminada correctamente del Mock.`);
-                    resolve(true);
-                } else {
-                    console.error(`Error: Orden con ID ${id} no encontrada.`);
-                    reject(new Error("La orden que intentas eliminar no existe."));
-                }
-            }, API_LATENCY);
-        });
-    },
+      const created: any = await response.json();
+      return mapApiToFrontend(created);
+    } catch (error: any) {
+      console.error("Error en ordenesService.create:", error);
+      throw new Error(error.message || "Error al crear la orden.");
+    }
+  },
 
-    /**
-     * Obtiene los detalles de una orden específica.
-     */
-    getById: (id: string): Promise<Orden | undefined> => {
-        console.log(`Fetching order with id: ${id}`);
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const orden = ORDENES_MOCK.find((o) => o.id === id);
-                console.log(orden ? `Found order: ${orden.numero}` : "Order not found.");
-                resolve(orden);
-            }, API_LATENCY);
-        });
-    },
+  /**
+   * Updates an existing order.
+   */
+  update: async (id: string, data: Partial<Orden>, token?: string): Promise<Orden> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const mappedData = mapFrontendUpdateToApi(data);
+
+      const response = await fetch(`${API_URL}/ordenes/${id}`, {
+        method: "PATCH",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify(mappedData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error response details:", errorText);
+        throw new Error(`No se pudo actualizar la orden con ID: ${id}`);
+      }
+
+      const updated: any = await response.json();
+      return mapApiToFrontend(updated);
+    } catch (error: any) {
+      console.error("Error en ordenesService.update:", error);
+      throw new Error(error.message || "Error al actualizar la orden.");
+    }
+  },
+
+  /**
+   * Deletes an order.
+   */
+  delete: async (id: string, token?: string): Promise<boolean> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/ordenes/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al eliminar la orden con ID: ${id}`);
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error("Error en ordenesService.delete:", error);
+      throw new Error(error.message || "Error al intentar eliminar.");
+    }
+  },
+
+  /**
+   * Fetches an order by its ID.
+   */
+  getById: async (id: string, token?: string): Promise<Orden | undefined> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/ordenes/${id}`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) return undefined;
+        throw new Error(`No se pudo obtener la orden con ID: ${id}`);
+      }
+
+      const data: any = await response.json();
+      return mapApiToFrontend(data);
+    } catch (error: any) {
+      console.error("Error en ordenesService.getById:", error);
+      throw new Error(error.message || "Error al conectar con el servidor.");
+    }
+  },
 };

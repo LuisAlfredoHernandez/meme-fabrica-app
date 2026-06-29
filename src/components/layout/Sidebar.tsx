@@ -11,6 +11,7 @@ import {
     Factory, ScanLine, ClipboardCheck
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 const C = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
     orange: "#f97316", slate: "#475569",
@@ -124,6 +125,9 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
 
             {/* Footer: Usuario + Icono Giratorio */}
             <div className="p-4 border-t space-y-3" style={{ borderColor: C.border }}>
+
+                {/* Campana de Notificaciones */}
+                <NotificationBell isSidebarExpanded={isHovered} />
 
                 {/* Info de Usuario */}
                 <div className="relative flex items-center gap-3 px-2 py-2 rounded-2xl transition-colors overflow-hidden"
