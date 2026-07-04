@@ -53,12 +53,12 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                 />
             )}
 
-            <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${AppColors.border}` }}>
+            <div className="rounded-2xl overflow-auto max-h-[550px] custom-scrollbar" style={{ border: `1px solid ${AppColors.border}` }}>
                 <table className="w-full text-sm">
-                    <thead>
-                        <tr style={{ background: AppColors.surface }}>
+                    <thead className="sticky top-0 z-10" style={{ background: AppColors.surface }}>
+                        <tr>
                             {["Orden / Cliente", "Tipo", "Prenda", "Avance", "Estado", "Prioridad", "Fecha", "Acciones"].map(h => (
-                                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: AppColors.slate }}>{h}</th>
+                                <th key={h} className="px-4 py-3 text-left text-xs font-semibold" style={{ color: AppColors.slate, background: AppColors.surface }}>{h}</th>
                             ))}
                         </tr>
                     </thead>

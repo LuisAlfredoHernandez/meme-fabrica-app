@@ -34,15 +34,15 @@ export default function MaquinasPage() {
             </div>
 
             {/* Tabla Estilo Insumos */}
-            <div className="rounded-2xl border overflow-hidden" style={{ background: AppColors.surface, borderColor: AppColors.border }}>
+            <div className="rounded-2xl border overflow-auto max-h-[550px] custom-scrollbar" style={{ background: AppColors.surface, borderColor: AppColors.border }}>
                 <table className="w-full text-left border-collapse">
-                    <thead>
+                    <thead className="sticky top-0 z-10" style={{ background: AppColors.surface }}>
                         <tr className="border-b" style={{ borderColor: AppColors.border }}>
-                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">ID / Nombre</th>
-                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Modelo</th>
-                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Estado</th>
-                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Último Mantenimiento</th>
-                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-right">Acciones</th>
+                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>ID / Nombre</th>
+                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>Modelo</th>
+                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>Estado</th>
+                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>Último Mantenimiento</th>
+                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-right" style={{ background: AppColors.surface }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>

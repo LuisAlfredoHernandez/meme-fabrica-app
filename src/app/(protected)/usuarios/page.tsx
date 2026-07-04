@@ -88,14 +88,14 @@ export default function UsuariosPage() {
                 </div>
 
                 {/* Tabla de Usuarios */}
-                <div className="rounded-2xl border bg-[#13161e] overflow-hidden" style={{ borderColor: AppColors.border }}>
+                <div className="rounded-2xl border bg-[#13161e] overflow-auto max-h-[550px] custom-scrollbar" style={{ borderColor: AppColors.border }}>
                     <table className="w-full text-left border-collapse">
-                        <thead>
+                        <thead className="sticky top-0 z-10" style={{ background: AppColors.surface }}>
                             <tr className="border-b" style={{ borderColor: AppColors.border, background: "rgba(255,255,255,0.02)" }}>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Usuario</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rol / Permisos</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Estado</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Acciones</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ background: AppColors.surface }}>Usuario</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ background: AppColors.surface }}>Rol / Permisos</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ background: AppColors.surface }}>Estado</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right" style={{ background: AppColors.surface }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#1e2130]">

@@ -89,13 +89,13 @@ export default function InsumosPage() {
                 </div>
 
                 {/* Tabla de Insumos */}
-                <div className="rounded-2xl border overflow-hidden bg-[#13161e]" style={{ borderColor: AppColors.border }}>
+                <div className="rounded-2xl border overflow-auto max-h-[550px] custom-scrollbar bg-[#13161e]" style={{ borderColor: AppColors.border }}>
                     <table className="w-full text-left border-collapse">
-                        <thead>
+                        <thead className="sticky top-0 z-10" style={{ background: AppColors.surface }}>
                             <tr className="border-b" style={{ borderColor: AppColors.border, background: "#1a1f2e" }}>
-                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Insumo / Código</th>
-                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Estado</th>
-                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase">Existencia</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: "#1a1f2e" }}>Insumo / Código</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: "#1a1f2e" }}>Estado</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: "#1a1f2e" }}>Existencia</th>
                             </tr>
                         </thead>
                         <tbody>
