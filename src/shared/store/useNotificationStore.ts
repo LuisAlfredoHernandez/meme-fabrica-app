@@ -48,6 +48,8 @@ interface NotificationState {
         clearAll: () => void;
         removeToast: (id: string) => void;
         setSelectedNotification: (notif: NotificationItem | null) => void;
+        syncPendingValidations: (pendientes: { id: string; operarioNombre: string; fechaReporte: string; piezasReportadas: number }[]) => void;
+        syncOperatorAssignments: (assignments: { id: string; ordenNumero: string; fechaAsignacion: string }[]) => void;
     };
 }
 
@@ -118,6 +120,94 @@ export const useNotificationStore = create<NotificationState>()(
                 },
                 setSelectedNotification: (notif) => {
                     set({ selectedNotification: notif });
+                },
+                syncPendingValidations: (pendientes) => {
+                    set((state) => {
+                        const newNotifications = [...state.notifications];
+                        let updated = false;
+
+                        pendientes.forEach((p) => {
+                            if (!newNotifications.some((n) => n.id === p.id)) {
+                                const newNotif: NotificationItem = {
+                                    id: p.id,
+                                    titulo: "Revisión Pendiente",
+                                    mensaje: `El operario ${p.operarioNombre} ha reportado avance de producción. Pendiente de validación.`,
+                                    tipo: "warning",
+                                    fecha: p.fechaReporte,
+                                    leido: false,
+                                    detalles: {
+                                        piezas_reportadas: p.piezasReportadas,
+                                        action: "created"
+                                    }
+                                };
+                                newNotifications.push(newNotif);
+                                updated = true;
+                            }
+                        });
+
+                        const pendingIds = new Set(pendientes.map((p) => p.id));
+                        const cleanedNotifications = newNotifications.filter((n) => {
+                            if (n.titulo === "Revisión Pendiente" && n.tipo === "warning") {
+                                if (!pendingIds.has(n.id)) {
+                                    updated = true;
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+
+                        if (!updated) return state;
+
+                        cleanedNotifications.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+                        return {
+                            notifications: cleanedNotifications.slice(0, 50),
+                        };
+                    });
+                },
+                syncOperatorAssignments: (assignments) => {
+                    set((state) => {
+                        const newNotifications = [...state.notifications];
+                        let updated = false;
+
+                        assignments.forEach((a) => {
+                            const notificationId = `asig_created_${a.id}`;
+                            if (!newNotifications.some((n) => n.id === notificationId)) {
+                                const newNotif: NotificationItem = {
+                                    id: notificationId,
+                                    titulo: "Nueva Tarea Asignada",
+                                    mensaje: `El supervisor te ha asignado una nueva tarea de producción para la orden ${a.ordenNumero}.`,
+                                    tipo: "warning",
+                                    fecha: a.fechaAsignacion || new Date().toISOString(),
+                                    leido: false,
+                                    detalles: {
+                                        action: "created"
+                                    }
+                                };
+                                newNotifications.push(newNotif);
+                                updated = true;
+                            }
+                        });
+
+                        const activeIds = new Set(assignments.map((a) => `asig_created_${a.id}`));
+                        const cleanedNotifications = newNotifications.filter((n) => {
+                            if (n.id.startsWith("asig_created_")) {
+                                if (!activeIds.has(n.id)) {
+                                    updated = true;
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+
+                        if (!updated) return state;
+
+                        cleanedNotifications.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+                        return {
+                            notifications: cleanedNotifications.slice(0, 50),
+                        };
+                    });
                 },
             },
         }),

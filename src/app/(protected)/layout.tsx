@@ -9,11 +9,11 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAsignacionActions } from "@/features/operarios/store/useAsignacionStore";
+import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/store/useAsignacionStore";
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
-import { useValidacionActions } from "@/features/validacion/store/useValidacionStore";
+import { useValidacionStore, useValidacionActions } from "@/features/validacion/store/useValidacionStore";
 import { ToastContainer } from "@/components/ToastContainer";
 import { useToasts, useSelectedNotification, useNotificationActions } from "@/shared/store/useNotificationStore";
 import { NotificationDetailModal } from "@/components/layout/NotificationDetailModal";
@@ -29,14 +29,44 @@ export default function ProtectedLayout({
     const pathname = usePathname();
 
     const { fetchAsignaciones } = useAsignacionActions();
+    const { asignaciones } = useAsignacionStore();
     const { fetchOrdenes } = useOrdenActions();
     const { fetchMaquinas } = useMaquinasActions();
     const { fetchOperarios } = useOperarioActions();
     const { fetchPendientes } = useValidacionActions();
+    const { pendientes } = useValidacionStore();
     const [isWsConnected, setIsWsConnected] = useState(false);
     const toasts = useToasts();
     const selectedNotification = useSelectedNotification();
-    const { addNotification, addToastOnly, removeToast, setSelectedNotification } = useNotificationActions();
+    const { addNotification, addToastOnly, removeToast, setSelectedNotification, syncPendingValidations, syncOperatorAssignments } = useNotificationActions();
+
+    // Sincronizar reportes de avance pendientes con el historial de notificaciones del supervisor/admin
+    useEffect(() => {
+        if (!isAuthenticated || !user || user.rol === "operario") return;
+
+        const mappedPendientes = pendientes.map((p) => ({
+            id: p.id,
+            operarioNombre: p.operarioNombre,
+            fechaReporte: p.fechaReporte,
+            piezasReportadas: p.piezasReportadas,
+        }));
+
+        syncPendingValidations(mappedPendientes);
+    }, [pendientes, isAuthenticated, user, syncPendingValidations]);
+
+    // Sincronizar tareas asignadas con el historial de notificaciones del operario
+    useEffect(() => {
+        if (!isAuthenticated || !user || user.rol !== "operario") return;
+
+        const myAssignments = asignaciones.filter((a) => a.operario_id === user.id);
+        const mappedAssignments = myAssignments.map((a) => ({
+            id: a.id,
+            ordenNumero: a.orden?.numero || "ORD-N/A",
+            fechaAsignacion: a.fecha_asignacion,
+        }));
+
+        syncOperatorAssignments(mappedAssignments);
+    }, [asignaciones, isAuthenticated, user, syncOperatorAssignments]);
 
     // Conexión global WebSocket con fallback a Polling en caso de error/bloqueo de red
     useEffect(() => {
