@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Maquina } from "@/types";
 import { CheckCircle2, AlertTriangle, Wrench } from "lucide-react";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 interface FormularioReporteFallaProps {
     miMaquina: Maquina | null;
@@ -27,6 +28,7 @@ export function FormularioReporteFalla({
     const [gravedad, setGravedad] = useState("moderada");
     const [detieneProduccion, setDetieneProduccion] = useState(false);
     const [showFallaForm, setShowFallaForm] = useState(false);
+    const { addToastOnly } = useNotificationActions();
 
     const handleReportarFalla = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,14 +44,22 @@ export function FormularioReporteFalla({
         });
 
         if (success) {
-            alert(`Avería reportada exitosamente en ${miMaquina.nombre}. La máquina está ahora en mantenimiento.`);
+            addToastOnly(
+                "Avería Reportada",
+                `Avería reportada exitosamente en ${miMaquina.nombre}. La máquina está ahora en mantenimiento.`,
+                "success"
+            );
             setMotivoFalla("");
             setTipoFalla("mecanica");
             setGravedad("moderada");
             setDetieneProduccion(false);
             setShowFallaForm(false);
         } else {
-            alert("Error al enviar el reporte de avería.");
+            addToastOnly(
+                "Error de Avería",
+                "Error al enviar el reporte de avería.",
+                "error"
+            );
         }
     };
 

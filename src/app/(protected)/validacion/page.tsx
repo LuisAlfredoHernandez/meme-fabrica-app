@@ -6,11 +6,13 @@ import { useValidacionStore, useValidacionActions } from "@/features/validacion/
 import { ClipboardCheck, ShieldCheck, CheckCircle2, AlertTriangle, AlertCircle, Clock, Zap, Factory } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { ValidacionReporte } from "@/features/validacion/schemas/validacion.schema";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 export default function ValidacionPage() {
     const { user } = useAuthStore();
     const { pendientes, isLoading } = useValidacionStore();
     const { fetchPendientes, validarReporte } = useValidacionActions();
+    const { addToastOnly } = useNotificationActions();
 
     const [selectedReport, setSelectedReport] = useState<ValidacionReporte | null>(null);
     const [buenas, setBuenas] = useState<number | "">("");
@@ -39,9 +41,17 @@ export default function ValidacionPage() {
             setSelectedReport(null);
             setBuenas("");
             setDefectuosas("");
-            alert("Reporte validado exitosamente.");
+            addToastOnly(
+                "Reporte Validado",
+                "Reporte validado exitosamente.",
+                "success"
+            );
         } else {
-            alert("Error al validar el reporte.");
+            addToastOnly(
+                "Error de Validación",
+                "Error al validar el reporte.",
+                "error"
+            );
         }
     };
 

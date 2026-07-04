@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AsignacionOrden, Orden } from "@/types";
 import { CheckCircle2 } from "lucide-react";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 interface FormularioReporteAvanceProps {
     misAsignaciones: AsignacionOrden[];
@@ -22,6 +23,7 @@ export function FormularioReporteAvance({
     const [selectedAsigId, setSelectedAsigId] = useState("");
     const [piezasProducidas, setPiezasProducidas] = useState<number | "">("");
     const [piezasDefectuosas, setPiezasDefectuosas] = useState<number | "">("");
+    const { addToastOnly } = useNotificationActions();
 
     const selectedAsig = misAsignaciones.find(a => a.id === selectedAsigId);
     const selectedAsigOrder = selectedAsig ? ordenes.find(o => o.id === selectedAsig.orden_id) : null;
@@ -46,9 +48,17 @@ export function FormularioReporteAvance({
                 } as any); // using any if backend fields slightly mismatch
 
                 if (success) {
-                    alert(`Solicitud de avance enviada para validación del supervisor: ${totalReportado} piezas totales (${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas).`);
+                    addToastOnly(
+                        "Avance Reportado",
+                        `Tu reporte de avance de ${totalReportado} piezas (${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas) ha sido enviado.`,
+                        "success"
+                    );
                 } else {
-                    alert("Error al enviar la solicitud de avance.");
+                    addToastOnly(
+                        "Error de Reporte",
+                        "Error al enviar la solicitud de avance.",
+                        "error"
+                    );
                 }
             }
         }

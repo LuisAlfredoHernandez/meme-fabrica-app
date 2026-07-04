@@ -151,15 +151,11 @@ export default function ProtectedLayout({
                                 }
                             }
                         } else if (message.event === "reporte_avance_created") {
-                            if (isCurrentUser) {
-                                addToastOnly("Avance Reportado", "Tu reporte de avance ha sido enviado al supervisor.", "success");
-                            } else if (user.rol !== "operario") {
+                            if (!isCurrentUser && user.rol !== "operario") {
                                 addNotification("Revisión Pendiente", "Un operario ha reportado avance de producción. Pendiente de validación.", "warning");
                             }
                         } else if (message.event === "reporte_avance_validated") {
-                            if (isCurrentUser) {
-                                addToastOnly("Avance Validado", "Has certificado el reporte de avance exitosamente.", "success");
-                            } else {
+                            if (!isCurrentUser) {
                                 const isTargetOperator = message.operario_id === user.id;
                                 if (isTargetOperator) {
                                     const tipoNotif = message.estado === "validado" ? "success" : "error";
@@ -184,9 +180,7 @@ export default function ProtectedLayout({
                     ) {
                         fetchMaquinas();
                         if (message.event === "reporte_averia_created") {
-                            if (isCurrentUser) {
-                                addToastOnly("Avería Reportada", "El fallo de la máquina fue reportado con éxito al taller.", "success");
-                            } else {
+                            if (!isCurrentUser) {
                                 const maquinaDetalle = message.maquina_codigo ? `${message.maquina_tipo || ""} (${message.maquina_codigo})` : "de la planta";
                                 addNotification(
                                     "Falla de Equipo", 
