@@ -5,10 +5,12 @@
 // Usa este layout en: dashboard, ordenes, registro, operarios, insumos, ia
 // La ruta /login usa su propio layout sin sidebar
 
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar, NAV, ROL_COLOR } from "@/components/layout/Sidebar";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { Menu, X, LogOut, Shield } from "lucide-react";
 import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/store/useAsignacionStore";
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
@@ -23,8 +25,9 @@ export default function ProtectedLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, isAuthenticated } = useAuthStore();
+    const { user, isAuthenticated, logout } = useAuthStore();
     const [mounted, setMounted] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -309,15 +312,155 @@ export default function ProtectedLayout({
     }, [mounted, user, pathname, router]);
 
 
+    const itemsVisibles = user ? NAV.filter(n => n.roles.includes(user.rol)) : [];
+
     if (!mounted || !isAuthenticated || !user) {
         return <div className="min-h-screen bg-[#080b10]" />; // Evitar flashes
     }
 
     return (
-        <div className="flex min-h-screen" style={{ background: "#080b10" }}>
-            <Sidebar rol={user.rol} usuario={`${user.nombre} ${user.apellido}`} />
+        <div className="flex min-h-screen flex-col md:flex-row" style={{ background: "#080b10" }}>
+            {/* Sidebar para desktop */}
+            <div className="hidden md:flex">
+                <Sidebar rol={user.rol} usuario={`${user.nombre} ${user.apellido}`} />
+            </div>
+
+            {/* Navbar superior para mobile/tablet */}
+            <header className="flex md:hidden items-center justify-between px-4 py-3 bg-[#13161e] border-b border-[#1e2130] sticky top-0 z-30 w-full shrink-0">
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(true)}
+                        className="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 active:scale-95 transition-all cursor-pointer"
+                        aria-label="Abrir menú"
+                    >
+                        <Menu className="w-6 h-6" />
+                    </button>
+                    
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black text-white"
+                            style={{
+                                background: "#f97316",
+                                boxShadow: "0 2px 8px rgba(249,115,22,0.4)"
+                            }}>
+                            M
+                        </div>
+                        <span className="text-sm font-black text-white whitespace-nowrap">Meme Fábricas</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black border"
+                        style={{ 
+                            background: `${ROL_COLOR[user.rol]}20`, 
+                            color: ROL_COLOR[user.rol], 
+                            borderColor: `${ROL_COLOR[user.rol]}40` 
+                        }}>
+                        {`${user.nombre} ${user.apellido}`.slice(0, 2).toUpperCase()}
+                    </div>
+                </div>
+            </header>
+
+            {/* Menú lateral (Drawer) móvil */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden fixed inset-0 z-50 flex">
+                    {/* Backdrop */}
+                    <div 
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                    
+                    {/* Drawer Content */}
+                    <aside className="relative flex w-72 max-w-[80vw] flex-col h-full bg-[#13161e] border-r border-[#1e2130] p-5 shadow-2xl transition-transform duration-300 animate-in slide-in-from-left">
+                        {/* Close button */}
+                        <div className="flex items-center justify-between pb-5 border-b border-[#1e2130] mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black text-white bg-[#f97316]">
+                                    M
+                                </div>
+                                <span className="text-sm font-bold text-white">Meme Fábricas</span>
+                            </div>
+                            <button 
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Enlaces de Navegación */}
+                        <nav className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                            {itemsVisibles.map(item => {
+                                const active = pathname === item.href;
+                                return (
+                                    <Link 
+                                        key={item.href} 
+                                        href={item.href}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/5"
+                                        style={{
+                                            background: active ? "#f9731615" : "transparent",
+                                            color: active ? "#f97316" : "#94a3b8",
+                                        }}
+                                    >
+                                        <span className={active ? 'text-[#f97316]' : 'text-slate-400'}>
+                                            {item.icon}
+                                        </span>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-bold whitespace-nowrap text-white">
+                                                    {item.label}
+                                                </span>
+                                                {item.badge && (
+                                                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md"
+                                                        style={{ background: `${item.badgeColor}20`, color: item.badgeColor }}>
+                                                        {item.badge}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[9px] text-slate-500 truncate">{item.desc}</p>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+
+                        {/* Footer de Usuario */}
+                        <div className="pt-4 border-t border-[#1e2130] space-y-4">
+                            <div className="flex items-center gap-3 p-2 rounded-xl bg-[#0d1018]/50 border border-[#1e2130]">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black border"
+                                    style={{ 
+                                        background: `${ROL_COLOR[user.rol]}20`, 
+                                        color: ROL_COLOR[user.rol], 
+                                        borderColor: `${ROL_COLOR[user.rol]}40` 
+                                    }}>
+                                    {`${user.nombre} ${user.apellido}`.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-white truncate">{`${user.nombre} ${user.apellido}`}</p>
+                                    <div className="flex items-center gap-1">
+                                        <Shield className="w-2.5 h-2.5" style={{ color: ROL_COLOR[user.rol] }} />
+                                        <p className="text-[8px] font-black uppercase tracking-tighter" style={{ color: ROL_COLOR[user.rol] }}>{user.rol}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={() => {
+                                    setIsMobileMenuOpen(false);
+                                    logout();
+                                }} 
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all text-xs font-bold cursor-pointer"
+                            >
+                                <LogOut className="w-4 h-4 shrink-0" />
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+            )}
+
             {/* Contenido principal */}
-            <main className="flex-1 overflow-hidden flex flex-col relative">
+            <main className="flex-1 overflow-hidden flex flex-col relative w-full">
                 {children}
                 
                 {/* Contenedor global de Toasts */}

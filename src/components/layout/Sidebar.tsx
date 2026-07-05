@@ -18,9 +18,9 @@ const C = {
 };
 
 
-type Rol = "administrador" | "subjefe" | "operario";
+export type Rol = "administrador" | "subjefe" | "operario";
 
-interface NavItem {
+export interface NavItem {
     href: string;
     icon: React.ReactNode;
     label: string;
@@ -30,7 +30,7 @@ interface NavItem {
     badgeColor?: string;
 }
 
-const NAV: NavItem[] = [
+export const NAV: NavItem[] = [
     { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["administrador", "subjefe"] },
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["administrador", "subjefe"] },
     { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["administrador", "subjefe"] },
@@ -44,7 +44,7 @@ const NAV: NavItem[] = [
 const ROL_LABEL: Record<Rol, string> = {
     administrador: "Administrador", subjefe: "Jefe de Taller", operario: "Operario",
 };
-const ROL_COLOR: Record<Rol, string> = {
+export const ROL_COLOR: Record<Rol, string> = {
     administrador: "#f97316", subjefe: "#818cf8", operario: "#34d399",
 };
 

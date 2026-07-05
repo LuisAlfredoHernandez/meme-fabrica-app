@@ -35,7 +35,7 @@ export default function UsuariosPage() {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-[#080b10]">
+        <div className="flex-1 overflow-y-auto bg-[#080b10] custom-scrollbar">
             {/* Reutilizamos tu Modal de Gestión adaptado */}
             {modalAbierto && (
                 <ModalGestionOperario
@@ -45,20 +45,20 @@ export default function UsuariosPage() {
             )}
 
             {/* Header Principal */}
-            <div className="px-6 py-5 border-b flex items-center justify-between bg-[#13161e]" style={{ borderColor: AppColors.border }}>
+            <div className="px-6 py-5 border-b flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-[#13161e]" style={{ borderColor: AppColors.border }}>
                 <div>
                     <h1 className="text-lg font-black text-white uppercase tracking-tighter">Gestión de Usuarios</h1>
                     <p className="text-xs mt-0.5 text-slate-500 font-medium">Control de accesos y permisos de plataforma</p>
                 </div>
                 <button
                     onClick={() => handleOpenGestion()}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-all shadow-lg shadow-orange-500/20"
+                    className="flex items-center justify-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-all shadow-lg shadow-orange-500/20 w-full sm:w-auto shrink-0 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" /> Crear Usuario
                 </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-6">
                 {/* Stats de Seguridad */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[

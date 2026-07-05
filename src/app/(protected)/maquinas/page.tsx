@@ -21,12 +21,12 @@ export default function MaquinasPage() {
     }, [fetchMaquinas]);
 
     return (
-        <div className="min-h-screen p-8 text-white" style={{ background: AppColors.bg }}>
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar" style={{ background: AppColors.bg }}>
             {/* Header de página */}
             <Header title="Maquinaria y Equipos" subtitle="Gestión de activos y estado operativo" buttonLabel="Nueva máquina" onButtonClick={() => { setSelectedMaquina(null); setIsModalOpen(true) }} />
 
             {/* Cards de Métricas */}
-            <div className="grid grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard label="Total Equipos" valor={maquinas.length} />
                 <StatCard label="Operativas" valor={maquinas.filter(m => m.estado === 'operativa').length} labelColor={AppColors.emerald} />
                 <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'mantenimiento').length} labelColor={AppColors.amber} />

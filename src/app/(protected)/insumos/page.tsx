@@ -42,7 +42,7 @@ export default function InsumosPage() {
     };
 
     return (
-        <div className="min-h-screen p-8 text-white">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar">
             {modalConfig.open && (
                 <ModalGestionInsumo
                     // initialId={modalConfig.id} 
@@ -54,9 +54,9 @@ export default function InsumosPage() {
             {/* Header pantalla*/}
             <Header title="Inventario" subtitle="RF6 — Gestión Unificada de Inventario" buttonLabel="Movimiento de stock" onButtonClick={abrirGestion} />
 
-            <div className="p-6 space-y-6">
+            <div className="space-y-6">
                 {/* KPIs Rápidos */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                         { label: "Total Items", val: insumos.length, color: "#fff" },
                         { label: "Stock Bajo", val: insumos.filter(i => i.stock < i.minimo && i.stock > 0).length, color: AppColors.amber },

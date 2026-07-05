@@ -56,15 +56,15 @@ export default function OrdenesPage() {
     }, [ordenes]); // Solo se recalcula si 'ordenes' cambia
 
     return (
-        <div className="min-h-screen p-8 text-white" style={{ background: AppColors.bg }} >
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar" style={{ background: AppColors.bg }} >
             {modal && <ModalGestionOrdenes onClose={() => setModal(false)} />}
 
             {/* Header de página */}
             <Header title="Órdenes de Producción" subtitle="RF1 · RF7 — Gestión y cola de prioridades" buttonLabel="Gestionar Ordenes" onButtonClick={() => setModal(true)} />
 
-            <div className="p-6 space-y-5">
+            <div className="space-y-5">
                 {/* Stats rápidas */}
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
                         { label: "Total activas", valor: ordenes.filter(o => o.estado === "en_proceso").length, color: AppColors.orange },
                         { label: "MTO pendientes", valor: ordenes.filter(o => o.tipo === "MTO" && o.estado !== "completada").length, color: "#818cf8" },

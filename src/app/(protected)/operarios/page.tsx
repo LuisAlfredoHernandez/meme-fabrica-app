@@ -79,7 +79,7 @@ export default function OperariosPage() {
     };
 
     return (
-        <div className="min-h-screen p-8 text-white">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar">
             {modalAbierto && (
                 <ModalGestionOperario
                     onClose={() => setModalAbierto(false)}
@@ -100,7 +100,7 @@ export default function OperariosPage() {
             <Header title={"Operarios & Rendimiento"} subtitle="Gestión de recursos humanos en planta" buttonLabel={"Gestionar operarios"} onButtonClick={() => setModalAbierto(true)} />
 
             {/* Card de status de operarios */}
-            <div className="p-6 space-y-6">
+            <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                         { label: "Total Plantilla", valor: total, icon: Users, color: "#fff" },
