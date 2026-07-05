@@ -82,7 +82,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                         <div className="p-3 rounded-xl border flex items-center justify-between"
                             style={{ background: "rgba(249,115,22,0.05)", borderColor: "rgba(249,115,22,0.2)" }}>
                             <span className="text-[10px] font-bold text-slate-400 uppercase">Identificador</span>
-                            <span className="font-mono text-orange-500 font-bold">{maquina?.id ?? `MAC-AUTO`}</span>
+                            <span className="font-mono text-orange-500 font-bold text-[12px]">{maquina?.id ?? `MAC-AUTO`}</span>
                         </div>
 
                         {/* Nombre y Descripción */}

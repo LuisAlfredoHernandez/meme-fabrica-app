@@ -6,7 +6,7 @@ import { AppColors } from "@/shared/constants";
 import { Orden } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Trash2, Calendar } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 
@@ -20,7 +20,7 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
             cliente: "",
             numero: "ORD-" + new Date().getFullYear() + "-",
             estado: "pendiente",
-            lineas: [{ descripcion: "", cantidad: 1, talla: "M", insumos: [] }],
+            lineas: [{ descripcion: "", cantidad: 1, talla: "M", color: "", insumos: [] }],
             fechaEntregaEstimada: ""
         }
     });
@@ -28,6 +28,8 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
     const { fields, append, remove } = useFieldArray({ control, name: "lineas" });
     const { createOrden, updateOrden } = useOrdenActions()
     const isEdit = !!orden;
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const COLORES_SUGERIDOS = ["Negro", "Blanco", "Azul Marino", "Gris", "Rojo", "Verde", "Amarillo", "Rosa", "Naranja", "Beige", "Celeste", "Vino"];
 
     const vTipo = watch("tipo");
     const vCliente = watch("cliente");
@@ -132,7 +134,7 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                     <div className="flex flex-col flex-1 min-h-0 space-y-3 relative">
                         <div className="flex justify-between items-center px-1 shrink-0">
                             <label className="text-[11px] font-black uppercase tracking-widest text-orange-500">Prendas / Items</label>
-                            <button type="button" onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", insumos: [] })}
+                            <button type="button" onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", color: "", insumos: [] })}
                                 className="group flex items-center justify-center p-1 rounded-lg border border-orange-500/30 hover:bg-orange-500/10 cursor-pointer transition-all">
                                 <Plus className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
                             </button>
@@ -163,18 +165,61 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                             )}
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-3 gap-3">
                                             <div className="space-y-1">
                                                 <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Talla</span>
                                                 <select {...register(`lineas.${index}.talla`)}
-                                                    className="w-full h-10 px-3 rounded-xl text-xs text-white bg-black/20 border border-[#1e2130] focus:border-orange-500/50 outline-none">
-                                                    {["XS", "S", "M", "L", "XL"].map(t => <option key={t} value={t}>{t}</option>)}
+                                                    className="w-full h-10 px-2 rounded-xl text-xs text-white bg-black/20 border border-[#1e2130] focus:border-orange-500/50 outline-none">
+                                                    {["XS", "S", "M", "L", "XL", "MIXTA", "PREDETERMINADA"].map(t => <option key={t} value={t}>{t}</option>)}
                                                 </select>
+                                            </div>
+                                            <div className="space-y-1 relative">
+                                                <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Color</span>
+                                                <input
+                                                    type="text"
+                                                    placeholder="ej: Negro"
+                                                    {...register(`lineas.${index}.color`)}
+                                                    onFocus={() => setFocusedIndex(index)}
+                                                    onBlur={() => setFocusedIndex(null)}
+                                                    className="w-full h-10 px-3 rounded-xl text-white text-xs bg-black/20 focus:outline-none placeholder-slate-600 border focus:border-orange-500/50"
+                                                    style={{ borderColor: AppColors.border }}
+                                                    autoComplete="off"
+                                                />
+
+                                                {focusedIndex === index && (
+                                                    <div className="absolute left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-[#13161e] border border-[#1e2130] rounded-xl z-50 shadow-2xl custom-scrollbar">
+                                                        {COLORES_SUGERIDOS
+                                                            .filter(c => {
+                                                                const val = vLineas[index]?.color || "";
+                                                                return c.toLowerCase().includes(val.toLowerCase());
+                                                            })
+                                                            .map(c => (
+                                                                <button
+                                                                    key={c}
+                                                                    type="button"
+                                                                    onMouseDown={(e) => {
+                                                                        e.preventDefault();
+                                                                        setValue(`lineas.${index}.color`, c);
+                                                                        setFocusedIndex(null);
+                                                                    }}
+                                                                    className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-orange-500/10 hover:text-white transition-colors cursor-pointer"
+                                                                >
+                                                                    {c}
+                                                                </button>
+                                                            ))}
+                                                        {/* Opción para sugerir que sigan escribiendo */}
+                                                        {vLineas[index]?.color && !COLORES_SUGERIDOS.map(c => c.toLowerCase()).includes((vLineas[index]?.color || "").toLowerCase()) && (
+                                                            <div className="px-3 py-1.5 text-[9px] text-slate-500 border-t border-[#1e2130]">
+                                                                Usa el color escrito: "{vLineas[index]?.color}"
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="space-y-1">
                                                 <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Cantidad</span>
                                                 <input type="number" {...register(`lineas.${index}.cantidad`, { valueAsNumber: true })}
-                                                    className="w-full h-10 px-4 rounded-xl text-white text-xs bg-black/20 focus:outline-none"
+                                                    className="w-full h-10 px-3 rounded-xl text-white text-xs bg-black/20 focus:outline-none"
                                                     style={{ border: `1.5px solid ${vLineas[index]?.cantidad > 0 ? AppColors.orange : AppColors.border}` }} />
                                             </div>
                                         </div>
@@ -209,7 +254,7 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                 />
 
                                 {/* Contenedor visual que muestra el formato DD-MM-YYYY */}
-                                <div 
+                                <div
                                     className="absolute inset-0 w-full h-full pl-11 pr-4 rounded-xl text-white text-sm bg-black/20 flex items-center border transition-all pointer-events-none z-20"
                                     style={{
                                         borderColor: vFechaEntrega ? AppColors.orange : AppColors.border
