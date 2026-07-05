@@ -196,20 +196,31 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                         </div>
                         <div className="space-y-1.5 shrink-0">
                             <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Fecha Entrega</label>
-                            <div className="relative group">
+                            <div className="relative group h-11">
                                 <Calendar
-                                    className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 pointer-events-none ${vFechaEntrega ? 'text-orange-500' : 'text-slate-500'
-                                        }`}
+                                    className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 pointer-events-none z-30 ${vFechaEntrega ? 'text-orange-500' : 'text-slate-500'}`}
                                 />
 
+                                {/* Input de tipo date real (oculto en términos de texto pero clickeable encima) */}
                                 <input
                                     type="date"
                                     {...register("fechaEntregaEstimada")}
-                                    className="date-input-custom w-full h-11 pl-11 pr-4 rounded-xl text-white text-sm bg-black/20 focus:outline-none transition-all cursor-pointer"
-                                    style={{
-                                        border: `1.5px solid ${vFechaEntrega ? AppColors.orange : AppColors.border}`
-                                    }}
+                                    className="date-input-custom absolute inset-0 w-full h-full opacity-0 cursor-pointer z-40"
                                 />
+
+                                {/* Contenedor visual que muestra el formato DD-MM-YYYY */}
+                                <div 
+                                    className="absolute inset-0 w-full h-full pl-11 pr-4 rounded-xl text-white text-sm bg-black/20 flex items-center border transition-all pointer-events-none z-20"
+                                    style={{
+                                        borderColor: vFechaEntrega ? AppColors.orange : AppColors.border
+                                    }}
+                                >
+                                    {vFechaEntrega ? (
+                                        vFechaEntrega.split("-").reverse().join("-")
+                                    ) : (
+                                        <span className="text-slate-500">Seleccionar fecha...</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

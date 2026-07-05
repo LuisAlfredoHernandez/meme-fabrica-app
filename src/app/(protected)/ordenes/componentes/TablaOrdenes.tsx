@@ -11,6 +11,7 @@ import { AppColors } from "@/shared/constants";
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useState } from "react";
 import { ModalGestionOrdenes } from "./ModalGestionOrdenes";
+import { formatLocalDate } from "@/utils/formatters";
 
 // Configuraciones visuales internas del componente
 const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -125,7 +126,7 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                                     </td>
 
                                     <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>
-                                        {new Date(o.fechaEntregaEstimada).toLocaleDateString()}
+                                        {formatLocalDate(o.fechaEntregaEstimada)}
                                     </td>
 
                                     <td className="px-4 py-4">

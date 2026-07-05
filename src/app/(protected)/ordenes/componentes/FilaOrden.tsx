@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Orden, EstadoOrden, Prioridad } from "@/types";
 import { AppColors } from "@/shared/constants";
+import { formatLocalDate } from "@/utils/formatters";
 
 const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
     pendiente: { label: "Pendiente", color: "#94a3b8", bg: "rgba(148,163,184,0.12)", icon: <Clock className="w-3.5 h-3.5" /> },
@@ -99,7 +100,7 @@ export function FilaOrden({
             </td>
 
             <td className="px-4 py-3 text-xs" style={{ color: "#94a3b8" }}>
-                {new Date(orden.fechaEntregaEstimada).toLocaleDateString()}
+                {formatLocalDate(orden.fechaEntregaEstimada)}
             </td>
 
             <td className="px-4 py-4">
