@@ -70,12 +70,17 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
 
             {/* Logo Section */}
             <div className="flex items-center gap-4 px-5 py-6 border-b" style={{ borderColor: C.border }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg font-black transition-transform duration-500"
+                <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 transition-transform duration-500"
                     style={{
-                        background: C.orange,
                         boxShadow: `0 4px 15px ${C.orange}40`,
                         transform: isHovered ? 'scale(1.1) rotate(-5deg)' : 'scale(1) rotate(0deg)'
-                    }}>M</div>
+                    }}>
+                    <img 
+                        src="/icons/icon-192x192.png" 
+                        alt="Meme Fábrica Logo" 
+                        className="w-full h-full object-cover"
+                    />
+                </div>
                 <div className={`overflow-hidden transition-all duration-300 ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
                     <p className="text-sm font-black text-white leading-none whitespace-nowrap">Meme Fábricas</p>
                     <p className="text-[10px] mt-1 font-bold uppercase tracking-widest" style={{ color: C.slate }}>Control · IA</p>

@@ -337,12 +337,15 @@ export default function ProtectedLayout({
                     </button>
                     
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black text-white"
+                        <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center text-sm font-black text-white shrink-0"
                             style={{
-                                background: "#f97316",
                                 boxShadow: "0 2px 8px rgba(249,115,22,0.4)"
                             }}>
-                            M
+                            <img 
+                                src="/icons/icon-192x192.png" 
+                                alt="Meme Fábrica Logo" 
+                                className="w-full h-full object-cover"
+                            />
                         </div>
                         <span className="text-sm font-black text-white whitespace-nowrap">Meme Fábricas</span>
                     </div>
@@ -374,8 +377,12 @@ export default function ProtectedLayout({
                         {/* Close button */}
                         <div className="flex items-center justify-between pb-5 border-b border-[#1e2130] mb-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-black text-white bg-[#f97316]">
-                                    M
+                                <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                                    <img 
+                                        src="/icons/icon-192x192.png" 
+                                        alt="Meme Fábrica Logo" 
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
                                 <span className="text-sm font-bold text-white">Meme Fábricas</span>
                             </div>
