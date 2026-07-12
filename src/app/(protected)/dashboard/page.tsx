@@ -41,7 +41,7 @@ const MAQUINAS_USO = [
 const OPERARIOS_RENDIMIENTO = [
     { nombre: "Carmen M.", eficiencia: 88, piezasHoy: 42, estado: "activo" },
     { nombre: "María S.", eficiencia: 91, piezasHoy: 55, estado: "activo" },
-    { nombre: "Luis AppColors.", eficiencia: 95, piezasHoy: 48, estado: "activo" },
+    { nombre: "Ramon P.", eficiencia: 95, piezasHoy: 48, estado: "activo" },
     { nombre: "Rafael N.", eficiencia: 82, piezasHoy: 35, estado: "activo" },
     { nombre: "Josué R.", eficiencia: 74, piezasHoy: 28, estado: "activo" },
     { nombre: "Paola H.", eficiencia: 0, piezasHoy: 0, estado: "ausente" },
