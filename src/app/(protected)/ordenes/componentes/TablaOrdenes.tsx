@@ -4,7 +4,8 @@ import {
     Clock, ArrowUpDown, Pause, CheckCircle2, Package,
     Edit3,
     Trash2,
-    AlertTriangle
+    AlertTriangle,
+    Eye
 } from "lucide-react";
 import { Orden, EstadoOrden, Prioridad } from "@/types";
 import { AppColors } from "@/shared/constants";
@@ -24,7 +25,7 @@ const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string
     cancelada: { label: "Cancelada", color: "#f87171", bg: "rgba(248,113,113,0.12)", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
 };
 
-const ESTADOS: EstadoOrden[] = ["pendiente", "en_proceso", "pausada", "completada"];
+const ESTADOS: EstadoOrden[] = ["pendiente", "en_proceso", "pausada", "cancelada"];
 
 const PRIORIDAD_CFG: Record<Prioridad, { color: string }> = {
     baja: { color: "#64748b" },
@@ -36,7 +37,9 @@ const PRIORIDAD_CFG: Record<Prioridad, { color: string }> = {
 export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
     const { updateOrden, deleteOrden } = useOrdenActions();
     const [ordenEditando, setOrdenEditando] = useState<Orden | null>(null);
+    const [ordenVisualizando, setOrdenVisualizando] = useState<Orden | null>(null);
     const [idParaEliminar, setIdParaEliminar] = useState<string | null>(null);
+    const [idParaForzarCompletar, setIdParaForzarCompletar] = useState<string | null>(null);
     const { addToastOnly } = useNotificationActions();
 
     const handleEliminar = async (id: string) => {
@@ -45,6 +48,17 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
             addToastOnly("Orden Eliminada", "La orden fue eliminada exitosamente.", "success");
         } catch (error: any) {
             addToastOnly("Error de Eliminación", error.message || "No se pudo eliminar la orden.", "error");
+        }
+    };
+
+    const handleForzarCompletar = async (id: string) => {
+        try {
+            const ordenCompleta = ordenes.find(o => o.id === id);
+            if (!ordenCompleta) return;
+            await updateOrden(id, { ...ordenCompleta, estado: "completada" });
+            addToastOnly("Orden Completada", "La orden fue marcada como completada y archivada.", "success");
+        } catch (error: any) {
+            addToastOnly("Error al Completar", error.message || "No se pudo completar la orden.", "error");
         }
     };
 
@@ -63,6 +77,14 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                 <ModalGestionOrdenes
                     orden={ordenEditando}
                     onClose={() => setOrdenEditando(null)}
+                />
+            )}
+
+            {ordenVisualizando && (
+                <ModalGestionOrdenes
+                    orden={ordenVisualizando}
+                    readOnly={true}
+                    onClose={() => setOrdenVisualizando(null)}
                 />
             )}
 
@@ -119,18 +141,27 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
 
                                     {/* SELECTOR DE ESTADO RÁPIDO */}
                                     <td className="px-4 py-4">
-                                        <select
-                                            value={o.estado}
-                                            onChange={(e) => cambiarEstadoRapido(o.id, e.target.value as EstadoOrden, o)}
-                                            className="bg-transparent text-xs font-bold outline-none cursor-pointer transition-colors hover:brightness-125"
-                                            style={{ color: est.color }}
-                                        >
-                                            {ESTADOS.map(e => (
-                                                <option key={e} value={e} className="bg-[#11141b] text-white">
-                                                    {ESTADO_CFG[e].label.toUpperCase()}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {o.estado === "completada" || o.estado === "cancelada" ? (
+                                            <span 
+                                                className="text-xs font-bold uppercase"
+                                                style={{ color: est.color }}
+                                            >
+                                                {est.label}
+                                            </span>
+                                        ) : (
+                                            <select
+                                                value={o.estado}
+                                                onChange={(e) => cambiarEstadoRapido(o.id, e.target.value as EstadoOrden, o)}
+                                                className="bg-transparent text-xs font-bold outline-none cursor-pointer transition-colors hover:brightness-125"
+                                                style={{ color: est.color }}
+                                            >
+                                                {ESTADOS.map(e => (
+                                                    <option key={e} value={e} className="bg-[#11141b] text-white">
+                                                        {ESTADO_CFG[e].label.toUpperCase()}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
                                     </td>
 
                                     <td className="px-4 py-3">
@@ -143,20 +174,39 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
 
                                     <td className="px-4 py-4">
                                         <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => setOrdenEditando(o)}
-                                                className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
-                                                title="Editar Orden Completa"
-                                            >
-                                                <Edit3 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => setIdParaEliminar(o.id)}
-                                                className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
-                                                title="Eliminar Orden"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {o.estado === "completada" || o.estado === "cancelada" ? (
+                                                <button
+                                                    onClick={() => setOrdenVisualizando(o)}
+                                                    className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+                                                    title="Visualizar Orden (Modo Lectura)"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => setOrdenEditando(o)}
+                                                        className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+                                                        title="Editar Orden Completa"
+                                                    >
+                                                        <Edit3 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setIdParaForzarCompletar(o.id)}
+                                                        className="p-2 rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all"
+                                                        title="Forzar Completado de Orden"
+                                                    >
+                                                        <CheckCircle2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setIdParaEliminar(o.id)}
+                                                        className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
+                                                        title="Eliminar Orden"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -173,17 +223,32 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                 )}
             </div>
             {idParaEliminar && (
-                <DeleteConfirmModal
-                    title="¿Eliminar Orden?"
-                    description="¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer y removerá permanentemente la orden del sistema."
-                    onCancel={() => setIdParaEliminar(null)}
-                    onConfirm={async () => {
-                        const id = idParaEliminar;
-                        setIdParaEliminar(null);
-                        await handleEliminar(id);
-                    }}
-                />
-            )}
+                                <DeleteConfirmModal
+                                    title="¿Eliminar Orden?"
+                                    description="¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer y removerá permanentemente la orden del sistema."
+                                    onCancel={() => setIdParaEliminar(null)}
+                                    onConfirm={async () => {
+                                        const id = idParaEliminar;
+                                        setIdParaEliminar(null);
+                                        await handleEliminar(id);
+                                    }}
+                                />
+                            )}
+                            {idParaForzarCompletar && (
+                                <DeleteConfirmModal
+                                    title="¿Forzar Completado de Orden?"
+                                    description="¿Estás seguro de forzar el completado de esta orden? Se marcará como COMPLETADA y se archivará, impidiendo registros futuros de producción sobre ella."
+                                    confirmText="Sí, Completar"
+                                    cancelText="Cancelar"
+                                    variant="success"
+                                    onCancel={() => setIdParaForzarCompletar(null)}
+                                    onConfirm={async () => {
+                                        const id = idParaForzarCompletar;
+                                        setIdParaForzarCompletar(null);
+                                        await handleForzarCompletar(id);
+                                    }}
+                                />
+                            )}
         </>
     );
 }

@@ -13,7 +13,7 @@ import { predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.act
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 
-export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, orden?: Orden; }) {
+export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onClose: () => void; orden?: Orden; readOnly?: boolean; }) {
 
     const { register, handleSubmit, watch, setValue, control, getValues, reset, formState: { errors } } = useForm<OrdenFormData>({
         resolver: zodResolver(ordenSchema),
@@ -165,13 +165,16 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b shrink-0" style={{ borderColor: AppColors.border }}>
-                    <h2 className="font-bold text-white text-lg">Nueva Orden de Producción</h2>
+                    <h2 className="font-bold text-white text-lg">
+                        {readOnly ? `Visualizar Orden ${orden?.numero || ""}` : (isEdit ? "Editar Orden de Trabajo" : "Nueva Orden de Producción")}
+                    </h2>
                     <button type="button" onClick={onClose} style={{ color: AppColors.slate }}
                         className="hover:bg-red-500/10 hover:rotate-90 transition-transform duration-200 cursor-pointer">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
+                <fieldset disabled={readOnly} className="contents">
                 <div className="p-6 space-y-5 overflow-hidden flex-1 flex flex-col">
                     {/* Sección Fija: Datos Generales */}
                     <div className="space-y-4 shrink-0">
@@ -210,10 +213,12 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                     <div className="flex flex-col flex-1 min-h-0 space-y-3 relative">
                         <div className="flex justify-between items-center px-1 shrink-0">
                             <label className="text-[11px] font-black uppercase tracking-widest text-orange-500">Prendas / Items</label>
-                            <button type="button" onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", color: "", insumos: [] })}
-                                className="group flex items-center justify-center p-1 rounded-lg border border-orange-500/30 hover:bg-orange-500/10 cursor-pointer transition-all">
-                                <Plus className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
-                            </button>
+                            {!readOnly && (
+                                <button type="button" onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", color: "", insumos: [] })}
+                                    className="group flex items-center justify-center p-1 rounded-lg border border-orange-500/30 hover:bg-orange-500/10 cursor-pointer transition-all">
+                                    <Plus className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
+                                </button>
+                            )}
                         </div>
                         {errors.lineas?.message && (
                             <p className="text-xs text-red-400 px-1 mt-0.5">{errors.lineas.message}</p>
@@ -245,7 +250,7 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                                 </datalist>
                                             </div>
 
-                                            {fields.length > 1 && (
+                                            {!readOnly && fields.length > 1 && (
                                                 <button type="button" onClick={() => remove(index)}
                                                     className="flex items-center justify-center rounded-xl bg-[#0d1018] text-slate-600 hover:bg-red-400 transition-all duration-300 group cursor-pointer">
                                                     <Trash2 className="w-10 h-5 group-hover:scale-110 transition-transform" /> </button>
@@ -332,15 +337,17 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                         <div className="space-y-1.5 shrink-0">
                             <div className="flex justify-between items-center pr-1">
                                 <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Fecha Entrega</label>
-                                <button
-                                    type="button"
-                                    onClick={sugerirFechaConIA}
-                                    disabled={estimandoIA}
-                                    className="text-[9px] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                                    style={{ color: AppColors.orange }}
-                                >
-                                    {estimandoIA ? "Calculando..." : "✨ Sugerir con IA"}
-                                </button>
+                                {!readOnly && (
+                                    <button
+                                        type="button"
+                                        onClick={sugerirFechaConIA}
+                                        disabled={estimandoIA}
+                                        className="text-[9px] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                        style={{ color: AppColors.orange }}
+                                    >
+                                        {estimandoIA ? "Calculando..." : "✨ Sugerir con IA"}
+                                    </button>
+                                )}
                             </div>
                             <div className="relative group h-11">
                                 <Calendar
@@ -374,18 +381,29 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                         </div>
                     </div>
                 </div>
+                </fieldset>
 
                 {/* Footer Principal */}
                 <div className="flex gap-3 px-6 py-6 border-t shrink-0 bg-black/40" style={{ borderColor: AppColors.border }}>
-                    <button type="button" onClick={onClose}
-                        className="flex-1 h-12 rounded-xl border border-white/5 text-sm font-bold text-slate-500 hover:bg-white/5 hover:text-white transition-all cursor-pointer">
-                        CANCELAR
-                    </button>
-                    <button type="submit"
-                        className="flex-[2] h-12 rounded-xl text-white text-xs font-black uppercase tracking-[0.2em] transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
-                        style={{ background: AppColors.orange, boxShadow: `0 8px 24px -8px ${AppColors.orange}60` }}>
-                        CONFIRMAR ORDEN
-                    </button>
+                    {readOnly ? (
+                        <button type="button" onClick={onClose}
+                            className="w-full h-12 rounded-xl border border-white/5 text-sm font-bold text-white hover:bg-white/5 transition-all cursor-pointer"
+                            style={{ background: AppColors.orange }}>
+                            CERRAR
+                        </button>
+                    ) : (
+                        <>
+                            <button type="button" onClick={onClose}
+                                className="flex-1 h-12 rounded-xl border border-white/5 text-sm font-bold text-slate-500 hover:bg-white/5 hover:text-white transition-all cursor-pointer">
+                                CANCELAR
+                            </button>
+                            <button type="submit"
+                                className="flex-[2] h-12 rounded-xl text-white text-xs font-black uppercase tracking-[0.2em] transition-all hover:brightness-110 active:scale-[0.98] cursor-pointer"
+                                style={{ background: AppColors.orange, boxShadow: `0 8px 24px -8px ${AppColors.orange}60` }}>
+                                CONFIRMAR ORDEN
+                            </button>
+                        </>
+                    )}
                 </div>
             </form>
         </div>
