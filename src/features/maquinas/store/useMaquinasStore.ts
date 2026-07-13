@@ -64,8 +64,9 @@ export const useMaquinasStore = create<MaquinasState>()(
                         );
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "Error al crear máquina" }, false, "maquinas/create_error");
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al crear máquina";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/create_error");
+                        throw e;
                     }
                 },
 
@@ -83,8 +84,9 @@ export const useMaquinasStore = create<MaquinasState>()(
                         );
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "Error al actualizar" }, false, "maquinas/update_error");
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/update_error");
+                        throw e;
                     }
                 },
 
@@ -104,8 +106,9 @@ export const useMaquinasStore = create<MaquinasState>()(
                         );
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "Error al reportar avería" }, false, "maquinas/reportar_averia_error");
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al reportar avería";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/reportar_averia_error");
+                        throw e;
                     }
                 },
 

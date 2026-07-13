@@ -16,12 +16,14 @@ interface ToastContainerProps {
 }
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => void }) {
+    const duration = toast.tipo === "error" ? 8000 : 6000;
+
     useEffect(() => {
         const timer = setTimeout(() => {
             onClose(toast.id);
-        }, 6000);
+        }, duration);
         return () => clearTimeout(timer);
-    }, [toast.id, onClose]);
+    }, [toast.id, onClose, duration]);
 
     let accentColor = "border-blue-500";
     let iconBg = "bg-blue-500";
@@ -56,7 +58,10 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
 
             {/* Barra de progreso visual con decremento */}
             <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/5">
-                <div className={`h-full ${iconBg} animate-toast-progress`} />
+                <div 
+                    className={`h-full ${iconBg} animate-toast-progress`} 
+                    style={{ animationDuration: `${duration}ms` }}
+                />
             </div>
         </div>
     );

@@ -8,9 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FieldErrors, useForm } from "react-hook-form";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, onClose: () => void }) {
     const { actions, maquinaTypes } = useMaquinasStore();
+    const { addToastOnly } = useNotificationActions();
 
     const isExisting = !!maquina;
     const [query, setQuery] = useState("");
@@ -44,17 +46,19 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
     const valorSelectorTipo = watch("tipo");
 
     const onActualSubmit = async (data: MaquinaFormData) => {
-        console.log(data)
         try {
             if (isExisting && maquina.id) {
                 await actions.updateMaquina(maquina.id, data as Maquina);
+                addToastOnly("Máquina Actualizada", "La máquina fue modificada con éxito.", "success");
             } else {
                 const { id, ...dataToCreate } = data;
                 await actions.createMaquina(dataToCreate);
+                addToastOnly("Máquina Creada", "La máquina fue registrada con éxito.", "success");
             }
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error en la operación:", error);
+            addToastOnly("Error de Operación", error.message || "No se pudo guardar la máquina.", "error");
         }
     };
 

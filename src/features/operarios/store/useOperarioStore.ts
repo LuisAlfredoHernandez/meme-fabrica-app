@@ -59,7 +59,7 @@ export const useOperarioStore = create<OperarioState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al crear";
             set({ isLoading: false, error: errorMessage }, false, "operarios/create_error");
-            return false;
+            throw e;
           }
         },
 
@@ -81,7 +81,7 @@ export const useOperarioStore = create<OperarioState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
             set({ isLoading: false, error: errorMessage }, false, "operarios/update_error");
-            return false;
+            throw e;
           }
         },
 
@@ -93,8 +93,11 @@ export const useOperarioStore = create<OperarioState>()(
               operarios: state.operarios.filter(i => i.id !== id),
               isLoading: false
             }), false, "operarios/delete_success");
+            return true;
           } catch (e) {
-            set({ isLoading: false, error: "operarios/delete_error" });
+            const errorMessage = e instanceof Error ? e.message : "Error al eliminar";
+            set({ isLoading: false, error: errorMessage }, false, "operarios/delete_error");
+            throw e;
           }
         },
 

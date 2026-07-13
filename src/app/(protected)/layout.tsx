@@ -120,21 +120,15 @@ export default function ProtectedLayout({
                     ) {
                         fetchOrdenes();
                         if (message.event === "order_created") {
-                            if (isCurrentUser) {
-                                addToastOnly("Nueva Orden", "Has creado la orden de trabajo exitosamente.", "success");
-                            } else if (user.rol !== "operario") {
+                            if (!isCurrentUser && user.rol !== "operario") {
                                 addNotification("Nueva Orden", `Se ha creado la orden de trabajo ${message.numero || ""} en el sistema.`, "info");
                             }
                         } else if (message.event === "order_updated") {
-                            if (isCurrentUser) {
-                                addToastOnly("Orden Actualizada", `Has modificado la orden ${message.numero || ""} exitosamente.`, "success");
-                            } else if (user.rol !== "operario") {
+                            if (!isCurrentUser && user.rol !== "operario") {
                                 addNotification("Orden Actualizada", `Se ha modificado la orden de trabajo ${message.numero || ""}.`, "info");
                             }
                         } else if (message.event === "order_deleted") {
-                            if (isCurrentUser) {
-                                addToastOnly("Orden Eliminada", "Has eliminado la orden exitosamente.", "success");
-                            } else if (user.rol !== "operario") {
+                            if (!isCurrentUser && user.rol !== "operario") {
                                 addNotification("Orden Eliminada", "Se ha cancelado o eliminado una orden de trabajo.", "warning");
                             }
                         }
@@ -227,9 +221,7 @@ export default function ProtectedLayout({
                                 );
                             }
                         } else if (message.event === "machine_updated") {
-                            if (isCurrentUser) {
-                                addToastOnly("Equipo Actualizado", "Los cambios en la maquinaria fueron registrados.", "success");
-                            } else if (user.rol !== "operario") {
+                            if (!isCurrentUser && user.rol !== "operario") {
                                 addNotification("Equipo Actualizado", "Se actualizó la información de un equipo de producción.", "info");
                             }
                         }
@@ -237,9 +229,7 @@ export default function ProtectedLayout({
                     
                     if (message.event === "operator_updated") {
                         fetchOperarios();
-                        if (isCurrentUser) {
-                            addToastOnly("Perfil Guardado", "Tus cambios de operario fueron registrados.", "success");
-                        } else if (user.rol !== "operario") {
+                        if (!isCurrentUser && user.rol !== "operario") {
                             addNotification("Operario Actualizado", "Se ha actualizado la información de un operario.", "info");
                         }
                     }

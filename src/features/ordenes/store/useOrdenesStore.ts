@@ -61,7 +61,7 @@ export const useOrdenStore = create<OrdenState>()(
                     } catch (e) {
                         const errorMessage = e instanceof Error ? e.message : "Error al crear";
                         set({ isLoading: false, error: errorMessage }, false, "ordenes/create_error");
-                        return false;
+                        throw e;
                     }
                 },
 
@@ -83,7 +83,7 @@ export const useOrdenStore = create<OrdenState>()(
                     } catch (e) {
                         const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
                         set({ isLoading: false, error: errorMessage }, false, "ordenes/update_error");
-                        return false;
+                        throw e;
                     }
                 },
 
@@ -125,8 +125,9 @@ export const useOrdenStore = create<OrdenState>()(
                         }), false, "ordenes/delete_success");
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "ordenes/delete_error" });
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al eliminar";
+                        set({ isLoading: false, error: errorMessage }, false, "ordenes/delete_error");
+                        throw e;
                     }
                 },
 

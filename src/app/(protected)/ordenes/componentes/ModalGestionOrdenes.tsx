@@ -118,14 +118,15 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
         try {
             if (isEdit && orden?.id) {
                 await updateOrden(orden.id, data as Orden);
-                console.log("Orden actualizada exitosamente");
+                addToastOnly("Orden Actualizada", "La orden fue modificada con éxito.", "success");
             } else {
                 await createOrden(data as Orden);
-                console.log("Orden creada exitosamente");
+                addToastOnly("Orden Creada", "La orden fue registrada con éxito.", "success");
             }
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error al procesar la operación:", error);
+            addToastOnly("Error al Guardar", error.message || "No se pudo guardar la orden.", "error");
         }
     };
 
