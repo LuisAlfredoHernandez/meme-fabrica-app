@@ -4,14 +4,14 @@ import { z } from "zod";
 
 const insumoSchema = z.object({
     insumoId: z.string(),
-    cantidadRequerida: z.number(),
+    cantidadRequerida: z.number().positive("La cantidad debe ser mayor a 0"),
     unidad: z.string(),
 });
 
 export const lineaOrdenSchema = z.object({
     productoTipo: z.custom<TipoProducto>().optional(),
     descripcion: z.string(),
-    cantidad: z.number(),
+    cantidad: z.number().int().positive("La cantidad de prendas debe ser mayor a 0"),
     cantidadCompletada: z.number().optional(),
     talla: z.string(),
     color: z.string().optional(),
