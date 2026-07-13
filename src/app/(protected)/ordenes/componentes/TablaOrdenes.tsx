@@ -13,6 +13,7 @@ import { useState } from "react";
 import { ModalGestionOrdenes } from "./ModalGestionOrdenes";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { formatLocalDate } from "@/utils/formatters";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 // Configuraciones visuales internas del componente
 const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -35,16 +36,15 @@ const PRIORIDAD_CFG: Record<Prioridad, { color: string }> = {
 export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
     const { updateOrden, deleteOrden } = useOrdenActions();
     const [ordenEditando, setOrdenEditando] = useState<Orden | null>(null);
+    const [idParaEliminar, setIdParaEliminar] = useState<string | null>(null);
     const { addToastOnly } = useNotificationActions();
 
     const handleEliminar = async (id: string) => {
-        if (confirm("¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer.")) {
-            try {
-                await deleteOrden(id);
-                addToastOnly("Orden Eliminada", "La orden fue eliminada exitosamente.", "success");
-            } catch (error: any) {
-                addToastOnly("Error de Eliminación", error.message || "No se pudo eliminar la orden.", "error");
-            }
+        try {
+            await deleteOrden(id);
+            addToastOnly("Orden Eliminada", "La orden fue eliminada exitosamente.", "success");
+        } catch (error: any) {
+            addToastOnly("Error de Eliminación", error.message || "No se pudo eliminar la orden.", "error");
         }
     };
 
@@ -151,7 +151,7 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                                                 <Edit3 className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => handleEliminar(o.id)}
+                                                onClick={() => setIdParaEliminar(o.id)}
                                                 className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all"
                                                 title="Eliminar Orden"
                                             >
@@ -172,6 +172,18 @@ export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
                     </div>
                 )}
             </div>
+            {idParaEliminar && (
+                <DeleteConfirmModal
+                    title="¿Eliminar Orden?"
+                    description="¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer y removerá permanentemente la orden del sistema."
+                    onCancel={() => setIdParaEliminar(null)}
+                    onConfirm={async () => {
+                        const id = idParaEliminar;
+                        setIdParaEliminar(null);
+                        await handleEliminar(id);
+                    }}
+                />
+            )}
         </>
     );
 }

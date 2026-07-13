@@ -13,6 +13,7 @@ import { ModalAsignacionTarea } from "./componentes/ModalAsignacionTarea";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos: string[] }> = {
     merrow: { label: "Merrow", color: "#f97316", codigos: ["MERROW-01", "MERROW-02", "MERROW-03"] },
@@ -33,6 +34,7 @@ const ESTADO_CFG = {
 export default function OperariosPage() {
     const [busqueda, setBusq] = useState("");
     const [asignando, setAsig] = useState<Operario | null>(null);
+    const [asignacionParaQuitar, setAsignacionParaQuitar] = useState<{ id: string; tarea: string; operarioNombre: string } | null>(null);
 
     const { operarios } = useOperarioStore();
     const { fetchOperarios, updateOperario } = useOperarioActions();
@@ -189,11 +191,7 @@ export default function OperariosPage() {
                                                                     <p className="text-xs font-bold text-white truncate">{asig.tarea}</p>
                                                                 </div>
                                                                 <button
-                                                                    onClick={async () => {
-                                                                        if (confirm(`¿Estás seguro de quitar la tarea "${asig.tarea}" asignada a ${o.nombre}?`)) {
-                                                                            await deleteAsignacion(asig.id);
-                                                                        }
-                                                                    }}
+                                                                    onClick={() => setAsignacionParaQuitar({ id: asig.id, tarea: asig.tarea, operarioNombre: o.nombre })}
                                                                     className="text-red-400 hover:text-red-300 text-[10px] font-bold px-2 py-1 rounded bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 transition-all shrink-0"
                                                                 >
                                                                     Quitar
@@ -229,6 +227,23 @@ export default function OperariosPage() {
                     })}
                 </div>
             </div>
+            {asignacionParaQuitar && (
+                <DeleteConfirmModal
+                    title="¿Quitar Tarea Asignada?"
+                    description={
+                        <>
+                            ¿Estás seguro de quitar la tarea <strong className="text-white">"{asignacionParaQuitar.tarea}"</strong> asignada a <strong className="text-white">{asignacionParaQuitar.operarioNombre}</strong>?
+                        </>
+                    }
+                    onCancel={() => setAsignacionParaQuitar(null)}
+                    onConfirm={async () => {
+                        const id = asignacionParaQuitar.id;
+                        setAsignacionParaQuitar(null);
+                        await deleteAsignacion(id);
+                    }}
+                    confirmText="Sí, Quitar"
+                />
+            )}
         </div>
     );
 }
