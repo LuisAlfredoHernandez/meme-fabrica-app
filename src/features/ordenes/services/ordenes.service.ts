@@ -250,7 +250,8 @@ export const ordenesService = {
       });
 
       if (!response.ok) {
-        throw new Error(`Error al eliminar la orden con ID: ${id}`);
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `Error al eliminar la orden con ID: ${id}`);
       }
 
       return true;

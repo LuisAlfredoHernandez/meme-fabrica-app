@@ -57,6 +57,15 @@ export async function predictDeliveryTimeAction(
   return iaService.predictDeliveryTime(cantidadPiezas, prioridadAlta, lineasProduccion, tipoPrenda, token);
 }
 
+export async function predictOrderItemsAction(
+  items: { tipo_prenda: string; cantidad_piezas: number }[],
+  prioridadAlta: boolean,
+  lineasProduccion: number
+) {
+  const token = await getToken();
+  return iaService.predictOrderItems(items, prioridadAlta, lineasProduccion, token);
+}
+
 export async function exportHistoryAction(): Promise<string> {
   const token = await getToken();
   const response = await iaService.exportHistory(token);

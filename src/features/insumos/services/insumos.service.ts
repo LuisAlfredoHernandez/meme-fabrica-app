@@ -114,7 +114,8 @@ export const insumosService = {
       });
 
       if (!response.ok) {
-        throw new Error(`Error al eliminar el insumo con ID: ${id}`);
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `Error al eliminar el insumo con ID: ${id}`);
       }
 
       return true;

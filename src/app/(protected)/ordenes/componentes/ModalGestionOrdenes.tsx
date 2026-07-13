@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Trash2, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.actions";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 
 export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, orden?: Orden; }) {
@@ -32,6 +34,62 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
     const [listaPrendas, setListaPrendas] = useState<string[]>([]);
     const COLORES_SUGERIDOS = ["Negro", "Blanco", "Azul Marino", "Gris", "Rojo", "Verde", "Amarillo", "Rosa", "Naranja", "Beige", "Celeste", "Vino"];
+
+    const [estimandoIA, setEstimandoIA] = useState(false);
+    const { addToastOnly } = useNotificationActions();
+
+    const sugerirFechaConIA = async () => {
+        const lineas = getValues("lineas");
+        const prioridad = getValues("prioridad");
+        
+        if (!lineas || lineas.length === 0 || lineas.some(l => !l.descripcion)) {
+            addToastOnly("Error de Simulación", "Por favor ingrese las prendas y cantidades antes de estimar.", "error");
+            return;
+        }
+
+        setEstimandoIA(true);
+        try {
+            const items = lineas.map(l => ({
+                tipo_prenda: l.descripcion.trim(),
+                cantidad_piezas: Number(l.cantidad) || 1
+            }));
+
+            const prioridadAlta = prioridad === "alta" || prioridad === "urgente";
+            
+            const res = await predictOrderItemsAction(items, prioridadAlta, 1);
+
+            if (res.prenda_nueva_global) {
+                const prendaNueva = res.detalles.find((d: any) => d.prenda_nueva)?.tipo_prenda || "desconocida";
+                addToastOnly(
+                    "IA: Prenda Nueva Detectada",
+                    `La prenda "${prendaNueva}" no cuenta con historial de costura. Estimación no disponible por seguridad.`,
+                    "warning"
+                );
+            } else if (res.tiempo_estimado_total_horas !== null) {
+                const horas = res.tiempo_estimado_total_horas;
+                const diasLaborables = Math.ceil(horas / 8);
+                
+                const fechaSugerida = new Date();
+                fechaSugerida.setDate(fechaSugerida.getDate() + diasLaborables);
+                
+                const fechaFormat = fechaSugerida.toISOString().split("T")[0];
+                setValue("fechaEntregaEstimada", fechaFormat);
+                
+                addToastOnly(
+                    "IA: Fecha Sugerida",
+                    `Se sugirió entrega en ${diasLaborables} días base a ${horas} horas estimadas de costura.`,
+                    "success"
+                );
+            } else {
+                throw new Error("No se pudo obtener el tiempo estimado.");
+            }
+        } catch (e: any) {
+            console.error("Fallo al estimar fecha con IA:", e);
+            addToastOnly("Error de IA", e.message || "Fallo al conectar con el motor de IA.", "error");
+        } finally {
+            setEstimandoIA(false);
+        }
+    };
 
     useEffect(() => {
         const cargarPrendas = async () => {
@@ -259,7 +317,18 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                             </select>
                         </div>
                         <div className="space-y-1.5 shrink-0">
-                            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Fecha Entrega</label>
+                            <div className="flex justify-between items-center pr-1">
+                                <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Fecha Entrega</label>
+                                <button
+                                    type="button"
+                                    onClick={sugerirFechaConIA}
+                                    disabled={estimandoIA}
+                                    className="text-[9px] font-bold uppercase transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                    style={{ color: AppColors.orange }}
+                                >
+                                    {estimandoIA ? "Calculando..." : "✨ Sugerir con IA"}
+                                </button>
+                            </div>
                             <div className="relative group h-11">
                                 <Calendar
                                     className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 pointer-events-none z-30 ${vFechaEntrega ? 'text-orange-500' : 'text-slate-500'}`}

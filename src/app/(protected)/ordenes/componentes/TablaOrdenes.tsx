@@ -11,6 +11,7 @@ import { AppColors } from "@/shared/constants";
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useState } from "react";
 import { ModalGestionOrdenes } from "./ModalGestionOrdenes";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { formatLocalDate } from "@/utils/formatters";
 
 // Configuraciones visuales internas del componente
@@ -34,15 +35,26 @@ const PRIORIDAD_CFG: Record<Prioridad, { color: string }> = {
 export function TablaOrdenes({ ordenes }: { ordenes: Orden[] }) {
     const { updateOrden, deleteOrden } = useOrdenActions();
     const [ordenEditando, setOrdenEditando] = useState<Orden | null>(null);
+    const { addToastOnly } = useNotificationActions();
 
     const handleEliminar = async (id: string) => {
         if (confirm("¿Estás seguro de eliminar esta orden? Esta acción no se puede deshacer.")) {
-            await deleteOrden(id);
+            try {
+                await deleteOrden(id);
+                addToastOnly("Orden Eliminada", "La orden fue eliminada exitosamente.", "success");
+            } catch (error: any) {
+                addToastOnly("Error de Eliminación", error.message || "No se pudo eliminar la orden.", "error");
+            }
         }
     };
 
     const cambiarEstadoRapido = async (id: string, nuevoEstado: EstadoOrden, ordenCompleta: Orden) => {
-        await updateOrden(id, { ...ordenCompleta, estado: nuevoEstado });
+        try {
+            await updateOrden(id, { ...ordenCompleta, estado: nuevoEstado });
+            addToastOnly("Estado Actualizado", `Orden cambiada a ${nuevoEstado.toUpperCase()}.`, "success");
+        } catch (error: any) {
+            addToastOnly("Error de Actualización", error.message || "No se pudo cambiar el estado.", "error");
+        }
     };
 
     return (

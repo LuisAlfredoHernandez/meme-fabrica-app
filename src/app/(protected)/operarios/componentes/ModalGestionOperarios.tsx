@@ -11,6 +11,7 @@ import { StatusSelector } from "./StatusSelector";
 import { EstacionesSelector } from "./EstacionesSelector";
 import { normalizeText } from "@/utils/formatters";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 
 export function ModalGestionOperario({ onClose, operarios }: { onClose: () => void, operarios: Operario[] }) {
@@ -20,6 +21,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const { createOperario, updateOperario, deleteOperario } = useOperarioActions();
+    const { addToastOnly } = useNotificationActions();
 
     const methods = useForm<OperarioFormData>({
         resolver: zodResolver(operarioSchema),
@@ -52,14 +54,17 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         try {
             if (isExisting && data.id) {
                 await updateOperario(data.id, data as Operario);
+                addToastOnly("Operario Actualizado", `Datos de ${data.nombre} actualizados con éxito.`, "success");
             } else {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { id, ...dataToCreate } = data;
                 await createOperario(dataToCreate as Omit<Operario, "id">);
+                addToastOnly("Operario Creado", `Operario ${data.nombre} registrado con éxito.`, "success");
             }
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error en la operación:", error);
+            addToastOnly("Error de Operario", error.message || "No se pudo procesar la operación.", "error");
         }
     };
 
@@ -68,9 +73,11 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         if (operarioId) {
             try {
                 await deleteOperario(operarioId);
+                addToastOnly("Operario Eliminado", "Operario eliminado exitosamente del sistema.", "success");
                 onClose();
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error al eliminar operario:", error);
+                addToastOnly("Error al Eliminar", error.message || "No se pudo eliminar al operario.", "error");
             }
         }
     };

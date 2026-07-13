@@ -7,6 +7,7 @@ import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/use
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
 import { Insumo } from "@/types";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { insumoSchema, InsumoFormData } from "@/features/insumos/schemas/insumos.schemas";
 
 type OperationMode = "entrada" | "salida" | "eliminar";
@@ -14,6 +15,7 @@ type OperationMode = "entrada" | "salida" | "eliminar";
 export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
     const { insumos } = useInsumosStore();
     const { createInsumo, updateInsumo, deleteInsumo } = useInsumosActions();
+    const { addToastOnly } = useNotificationActions();
 
     // Estados de UI
     const [mode, setMode] = useState<OperationMode>("entrada");
@@ -64,16 +66,19 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                     : Math.max(0, stockActual - data.stock);
 
                 await updateInsumo(data.id as string, { stock: nuevoStock });
+                addToastOnly("Stock Actualizado", `Inventario modificado para ${data.nombre}.`, "success");
             } else {
                 await createInsumo({
                     ...data,
                     stock: data.stock || 0,
                     codigo: generarCodigo()
                 } as Insumo);
+                addToastOnly("Insumo Creado", `Insumo ${data.nombre} añadido al inventario.`, "success");
             }
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error al procesar insumo:", error);
+            addToastOnly("Error de Inventario", error.message || "No se pudo actualizar el insumo.", "error");
         }
     };
 
@@ -91,8 +96,14 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
     const handleEliminar = async () => {
         const id = getValues("id");
         if (id) {
-            await deleteInsumo(id);
-            onClose();
+            try {
+                await deleteInsumo(id);
+                addToastOnly("Insumo Eliminado", "Insumo eliminado exitosamente del inventario.", "success");
+                onClose();
+            } catch (error: any) {
+                console.error("Error al eliminar insumo:", error);
+                addToastOnly("Error al Eliminar", error.message || "No se pudo eliminar el insumo.", "error");
+            }
         }
     };
 

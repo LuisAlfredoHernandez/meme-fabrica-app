@@ -76,7 +76,7 @@ export default function DashboardPage() {
     const maqsActivas = MAQUINAS_USO.filter(m => m.estado === "operativa").length;
 
     return (
-        <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
             {/* Header de página */}
             <div className="px-6 py-5 border-b flex items-center justify-between"

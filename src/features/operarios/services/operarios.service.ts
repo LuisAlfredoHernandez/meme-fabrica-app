@@ -75,7 +75,10 @@ export const operariosService = {
         headers: getAuthHeaders(token),
       });
 
-      if (!response.ok) throw new Error(`Error al eliminar el operario con ID: ${id}`);
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `Error al eliminar el operario con ID: ${id}`);
+      }
       return true;
     } catch (error: any) {
       console.error("Error en operariosService.delete:", error);

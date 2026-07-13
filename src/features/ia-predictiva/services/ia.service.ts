@@ -118,6 +118,40 @@ export const iaService = {
     return response.json();
   },
 
+  predictOrderItems: async (
+    items: { tipo_prenda: string; cantidad_piezas: number }[],
+    prioridadAlta: boolean,
+    lineasProduccion: number,
+    token?: string
+  ): Promise<{
+    tiempo_estimado_total_horas: number | null;
+    margen_error_total_horas: number | null;
+    prenda_nueva_global: boolean;
+    detalles: {
+      tipo_prenda: string;
+      cantidad_piezas: number;
+      tiempo_estimado_horas: number | null;
+      margen_error_horas: number | null;
+      prenda_nueva: boolean;
+    }[];
+  }> => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const response = await fetch(`${API_URL}/ia/predict/order-items`, {
+      method: "POST",
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({
+        items,
+        prioridad_alta: prioridadAlta,
+        lineas_produccion: lineasProduccion,
+      }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || "Fallo al calcular la estimación consolidada.");
+    }
+    return response.json();
+  },
+
   getIaStatus: async (token?: string): Promise<{
     modelo_cargado: boolean;
     algoritmo_activo: string;
