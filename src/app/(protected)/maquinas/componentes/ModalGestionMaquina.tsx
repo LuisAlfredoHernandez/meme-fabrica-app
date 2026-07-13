@@ -139,7 +139,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                         className="w-full h-11 px-3 rounded-xl text-sm text-white appearance-none focus:outline-none transition-all"
                                         style={{
                                             background: "#0d1018",
-                                            border: `1.5px solid ${valorSelectorTipo ? AppColors.orange : AppColors.border}`,
+                                            border: `1.5px solid ${errors.tipo ? AppColors.red : (valorSelectorTipo ? AppColors.orange : AppColors.border)}`,
                                         }}
                                     >
                                         <option value="">— Selecciona —</option>
@@ -153,6 +153,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                         <span className="text-[8px]">▼</span>
                                     </div>
                                 </div>
+                                {errors.tipo && <span className="text-[10px] text-red-400 block mt-1">{errors.tipo.message}</span>}
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-slate-400">Código</label>
@@ -161,9 +162,29 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                     placeholder="Ej: M-001"
                                     className="w-full h-11 px-4 rounded-xl text-white text-sm bg-[#0d1018] transition-all focus:outline-none"
                                     style={{
-                                        border: `1.5px solid ${watch("codigo") ? AppColors.orange : AppColors.border}`,
+                                        border: `1.5px solid ${errors.codigo ? AppColors.red : (watch("codigo") ? AppColors.orange : AppColors.border)}`,
                                     }}
                                 />
+                                {errors.codigo && <span className="text-[10px] text-red-400 block mt-1">{errors.codigo.message}</span>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-400">Capacidad por Hora (Pzs)</label>
+                                <input
+                                    type="number"
+                                    {...register("capacidadPorHora", { valueAsNumber: true })}
+                                    placeholder="Ej: 50"
+                                    className="w-full h-11 px-4 rounded-xl text-white text-sm bg-[#0d1018] transition-all focus:outline-none"
+                                    style={{
+                                        border: `1.5px solid ${errors.capacidadPorHora ? AppColors.red : (watch("capacidadPorHora") ? AppColors.orange : AppColors.border)}`,
+                                    }}
+                                />
+                                {errors.capacidadPorHora && <span className="text-[10px] text-red-400 block mt-1">{errors.capacidadPorHora.message}</span>}
+                            </div>
+                            <div className="space-y-1.5 flex flex-col justify-end">
+                                {/* Espacio para futuros campos */}
                             </div>
                         </div>
                     </div>

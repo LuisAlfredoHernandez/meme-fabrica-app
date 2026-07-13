@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Search, PlusCircle, MinusCircle, Trash2, RefreshCcw, AlertCircle } from "lucide-react";
@@ -12,16 +12,24 @@ import { insumoSchema, InsumoFormData } from "@/features/insumos/schemas/insumos
 
 type OperationMode = "entrada" | "salida" | "eliminar";
 
-export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
+export function ModalGestionInsumo({ 
+    onClose,
+    initialInsumo,
+    initialMode = "entrada"
+}: { 
+    onClose: () => void;
+    initialInsumo?: Insumo;
+    initialMode?: OperationMode;
+}) {
     const { insumos } = useInsumosStore();
     const { createInsumo, updateInsumo, deleteInsumo } = useInsumosActions();
     const { addToastOnly } = useNotificationActions();
 
     // Estados de UI
-    const [mode, setMode] = useState<OperationMode>("entrada");
+    const [mode, setMode] = useState<OperationMode>(initialMode);
     const [showConfirm, setShowConfirm] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [isExisting, setIsExisting] = useState(false);
+    const [isExisting, setIsExisting] = useState(!!initialInsumo);
 
     // Almacena los datos válidos si el usuario debe confirmar la acción
     const [pendingData, setPendingData] = useState<InsumoFormData | null>(null);
@@ -34,6 +42,23 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
             nombre: "", tipo: "tela", unidad: "metros", stock: 0, minimo: 0, proveedor: "", codigo: ""
         }
     });
+
+    useEffect(() => {
+        if (initialInsumo) {
+            reset({
+                id: initialInsumo.id,
+                nombre: initialInsumo.nombre,
+                tipo: initialInsumo.tipo,
+                unidad: initialInsumo.unidad,
+                stock: 0,
+                minimo: initialInsumo.minimo,
+                proveedor: initialInsumo.proveedor ?? "",
+                codigo: initialInsumo.codigo ?? ""
+            });
+            setIsExisting(true);
+            setMode(initialMode);
+        }
+    }, [initialInsumo, initialMode, reset]);
 
     // Observamos campos críticos para la UI reactiva
     const query = watch("nombre") || "";
@@ -238,7 +263,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Tipo</label>
-                                    <select {...register("tipo")} disabled={isExisting} className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
+                                    <select {...register("tipo")} disabled={isExisting} className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50' : ''}`} style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
                                         <option value="tela">Tela</option>
                                         <option value="accesorio">Accesorio</option>
                                         <option value="zipper">Zipper</option>
@@ -247,7 +272,7 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Unidad</label>
-                                    <select {...register("unidad")} disabled={isExisting} className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50 cursor-not-allowed' : ''}`} style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
+                                    <select {...register("unidad")} disabled={isExisting} className={`w-full h-11 px-3 rounded-xl text-sm text-white border ${isExisting ? 'opacity-50' : ''}`} style={{ background: AppColors.inputBg, borderColor: AppColors.border }}>
                                         {["metros", "unidades", "rollos", "kg"].map(u => <option key={u} value={u}>{u}</option>)}
                                     </select>
                                 </div>
@@ -261,12 +286,18 @@ export function ModalGestionInsumo({ onClose }: { onClose: () => void }) {
                                     <input type="number" {...register("stock", { valueAsNumber: true })}
                                         className="w-full h-11 px-4 rounded-xl text-white text-sm focus:outline-none border transition-all"
                                         style={{ background: AppColors.inputBg, borderColor: errors.stock ? AppColors.red : (cantidadWatch > 0 ? (mode === "entrada" ? AppColors.emerald : AppColors.orange) : AppColors.border) }} />
+                                    {errors.stock && (
+                                        <p className="text-[10px] text-red-400 mt-1 px-1">{errors.stock.message}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold px-1" style={{ color: "#94a3b8" }}>Mínimo Crítico</label>
                                     <input type="number" {...register("minimo", { valueAsNumber: true })} disabled={isExisting}
                                         className={`w-full h-11 px-4 rounded-xl text-white text-sm border ${isExisting ? 'opacity-50' : ''}`}
-                                        style={{ background: AppColors.inputBg, borderColor: AppColors.border }} />
+                                        style={{ background: AppColors.inputBg, borderColor: errors.minimo ? AppColors.red : AppColors.border }} />
+                                    {errors.minimo && (
+                                        <p className="text-[10px] text-red-400 mt-1 px-1">{errors.minimo.message}</p>
+                                    )}
                                 </div>
                             </div>
                         </>

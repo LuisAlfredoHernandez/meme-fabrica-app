@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GripVertical, AlertCircle, Clock, CheckCircle2, Pause, ArrowUpDown, AlertTriangle } from "lucide-react";
 import { Orden, EstadoOrden } from "@/types";
 import { AppColors } from "@/shared/constants";
@@ -24,9 +24,11 @@ export function ColaPrioridadesOrdenes({ ordenes, onReorder }: ColaPrioridadesPr
     const [dragIdx, setDragIdx] = useState<number | null>(null);
 
     // Sincronización con la "Fuente de Verdad" (Store) cuando no hay arrastre activo
-    if (dragIdx === null && colaVisual !== ordenes) {
-        setColaVisual(ordenes);
-    }
+    useEffect(() => {
+        if (dragIdx === null) {
+            setColaVisual(ordenes);
+        }
+    }, [ordenes, dragIdx]);
 
     const handleDragStart = (idx: number) => setDragIdx(idx);
 

@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
-import { AlertTriangle, Search, Package, TrendingDown } from "lucide-react";
+import { AlertTriangle, Search, Package, TrendingDown, Plus, Minus, Trash2 } from "lucide-react";
 import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúrate de que el nombre coincida
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
@@ -45,8 +45,8 @@ export default function InsumosPage() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar">
             {modalConfig.open && (
                 <ModalGestionInsumo
-                    // initialId={modalConfig.id} 
-                    // initialMode={modalConfig.mode}
+                    initialInsumo={insumos.find(i => i.id === modalConfig.id)} 
+                    initialMode={modalConfig.mode}
                     onClose={() => setModalConfig({ open: false })}
                 />
             )}
@@ -96,6 +96,7 @@ export default function InsumosPage() {
                                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: "#1a1f2e" }}>Insumo / Código</th>
                                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: "#1a1f2e" }}>Estado</th>
                                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: "#1a1f2e" }}>Existencia</th>
+                                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-right" style={{ background: "#1a1f2e" }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -136,6 +137,31 @@ export default function InsumosPage() {
                                             <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
                                                 <div className="h-full bg-orange-500" style={{ width: `${Math.min((ins.stock / (ins.minimo * 2)) * 100, 100)}%` }}></div>
                                             </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button
+                                                onClick={() => abrirGestion(ins.id, "entrada")}
+                                                className="p-2 rounded-lg text-emerald-500 hover:text-white hover:bg-emerald-500/10 transition-all cursor-pointer"
+                                                title="Entrada de Stock"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => abrirGestion(ins.id, "salida")}
+                                                className="p-2 rounded-lg text-orange-500 hover:text-white hover:bg-orange-500/10 transition-all cursor-pointer"
+                                                title="Retirar Stock"
+                                            >
+                                                <Minus className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => abrirGestion(ins.id, "eliminar")}
+                                                className="p-2 rounded-lg text-red-500 hover:text-white hover:bg-red-500/10 transition-all cursor-pointer"
+                                                title="Eliminar Insumo"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

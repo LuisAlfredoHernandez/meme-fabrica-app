@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, } from "react-hook-form";
-import { Search, RefreshCcw, User, Mail } from "lucide-react";
+import { Search, RefreshCcw, User, Mail, Trash2 } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +37,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         }
     });
 
-    const { register, handleSubmit, setValue, reset, getValues } = methods
+    const { register, handleSubmit, setValue, reset, getValues, formState: { errors } } = methods
 
     const filteredOperarios = useMemo(() => {
         return operarios
@@ -187,6 +187,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     {...register("nombre")}
                                     className="w-full bg-transparent text-sm font-bold text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                                 />
+                                {errors.nombre && (
+                                    <p className="text-[10px] text-red-400 mt-1">{errors.nombre.message}</p>
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Apellido</label>
@@ -194,6 +197,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     {...register("apellido")}
                                     className="w-full bg-transparent text-sm font-bold text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                                 />
+                                {errors.apellido && (
+                                    <p className="text-[10px] text-red-400 mt-1">{errors.apellido.message}</p>
+                                )}
                             </div>
                         </div>
 
@@ -207,6 +213,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                 {...register("correo")}
                                 className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                             />
+                            {errors.correo && (
+                                <p className="text-[10px] text-red-400 mt-1">{errors.correo.message}</p>
+                            )}
                         </div>
 
                         {!isExisting && (
@@ -221,6 +230,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     {...register("password")}
                                     className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                                 />
+                                {errors.password && (
+                                    <p className="text-[10px] text-red-400 mt-1">{errors.password.message}</p>
+                                )}
                             </div>
                         )}
 
@@ -229,10 +241,23 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                         {/* Selector de estaciones del operador */}
                         <EstacionesSelector />
+                        {errors.habilidades && (
+                            <p className="text-[10px] text-red-400 mt-1 px-1">{errors.habilidades.message}</p>
+                        )}
                     </div>
 
                     {/* Footer */}
                     <div className="flex items-center gap-3 px-6 py-5 bg-black/20 border-t border-[#1e2130]">
+                        {isExisting && (
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="px-4 h-12 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center justify-center"
+                                title="Eliminar Operario"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        )}
                         <button type="button" onClick={onClose} className="flex-1 h-12 rounded-xl border border-[#1e2130] text-sm font-semibold text-slate-400 hover:bg-white/5 cursor-pointer">
                             Cancelar
                         </button>

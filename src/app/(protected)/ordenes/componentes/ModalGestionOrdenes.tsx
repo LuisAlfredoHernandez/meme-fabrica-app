@@ -198,7 +198,10 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                             <input {...register("cliente")}
                                 placeholder="..."
                                 className="w-full h-11 px-4 rounded-xl text-white text-sm bg-black/20 focus:outline-none transition-all"
-                                style={{ border: `1.5px solid ${vCliente ? AppColors.orange : AppColors.border}` }} />
+                                style={{ border: `1.5px solid ${errors.cliente ? AppColors.red : (vCliente ? AppColors.orange : AppColors.border)}` }} />
+                            {errors.cliente && (
+                                <p className="text-xs text-red-400 mt-0.5">{errors.cliente.message}</p>
+                            )}
                         </div>
                     </div>
 
@@ -211,6 +214,9 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                 <Plus className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
                             </button>
                         </div>
+                        {errors.lineas?.message && (
+                            <p className="text-xs text-red-400 px-1 mt-0.5">{errors.lineas.message}</p>
+                        )}
 
                         {/* Área de Scroll con Máscara Visual */}
                         <div className="flex-1 overflow-hidden relative scroll-mask">
@@ -227,9 +233,12 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                                     list={`prendas-datalist-${index}`}
                                                     {...register(`lineas.${index}.descripcion`)}
                                                     className="w-full h-11 px-4 rounded-xl text-sm text-white bg-black/20 focus:outline-none transition-all placeholder-slate-600 focus:border-orange-500/50"
-                                                    style={{ border: `1.5px solid ${vLineas[index]?.descripcion ? AppColors.orange : AppColors.border}` }}
+                                                    style={{ border: `1.5px solid ${errors.lineas?.[index]?.descripcion ? AppColors.red : (vLineas[index]?.descripcion ? AppColors.orange : AppColors.border)}` }}
                                                     autoComplete="off"
                                                 />
+                                                {errors.lineas?.[index]?.descripcion && (
+                                                    <p className="text-xs text-red-400 mt-1">{errors.lineas[index]?.descripcion?.message}</p>
+                                                )}
                                                 <datalist id={`prendas-datalist-${index}`}>
                                                     {listaPrendas.map(p => <option key={p} value={p} />)}
                                                 </datalist>
@@ -297,7 +306,10 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                                 <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Cantidad</span>
                                                 <input type="number" {...register(`lineas.${index}.cantidad`, { valueAsNumber: true })}
                                                     className="w-full h-10 px-3 rounded-xl text-white text-xs bg-black/20 focus:outline-none"
-                                                    style={{ border: `1.5px solid ${vLineas[index]?.cantidad > 0 ? AppColors.orange : AppColors.border}` }} />
+                                                    style={{ border: `1.5px solid ${errors.lineas?.[index]?.cantidad ? AppColors.red : (vLineas[index]?.cantidad > 0 ? AppColors.orange : AppColors.border)}` }} />
+                                                {errors.lineas?.[index]?.cantidad && (
+                                                    <p className="text-[10px] text-red-400 mt-1">{errors.lineas[index]?.cantidad?.message}</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -345,7 +357,7 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                 <div
                                     className="absolute inset-0 w-full h-full pl-11 pr-4 rounded-xl text-white text-sm bg-black/20 flex items-center border transition-all pointer-events-none z-20"
                                     style={{
-                                        borderColor: vFechaEntrega ? AppColors.orange : AppColors.border
+                                        borderColor: errors.fechaEntregaEstimada ? AppColors.red : (vFechaEntrega ? AppColors.orange : AppColors.border)
                                     }}
                                 >
                                     {vFechaEntrega ? (
@@ -355,6 +367,9 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
                                     )}
                                 </div>
                             </div>
+                            {errors.fechaEntregaEstimada && (
+                                <p className="text-[10px] text-red-400 mt-1">{errors.fechaEntregaEstimada.message}</p>
+                            )}
                         </div>
                     </div>
                 </div>
