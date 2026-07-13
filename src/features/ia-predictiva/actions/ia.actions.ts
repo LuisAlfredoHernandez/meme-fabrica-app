@@ -32,3 +32,36 @@ export async function seedDataAction(): Promise<any> {
   const token = await getToken();
   return iaService.seedData(token);
 }
+
+export async function uploadTrainDataAction(formData: FormData): Promise<any> {
+  const token = await getToken();
+  const file = formData.get("file") as File;
+  if (!file) {
+    throw new Error("No se proporcionó ningún archivo.");
+  }
+  return iaService.uploadTrainData(file, token);
+}
+
+export async function getIaStatusAction() {
+  const token = await getToken();
+  return iaService.getIaStatus(token);
+}
+
+export async function predictDeliveryTimeAction(
+  cantidadPiezas: number,
+  prioridadAlta: boolean,
+  lineasProduccion: number,
+  tipoPrenda: string
+) {
+  const token = await getToken();
+  return iaService.predictDeliveryTime(cantidadPiezas, prioridadAlta, lineasProduccion, tipoPrenda, token);
+}
+
+export async function exportHistoryAction(): Promise<string> {
+  const token = await getToken();
+  const response = await iaService.exportHistory(token);
+  const buffer = await response.arrayBuffer();
+  return Buffer.from(buffer).toString("base64");
+}
+
+

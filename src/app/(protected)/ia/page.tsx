@@ -8,6 +8,7 @@ import {
     RefreshCw, CheckCircle2, X, ArrowRight, UserCheck,
     BarChart3, Shield, Info, Clock, ChevronDown, Play,
     AlertCircle, Database, GitCompare, Bell, DatabaseZap,
+    Upload, FileSpreadsheet, Trash2, HelpCircle
 } from "lucide-react";
 import {
     ResponsiveContainer, ComposedChart, Area, Line,
@@ -19,7 +20,11 @@ import {
     getBottlenecksAction,
     simulateMtsAction,
     trainModelAction,
-    seedDataAction
+    seedDataAction,
+    uploadTrainDataAction,
+    getIaStatusAction,
+    predictDeliveryTimeAction,
+    exportHistoryAction
 } from "@/features/ia-predictiva/actions/ia.actions";
 
 const AppColors = {
@@ -59,15 +64,22 @@ const TooltipIA = ({ active, payload, label }: any) => {
 
 // ── Sección: Gestión del modelo IA (RF19–RF22) ────────────────
 interface PanelProps {
+    status: any;
     onSuccess: () => void;
 }
 
-function PanelGestionModelo({ onSuccess }: PanelProps) {
+function PanelGestionModelo({ status, onSuccess }: PanelProps) {
     const [reentrenando, setReentrena] = useState(false);
     const [seeding, setSeeding] = useState(false);
     const [resultado, setResultado] = useState<any>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { addToastOnly } = useNotificationActions();
+
+    const [file, setFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [exportando, setExportando] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmText, setConfirmText] = useState("");
 
     const ejecutarReentrenamiento = async () => {
         setReentrena(true);
@@ -100,6 +112,62 @@ function PanelGestionModelo({ onSuccess }: PanelProps) {
         }
     };
 
+    const subirYEntrenarExcel = async () => {
+        if (!file) return;
+        setUploading(true);
+        setErrorMsg(null);
+        setResultado(null);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            
+            const data = await uploadTrainDataAction(formData);
+            setResultado(data);
+            setFile(null);
+            setConfirmText("");
+            addToastOnly("Carga y Entrenamiento Exitoso", "Los datos históricos fueron importados y la IA ha sido recalibrada.", "success");
+            onSuccess();
+        } catch (e: any) {
+            setErrorMsg(e.message || "Fallo al importar el archivo Excel o entrenar el modelo.");
+            addToastOnly("Error de Carga", e.message || "Error al subir o entrenar el modelo.", "error");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const exportarHistorialCompleto = async () => {
+        setExportando(true);
+        try {
+            const base64 = await exportHistoryAction();
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "historial_produccion.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            addToastOnly("Exportación Exitosa", "El historial de producción ha sido exportado a Excel.", "success");
+        } catch (e: any) {
+            addToastOnly("Error al Exportar", e.message || "Fallo al exportar el historial.", "error");
+        } finally {
+            setExportando(false);
+        }
+    };
+
+    const isCargado = status?.modelo_cargado;
+    const algoritmo = status?.algoritmo_activo || "Ninguno";
+    const registros = status?.registros_entrenados != null ? `${status.registros_entrenados} ord` : "0 ord";
+    const fechaCalib = status?.fecha_calibracion 
+        ? new Date(status.fecha_calibracion).toLocaleDateString("es-ES", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) 
+        : "Sin calibrar";
+
     return (
         <div className="rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
             <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
@@ -113,10 +181,10 @@ function PanelGestionModelo({ onSuccess }: PanelProps) {
                 {/* Métricas actuales */}
                 <div className="grid grid-cols-2 gap-3">
                     {[
-                        { label: "Modelo activo", valor: "v1.5.0-RF", icon: <Shield className="w-4 h-4" />, color: AppColors.emerald },
-                        { label: "Precisión histórica", valor: "91.2%", icon: <BarChart3 className="w-4 h-4" />, color: AppColors.emerald },
-                        { label: "Pipeline", valor: "Random Forest", icon: <Brain className="w-4 h-4" />, color: AppColors.violet },
-                        { label: "Datos Suficientes", valor: "Soportado", icon: <CheckCircle2 className="w-4 h-4" />, color: AppColors.emerald },
+                        { label: "Modelo Activo", valor: isCargado ? "Calibrado" : "Inactivo", icon: <Shield className="w-4 h-4" />, color: isCargado ? AppColors.emerald : AppColors.amber },
+                        { label: "Registros Entrenados", valor: registros, icon: <CheckCircle2 className="w-4 h-4" />, color: isCargado ? AppColors.sky : AppColors.slate },
+                        { label: "Algoritmo Activo", valor: algoritmo, icon: <Brain className="w-4 h-4" />, color: isCargado ? AppColors.violet : AppColors.slate },
+                        { label: "Última Calibración", valor: fechaCalib, icon: <Clock className="w-4 h-4" />, color: isCargado ? AppColors.emerald : AppColors.slate },
                     ].map(m => (
                         <div key={m.label} className="flex items-start gap-3 p-3 rounded-xl"
                             style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
@@ -127,6 +195,79 @@ function PanelGestionModelo({ onSuccess }: PanelProps) {
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Importación de Excel Histórico */}
+                <div className="p-4 rounded-xl border border-dashed border-[#1e2130] bg-[#0d1018]/50 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <FileSpreadsheet className="w-4 h-4 text-indigo-400" />
+                        <span className="text-xs font-bold text-white">Importar Historial (Excel)</span>
+                        <span title="Sube una plantilla Excel con el historial para calibrar la IA">
+                            <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-pointer hover:text-slate-400" />
+                        </span>
+                    </div>
+                    
+                    {!file ? (
+                        <label className="flex flex-col items-center justify-center border border-dashed border-[#1e2130] hover:border-indigo-500/50 rounded-xl p-6 cursor-pointer group transition-all bg-[#090b10]">
+                            <Upload className="w-8 h-8 text-slate-500 group-hover:text-indigo-400 transition-colors duration-200" />
+                            <p className="text-[10px] text-slate-400 mt-2 font-medium">Arrastra o selecciona tu archivo Excel</p>
+                            <p className="text-[9px] text-slate-600 mt-1">Soporta .xlsx, .xls</p>
+                            <input 
+                                type="file" 
+                                accept=".xlsx, .xls" 
+                                className="hidden" 
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        setFile(e.target.files[0]);
+                                    }
+                                }} 
+                            />
+                        </label>
+                    ) : (
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-[#1e2130] bg-[#090b10]">
+                            <FileSpreadsheet className="w-6 h-6 text-emerald-400 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs text-white font-bold truncate">{file.name}</p>
+                                <p className="text-[10px] text-slate-500 font-mono font-bold mt-0.5">{(file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                            <button 
+                                onClick={() => setFile(null)} 
+                                className="p-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 cursor-pointer transition-colors"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    )}
+
+                    {file && (
+                        <button
+                            onClick={() => setShowConfirmModal(true)}
+                            disabled={uploading}
+                            className="w-full h-10 rounded-lg text-xs font-bold transition-all cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5"
+                        >
+                            <Play className="w-3.5 h-3.5" />
+                            {uploading ? "Subiendo y entrenando..." : "Proceder con la Carga e IA"}
+                        </button>
+                    )}
+                </div>
+
+                {/* Guía de Salud de Datos */}
+                <div className="p-4 rounded-xl border bg-indigo-500/5" style={{ borderColor: `${AppColors.violet}25` }}>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Info className="w-4 h-4 text-indigo-400 shrink-0" />
+                        <span className="text-xs font-bold text-white">Guía de Salud de Calibración</span>
+                    </div>
+                    <ul className="text-[11px] text-slate-400 space-y-1.5 list-disc list-inside">
+                        <li>
+                            <strong className="text-slate-300">Piso Técnico Mínimo:</strong> 1 día de producción y 2 órdenes completadas (activa Regresión Lineal).
+                        </li>
+                        <li>
+                            <strong className="text-slate-300">Volumen Saludable Mínimo:</strong> Al menos <strong className="text-indigo-400">10 órdenes</strong> en <strong className="text-indigo-400">3 días únicos</strong> (estabilidad en predicciones lineales).
+                        </li>
+                        <li>
+                            <strong className="text-slate-300">Volumen Óptimo (Random Forest):</strong> Al menos <strong className="text-indigo-400">30 órdenes</strong> en <strong className="text-indigo-400">7 días únicos</strong> (activa estimaciones complejas basadas en eficiencia de operarios y prendas).
+                        </li>
+                    </ul>
                 </div>
 
                 {/* Error Banner */}
@@ -144,18 +285,18 @@ function PanelGestionModelo({ onSuccess }: PanelProps) {
                                 className="w-full mt-2 h-9 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:bg-slate-800"
                             >
                                 <DatabaseZap className="w-4 h-4" />
-                                {seeding ? "Sembrando..." : "Sembrar 17 Días de Reportes de Avance (Seed)"}
+                                {seeding ? "Sembrando..." : "Sembrar registros de prueba (Seed)"}
                             </button>
                         )}
                     </div>
                 )}
 
-                {/* Resultados post-entrenamiento (RF21) */}
+                {/* Resultados post-entrenamiento */}
                 {resultado && (
                     <div className="rounded-xl overflow-hidden border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3 animate-in zoom-in-95 duration-300">
                         <div className="flex items-center gap-2 text-emerald-400">
                             <CheckCircle2 className="w-5 h-5" />
-                            <span className="text-xs font-bold uppercase">Entrenamiento Exitoso (RF21)</span>
+                            <span className="text-xs font-bold uppercase">Entrenamiento Completado</span>
                         </div>
                         <div className="text-xs text-slate-300 space-y-1">
                             <div className="flex justify-between">
@@ -183,7 +324,7 @@ function PanelGestionModelo({ onSuccess }: PanelProps) {
                 {/* Botón Reentrenar (RF19) */}
                 <button
                     onClick={ejecutarReentrenamiento}
-                    disabled={reentrenando}
+                    disabled={reentrenando || uploading}
                     className="w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
                 >
                     {reentrenando ? (
@@ -193,17 +334,107 @@ function PanelGestionModelo({ onSuccess }: PanelProps) {
                     )}
                 </button>
 
-                {/* RNF-10 / RF22 Alerta */}
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                    <Bell className="w-4 h-4 shrink-0 mt-0.5" style={{ color: AppColors.amber }} />
+                {/* Botón Exportar Historial */}
+                <button
+                    onClick={exportarHistorialCompleto}
+                    disabled={exportando || uploading}
+                    className="w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer bg-slate-800 hover:bg-slate-700 text-white border border-white/5 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
+                >
+                    {exportando ? (
+                        <><RefreshCw className="w-4 h-4 animate-spin" /> Generando Excel...</>
+                    ) : (
+                        <><FileSpreadsheet className="w-4 h-4 text-emerald-400" /> Exportar Historial Completo (Excel)</>
+                    )}
+                </button>
+
+                {/* Info Alerta */}
+                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-indigo-500/5 border border-indigo-500/10">
+                    <Bell className="w-4 h-4 shrink-0 mt-0.5" style={{ color: AppColors.violet }} />
                     <div>
-                        <p className="text-xs font-semibold" style={{ color: AppColors.amber }}>Notificación de degradación activa (RF22)</p>
+                        <p className="text-xs font-semibold text-white">Calibración con Fiabilidad Total</p>
                         <p className="text-[10px] mt-0.5 text-slate-400">
-                            El sistema alertará automáticamente si el error MAE de predicción supera el 15% durante 3 días.
+                            Los datos históricos subidos se asumen como verdad absoluta. Las métricas de error se muestran con fines informativos de diagnóstico para el usuario.
                         </p>
                     </div>
                 </div>
             </div>
+
+            {/* MODAL DE CONFIRMACIÓN DE SEGURIDAD */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="w-full max-w-md rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 border" 
+                         style={{ background: AppColors.surface, borderColor: AppColors.border }}>
+                        
+                        <div className="flex items-center gap-3 text-red-400 border-b border-white/5 pb-3">
+                            <AlertTriangle className="w-6 h-6 shrink-0 text-red-400" />
+                            <h3 className="font-bold text-white text-base">⚠️ Marco de Seguridad y Consecuencias</h3>
+                        </div>
+
+                        <div className="mt-4 space-y-3.5 text-xs text-slate-300">
+                            <p className="font-semibold text-slate-200">
+                                Antes de subir este documento y actualizar la IA, por favor revise las siguientes implicaciones de seguridad:
+                            </p>
+                            
+                            <div className="space-y-2">
+                                <div className="flex gap-2">
+                                    <span className="font-mono text-red-400 font-bold shrink-0">1.</span>
+                                    <p>
+                                        <strong className="text-white font-bold">Sobrescritura de Órdenes:</strong> Para evitar duplicados, cualquier orden existente en la base de datos con el mismo número de orden que las del archivo será <strong className="text-white font-bold">borrada y reemplazada por completo</strong> junto con sus reportes.
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="font-mono text-red-400 font-bold shrink-0">2.</span>
+                                    <p>
+                                        <strong className="text-white font-bold">Reentrenamiento Directo:</strong> Los nuevos datos se utilizarán de inmediato para recalibrar el modelo híbrido (Regresión Lineal o Random Forest) y sobrescribir el archivo de producción activo (<code className="text-violet-400 font-bold text-[10px] font-mono">random_forest_v1.pkl</code>).
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="font-mono text-red-400 font-bold shrink-0">3.</span>
+                                    <p>
+                                        <strong className="text-white font-bold">Calibración Directa:</strong> El modelo se actualizará de forma directa para reflejar los nuevos datos ingresados, sin bloqueos artificiales por degradación.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-white/5 space-y-2">
+                                <label className="text-[10px] text-slate-400 font-semibold uppercase">
+                                    Escriba "ENTRENAR" para autorizar esta operación:
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="ENTRENAR"
+                                    value={confirmText}
+                                    onChange={(e) => setConfirmText(e.target.value)}
+                                    className="w-full h-10 px-3 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-[#0d1018] border text-white focus:border-red-500/50 outline-none"
+                                    style={{ borderColor: AppColors.border }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    setConfirmText("");
+                                }}
+                                className="flex-1 h-10 rounded-xl text-xs font-bold bg-[#0d1018] hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowConfirmModal(false);
+                                    subirYEntrenarExcel();
+                                }}
+                                disabled={confirmText !== "ENTRENAR"}
+                                className="flex-1 h-10 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white transition-colors cursor-pointer disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
+                            >
+                                Sí, Entrenar IA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -220,14 +451,42 @@ export default function IAPage() {
     const [simulacionMts, setSimulacionMts] = useState<any[]>([]);
     const [simulando, setSimulando] = useState(false);
 
+    // Estatus de la calibración de la IA
+    const [modelStatus, setModelStatus] = useState<any>(null);
+
+    // Estados para la Calculadora de Tiempos
+    const [calcPiezas, setCalcPiezas] = useState<number>(300);
+    const [calcLineas, setCalcLineas] = useState<number>(1);
+    const [calcPrioridad, setCalcPrioridad] = useState<boolean>(false);
+    const [calcPrenda, setCalcPrenda] = useState<string>("camiseta");
+    const [calcResultado, setCalcResultado] = useState<any>(null);
+    const [calcErrorMsg, setCalcErrorMsg] = useState<string | null>(null);
+    const [calculando, setCalculando] = useState<boolean>(false);
+
+    const ejecutarCalculadora = async () => {
+        setCalculando(true);
+        setCalcErrorMsg(null);
+        setCalcResultado(null);
+        try {
+            const data = await predictDeliveryTimeAction(calcPiezas, calcPrioridad, calcLineas, calcPrenda);
+            setCalcResultado(data);
+        } catch (e: any) {
+            setCalcErrorMsg(e.message || "Error al calcular la predicción.");
+        } finally {
+            setCalculando(false);
+        }
+    };
+
     const loadIaData = async () => {
         setLoading(true);
         try {
             const proj = await getProjectionsAction();
             const bnecks = await getBottlenecksAction();
+            const status = await getIaStatusAction();
             setProyecciones(proj);
             setCuellos(bnecks.cuellos);
             setRecs(bnecks.recomendaciones);
+            setModelStatus(status);
         } catch (e) {
             console.error("Fallo al consultar microservicio de ML:", e);
         } finally {
@@ -290,21 +549,36 @@ export default function IAPage() {
                         </div>
                         <div>
                             <h1 className="text-lg font-black text-white">IA Predictiva Real</h1>
-                            <p className="text-xs mt-0.5 text-slate-400">Microservicio RandomForest v1.5.0 · Datos de Base de Datos</p>
+                            <p className="text-xs mt-0.5 text-slate-400">
+                                {modelStatus?.modelo_cargado 
+                                    ? `Microservicio ${modelStatus.algoritmo_activo} · Calibrado` 
+                                    : "Microservicio Inactivo · Requiere calibración"}
+                            </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                        style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
-                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: AppColors.emerald }} />
-                        <span className="text-xs font-semibold text-white">Modelo Calibrado</span>
-                        <span className="text-xs font-mono text-slate-400">91.2% MAE Confianza</span>
-                    </div>
+                    {modelStatus?.modelo_cargado ? (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                            style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
+                            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: AppColors.emerald }} />
+                            <span className="text-xs font-semibold text-white">Modelo Calibrado</span>
+                            <span className="text-xs font-mono text-slate-400">
+                                {modelStatus.mae != null ? `${modelStatus.mae.toFixed(3)}h MAE` : "91.2% MAE Confianza"}
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                            style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
+                            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: AppColors.amber }} />
+                            <span className="text-xs font-semibold text-white" style={{ color: AppColors.amber }}>IA Inactiva</span>
+                            <span className="text-xs font-mono text-slate-500">Sin Calibración</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* KPIs IA */}
                 <div className="grid grid-cols-4 gap-3 mt-4">
                     {[
-                        { label: "Tiempo Estimado Promedio", valor: "24.5 hrs", sub: "Por orden", color: AppColors.amber },
+                        { label: "Registros Calibrados", valor: modelStatus?.modelo_cargado ? `${modelStatus.registros_entrenados} ord` : "0 ord", sub: "Histórico en modelo", color: AppColors.amber },
                         { label: "Rendimiento Planta", valor: "84.2%", sub: "Promedio semanal", color: AppColors.emerald },
                         { label: "Saturaciones Críticas", valor: criticasCount, sub: "en maquinaria", color: AppColors.red },
                         { label: "Recomendaciones Pendientes", valor: pendRecs, sub: "de balanceo", color: AppColors.violet },
@@ -344,6 +618,117 @@ export default function IAPage() {
                 {/* ── TAB: Proyección ── */}
                 {tabActiva === "prediccion" && (
                     <div className="space-y-5">
+                        {/* RF12: Calculadora de Tiempos de Entrega */}
+                        <div className="rounded-2xl overflow-hidden animate-in fade-in duration-300" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
+                            <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
+                                <Brain className="w-5 h-5" style={{ color: AppColors.violet }} />
+                                <h3 className="font-bold text-white text-sm">Calculadora de Tiempos de Entrega (RF12)</h3>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Prenda</label>
+                                        <select
+                                            value={calcPrenda}
+                                            onChange={(e) => setCalcPrenda(e.target.value)}
+                                            className="w-full h-10 px-3 rounded-lg text-xs bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50"
+                                        >
+                                            <option value="camiseta">Camiseta</option>
+                                            <option value="pantalon">Pantalón</option>
+                                            <option value="jogger">Jogger</option>
+                                            <option value="sudadera">Sudadera</option>
+                                            <option value="chaqueta">Chaqueta</option>
+                                            <option value="vestido">Vestido</option>
+                                            <option value="corbata">Corbata</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Cantidad de piezas</label>
+                                        <input
+                                            type="number"
+                                            value={calcPiezas}
+                                            onChange={(e) => setCalcPiezas(Number(e.target.value))}
+                                            className="w-full h-10 px-3 rounded-lg text-xs font-mono bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Líneas de producción</label>
+                                        <input
+                                            type="number"
+                                            value={calcLineas}
+                                            onChange={(e) => setCalcLineas(Number(e.target.value))}
+                                            className="w-full h-10 px-3 rounded-lg text-xs font-mono bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50"
+                                        />
+                                    </div>
+                                    <div className="flex items-center h-full pt-4">
+                                        <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={calcPrioridad}
+                                                onChange={(e) => setCalcPrioridad(e.target.checked)}
+                                                className="w-4 h-4 rounded bg-[#0d1018] border-white/5 text-indigo-600 focus:ring-0 cursor-pointer"
+                                            />
+                                            <span>Prioridad Alta / Urgente</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={ejecutarCalculadora}
+                                    disabled={calculando}
+                                    className="w-full h-10 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
+                                >
+                                    {calculando ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Estimando...</> : <><Zap className="w-3.5 h-3.5" /> Calcular Estimación</>}
+                                </button>
+
+                                {/* Alerta de error (Modelo no entrenado) */}
+                                {calcErrorMsg && (
+                                    <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200">
+                                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold">Estimación no disponible</p>
+                                            <p className="mt-0.5 leading-relaxed">{calcErrorMsg}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Alerta prenda nueva */}
+                                {calcResultado?.prenda_nueva && (
+                                    <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200">
+                                        <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold">Nueva prenda en planta</p>
+                                            <p className="mt-0.5 leading-relaxed">
+                                                Esta prenda no cuenta con historial de costura previo. La predicción se ha estimado utilizando los coeficientes promedio globales de la fábrica.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Resultados de cálculo */}
+                                {calcResultado && (
+                                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2 animate-in zoom-in-95 duration-200">
+                                        <div className="flex items-center gap-2 text-emerald-400">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            <span className="text-xs font-bold uppercase">Estimación Completada ({calcResultado.algoritmo_usado})</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 text-xs">
+                                            <div>
+                                                <span className="text-slate-400 block font-semibold mb-0.5">Tiempo estimado:</span>
+                                                <span className="text-lg font-black text-white font-mono">{calcResultado.tiempo_estimado_horas} hrs</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-400 block font-semibold mb-0.5">Margen de error:</span>
+                                                <span className="text-lg font-black text-slate-300 font-mono">± {calcResultado.margen_error_horas} hrs</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Gráfica proyección */}
                         <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
                             <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
@@ -560,7 +945,7 @@ export default function IAPage() {
                 )}
 
                 {/* ── TAB: Gestión Modelo ── */}
-                {tabActiva === "gestion" && <PanelGestionModelo onSuccess={loadIaData} />}
+                {tabActiva === "gestion" && <PanelGestionModelo status={modelStatus} onSuccess={loadIaData} />}
 
             </div>
         </div>

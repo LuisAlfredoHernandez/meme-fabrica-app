@@ -2,6 +2,7 @@
 
 import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.schemas";
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
+import { getPrendasAction } from "@/features/ordenes/actions/ordenes.actions";
 import { AppColors } from "@/shared/constants";
 import { Orden } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,7 +30,20 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
     const { createOrden, updateOrden } = useOrdenActions()
     const isEdit = !!orden;
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const [listaPrendas, setListaPrendas] = useState<string[]>([]);
     const COLORES_SUGERIDOS = ["Negro", "Blanco", "Azul Marino", "Gris", "Rojo", "Verde", "Amarillo", "Rosa", "Naranja", "Beige", "Celeste", "Vino"];
+
+    useEffect(() => {
+        const cargarPrendas = async () => {
+            try {
+                const list = await getPrendasAction();
+                setListaPrendas(list);
+            } catch (e) {
+                console.error("Error al cargar prendas de la BD:", e);
+            }
+        };
+        cargarPrendas();
+    }, []);
 
     const vTipo = watch("tipo");
     const vCliente = watch("cliente");
@@ -149,13 +163,18 @@ export function ModalGestionOrdenes({ orden, onClose }: { onClose: () => void, o
 
                                         <div className="flex gap-3">
                                             <div className="flex-1">
-                                                <select {...register(`lineas.${index}.descripcion`)}
-                                                    className="w-full h-11 px-4 rounded-xl text-sm text-white appearance-none focus:outline-none bg-black/20 transition-all"
-                                                    style={{ border: `1.5px solid ${vLineas[index]?.descripcion ? AppColors.orange : AppColors.border}` }}>
-                                                    <option value="">— Selecciona Prenda —</option>
-                                                    {["Licra deportiva", "Jogger", "Vestido", "T-shirt", "Short", "Blusa"].map(p =>
-                                                        <option key={p} value={p}>{p}</option>)}
-                                                </select>
+                                                <input
+                                                    type="text"
+                                                    placeholder="ej: Camiseta, Jogger..."
+                                                    list={`prendas-datalist-${index}`}
+                                                    {...register(`lineas.${index}.descripcion`)}
+                                                    className="w-full h-11 px-4 rounded-xl text-sm text-white bg-black/20 focus:outline-none transition-all placeholder-slate-600 focus:border-orange-500/50"
+                                                    style={{ border: `1.5px solid ${vLineas[index]?.descripcion ? AppColors.orange : AppColors.border}` }}
+                                                    autoComplete="off"
+                                                />
+                                                <datalist id={`prendas-datalist-${index}`}>
+                                                    {listaPrendas.map(p => <option key={p} value={p} />)}
+                                                </datalist>
                                             </div>
 
                                             {fields.length > 1 && (

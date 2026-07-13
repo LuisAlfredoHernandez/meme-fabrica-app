@@ -70,4 +70,83 @@ export const iaService = {
     }
     return response.json();
   },
+
+  uploadTrainData: async (file: File, token?: string): Promise<any> => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/ia/upload-train-data`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || "Error al subir el archivo de datos históricos.");
+    }
+    return response.json();
+  },
+
+  predictDeliveryTime: async (
+    cantidadPiezas: number,
+    prioridadAlta: boolean,
+    lineasProduccion: number,
+    tipoPrenda: string,
+    token?: string
+  ): Promise<{ tiempo_estimado_horas: number; margen_error_horas: number; prenda_nueva: boolean; algoritmo_usado: string }> => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const response = await fetch(`${API_URL}/ia/predict/delivery-time`, {
+      method: "POST",
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({
+        cantidad_piezas: cantidadPiezas,
+        prioridad_alta: prioridadAlta,
+        lineas_produccion: lineasProduccion,
+        tipo_prenda: tipoPrenda,
+      }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || "Fallo al calcular la estimación del tiempo.");
+    }
+    return response.json();
+  },
+
+  getIaStatus: async (token?: string): Promise<{
+    modelo_cargado: boolean;
+    algoritmo_activo: string;
+    mae: number | null;
+    mse: number | null;
+    registros_entrenados: number;
+    fecha_calibracion: string | null;
+    columnas_entrenamiento: string[];
+  }> => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const response = await fetch(`${API_URL}/ia/status`, {
+      method: "GET",
+      headers: getAuthHeaders(token),
+    });
+    if (!response.ok) {
+      throw new Error("No se pudo obtener el estado del modelo de IA.");
+    }
+    return response.json();
+  },
+
+  exportHistory: async (token?: string): Promise<Response> => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const response = await fetch(`${API_URL}/ia/export-history`, {
+      method: "GET",
+      headers: getAuthHeaders(token),
+    });
+    if (!response.ok) {
+      throw new Error("No se pudo exportar el historial a Excel.");
+    }
+    return response;
+  },
 };

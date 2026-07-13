@@ -283,4 +283,26 @@ export const ordenesService = {
       throw new Error(error.message || "Error al conectar con el servidor.");
     }
   },
+
+  /**
+   * Fetches all registered garment names.
+   */
+  getPrendas: async (token?: string): Promise<string[]> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/ordenes/prendas`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        throw new Error("No se pudo obtener la lista de prendas.");
+      }
+
+      return response.json();
+    } catch (error: any) {
+      console.error("Error en ordenesService.getPrendas:", error);
+      throw new Error(error.message || "Error al conectar con el servidor.");
+    }
+  },
 };
