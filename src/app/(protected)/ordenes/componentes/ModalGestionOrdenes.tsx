@@ -4,119 +4,16 @@ import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.s
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { getPrendasAction } from "@/features/ordenes/actions/ordenes.actions";
 import { AppColors } from "@/shared/constants";
-import { Orden, Insumo } from "@/types";
+import { Orden } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, Plus, Trash2, Calendar } from "lucide-react";
+import { X, Plus, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.actions";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
+import { CardLineaOrden } from "./CardLineaOrden";
 
-
-function LineaInsumos({ 
-    lineIndex, 
-    control, 
-    register, 
-    readOnly, 
-    insumosDisponibles, 
-    setValue, 
-    watchLine 
-}: { 
-    lineIndex: number; 
-    control: any; 
-    register: any; 
-    readOnly: boolean; 
-    insumosDisponibles: Insumo[]; 
-    setValue: any; 
-    watchLine: any; 
-}) {
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: `lineas.${lineIndex}.insumos`
-    });
-
-    return (
-        <div className="mt-4 pt-3 border-t border-white/5 space-y-2.5">
-            <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Insumos Necesarios</span>
-                {!readOnly && (
-                    <button
-                        type="button"
-                        onClick={() => append({ insumoId: "", cantidadRequerida: 0, unidad: "" })}
-                        className="text-[9px] font-bold text-orange-500 hover:text-orange-400 transition-colors uppercase cursor-pointer whitespace-nowrap hover:scale-105 active:scale-95 transition-all"
-                    >
-                        + Agregar Insumo
-                    </button>
-                )}
-            </div>
-
-            <div className="space-y-2">
-                {fields.map((field, insIndex) => {
-                    const currentInsumoId = watchLine?.[insIndex]?.insumoId;
-                    const currentUnidad = watchLine?.[insIndex]?.unidad || 
-                                          insumosDisponibles.find(i => i.id === currentInsumoId)?.unidad || 
-                                          "";
-
-                    return (
-                        <div key={field.id} className="flex gap-2.5 items-center bg-[#0d1018]/30 p-2 rounded-xl border border-white/[0.02]">
-                            <select
-                                {...register(`lineas.${lineIndex}.insumos.${insIndex}.insumoId`)}
-                                onChange={(e) => {
-                                    const selectedId = e.target.value;
-                                    const matched = insumosDisponibles.find(i => i.id === selectedId);
-                                    if (matched) {
-                                        setValue(`lineas.${lineIndex}.insumos.${insIndex}.unidad`, matched.unidad);
-                                    }
-                                }}
-                                className="flex-[3] h-9 px-3 rounded-lg text-xs text-white bg-black/40 border border-[#1e2130] focus:border-orange-500/50 outline-none transition-all cursor-pointer"
-                            >
-                                <option value="" className="bg-[#11141b] text-slate-500">Seleccionar Insumo...</option>
-                                {insumosDisponibles.map(ins => (
-                                    <option key={ins.id} value={ins.id} className="bg-[#11141b] text-white">
-                                        {ins.nombre}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <div className="flex-[1.5] min-w-[70px]">
-                                <input
-                                    type="number"
-                                    step="any"
-                                    min="0.001"
-                                    placeholder="Cant."
-                                    onKeyDown={(e) => {
-                                        if (e.key === "-" || e.key === "e" || e.key === "E") {
-                                            e.preventDefault();
-                                        }
-                                    }}
-                                    {...register(`lineas.${lineIndex}.insumos.${insIndex}.cantidadRequerida`, { valueAsNumber: true })}
-                                    className="w-full h-9 px-3 rounded-lg text-xs text-white bg-black/40 border border-[#1e2130] focus:border-orange-500/50 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div className="min-w-[72px] text-center">
-                                <span className={`inline-block w-full text-[10px] font-bold px-2 py-1 rounded-lg border text-center select-none capitalize whitespace-nowrap ${currentUnidad ? 'text-slate-400 bg-white/5 border-white/10' : 'text-slate-600 bg-transparent border-[#1e2130]/50'}`}>
-                                    {currentUnidad || "Unidad"}
-                                </span>
-                            </div>
-
-                            {!readOnly && (
-                                <button
-                                    type="button"
-                                    onClick={() => remove(insIndex)}
-                                    className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all cursor-pointer"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
 
 export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onClose: () => void; orden?: Orden; readOnly?: boolean; }) {
 
@@ -138,9 +35,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
     const { insumos } = useInsumosStore();
     const { fetchInsumos } = useInsumosActions();
     const isEdit = !!orden;
-    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
     const [listaPrendas, setListaPrendas] = useState<string[]>([]);
-    const COLORES_SUGERIDOS = ["Negro", "Blanco", "Azul Marino", "Gris", "Rojo", "Verde", "Amarillo", "Rosa", "Naranja", "Beige", "Celeste", "Vino"];
 
     const [estimandoIA, setEstimandoIA] = useState(false);
     const { addToastOnly } = useNotificationActions();
@@ -336,113 +231,20 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                         <div className="flex-1 overflow-hidden relative scroll-mask">
                             <div className="order-items-scroll h-full overflow-y-auto pr-3 space-y-4 py-4" style={{ maxHeight: "420px" }}>
                                 {fields.map((field, index) => (
-                                    <div key={field.id} className="p-4 rounded-2xl border space-y-4 transition-all duration-300 hover:bg-white/[0.02]"
-                                        style={{ borderColor: AppColors.border, background: "rgba(255,255,255,0.01)" }}>
-
-                                        <div className="flex gap-3">
-                                            <div className="flex-1">
-                                                <input
-                                                    type="text"
-                                                    placeholder="ej: Camiseta, Jogger..."
-                                                    list={`prendas-datalist-${index}`}
-                                                    {...register(`lineas.${index}.descripcion`)}
-                                                    className="w-full h-11 px-4 rounded-xl text-sm text-white bg-black/20 focus:outline-none transition-all placeholder-slate-600 focus:border-orange-500/50"
-                                                    style={{ border: `1.5px solid ${errors.lineas?.[index]?.descripcion ? AppColors.red : (vLineas[index]?.descripcion ? AppColors.orange : AppColors.border)}` }}
-                                                    autoComplete="off"
-                                                />
-                                                {errors.lineas?.[index]?.descripcion && (
-                                                    <p className="text-xs text-red-400 mt-1">{errors.lineas[index]?.descripcion?.message}</p>
-                                                )}
-                                                <datalist id={`prendas-datalist-${index}`}>
-                                                    {listaPrendas.map(p => <option key={p} value={p} />)}
-                                                </datalist>
-                                            </div>
-
-                                            {!readOnly && fields.length > 1 && (
-                                                <button type="button" onClick={() => remove(index)}
-                                                    className="flex items-center justify-center rounded-xl bg-[#0d1018] text-slate-600 hover:bg-red-400 transition-all duration-300 group cursor-pointer">
-                                                    <Trash2 className="w-10 h-5 group-hover:scale-110 transition-transform" /> </button>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Talla</span>
-                                                <select {...register(`lineas.${index}.talla`)}
-                                                    className="w-full h-10 px-2 rounded-xl text-xs text-white bg-black/20 border border-[#1e2130] focus:border-orange-500/50 outline-none">
-                                                    {["XS", "S", "M", "L", "XL", "MIXTA", "PREDETERMINADA"].map(t => <option key={t} value={t}>{t}</option>)}
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1 relative">
-                                                <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Color</span>
-                                                <input
-                                                    type="text"
-                                                    placeholder="ej: Negro"
-                                                    {...register(`lineas.${index}.color`)}
-                                                    onFocus={() => setFocusedIndex(index)}
-                                                    onBlur={() => setFocusedIndex(null)}
-                                                    className="w-full h-10 px-3 rounded-xl text-white text-xs bg-black/20 focus:outline-none placeholder-slate-600 border focus:border-orange-500/50"
-                                                    style={{ borderColor: AppColors.border }}
-                                                    autoComplete="off"
-                                                />
-
-                                                {focusedIndex === index && (
-                                                    <div className="absolute left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-[#13161e] border border-[#1e2130] rounded-xl z-50 shadow-2xl custom-scrollbar">
-                                                        {COLORES_SUGERIDOS
-                                                            .filter(c => {
-                                                                const val = vLineas[index]?.color || "";
-                                                                return c.toLowerCase().includes(val.toLowerCase());
-                                                            })
-                                                            .map(c => (
-                                                                <button
-                                                                    key={c}
-                                                                    type="button"
-                                                                    onMouseDown={(e) => {
-                                                                        e.preventDefault();
-                                                                        setValue(`lineas.${index}.color`, c);
-                                                                        setFocusedIndex(null);
-                                                                    }}
-                                                                    className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-orange-500/10 hover:text-white transition-colors cursor-pointer"
-                                                                >
-                                                                    {c}
-                                                                </button>
-                                                            ))}
-                                                        {/* Opción para sugerir que sigan escribiendo */}
-                                                        {vLineas[index]?.color && !COLORES_SUGERIDOS.map(c => c.toLowerCase()).includes((vLineas[index]?.color || "").toLowerCase()) && (
-                                                            <div className="px-3 py-1.5 text-[9px] text-slate-500 border-t border-[#1e2130]">
-                                                                Usa el color escrito: "{vLineas[index]?.color}"
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[10px] font-bold text-slate-600 uppercase ml-1 tracking-tighter">Cantidad</span>
-                                                <input type="number" min="1"
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "-" || e.key === "e" || e.key === "E") {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                    {...register(`lineas.${index}.cantidad`, { valueAsNumber: true })}
-                                                    className="w-full h-10 px-3 rounded-xl text-white text-xs bg-black/20 focus:outline-none"
-                                                    style={{ border: `1.5px solid ${errors.lineas?.[index]?.cantidad ? AppColors.red : (vLineas[index]?.cantidad > 0 ? AppColors.orange : AppColors.border)}` }} />
-                                                {errors.lineas?.[index]?.cantidad && (
-                                                    <p className="text-[10px] text-red-400 mt-1">{errors.lineas[index]?.cantidad?.message}</p>
-                                                )}
-                                            </div>
-
-                                            <LineaInsumos 
-                                                lineIndex={index} 
-                                                control={control} 
-                                                register={register} 
-                                                readOnly={readOnly} 
-                                                insumosDisponibles={insumos} 
-                                                setValue={setValue}
-                                                watchLine={vLineas?.[index]?.insumos}
-                                            />
-                                        </div>
-                                    </div>
+                                    <CardLineaOrden
+                                        key={field.id}
+                                        index={index}
+                                        register={register}
+                                        errors={errors}
+                                        control={control}
+                                        setValue={setValue}
+                                        readOnly={readOnly}
+                                        vLineas={vLineas}
+                                        listaPrendas={listaPrendas}
+                                        insumos={insumos}
+                                        onRemove={() => remove(index)}
+                                        showRemoveButton={fields.length > 1}
+                                    />
                                 ))}
                             </div>
                         </div>
