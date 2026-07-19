@@ -13,6 +13,32 @@ const getAuthHeaders = (token?: string) => {
   return headers;
 };
 
+export const mapApiToFrontend = (api: any): Maquina => {
+  return {
+    id: api.id,
+    codigo: api.codigo,
+    tipo: api.tipo,
+    nombre: api.nombre,
+    modelo: api.modelo || "",
+    serie: api.serie || "",
+    capacidadPorHora: api.capacidad_por_hora ?? 0,
+    operarioAsignado: api.operario_asignado_id || undefined,
+    estado: api.estado,
+  };
+};
+
+export const mapFrontendToApi = (maquina: Partial<Maquina>): any => {
+  const api: any = {};
+  if (maquina.codigo !== undefined) api.codigo = maquina.codigo;
+  if (maquina.tipo !== undefined) api.tipo = maquina.tipo;
+  if (maquina.nombre !== undefined) api.nombre = maquina.nombre;
+  if (maquina.modelo !== undefined) api.modelo = maquina.modelo;
+  if (maquina.capacidadPorHora !== undefined) api.capacidad_por_hora = maquina.capacidadPorHora;
+  if (maquina.estado !== undefined) api.estado = maquina.estado;
+  if (maquina.operarioAsignado !== undefined) api.operario_asignado_id = maquina.operarioAsignado || null;
+  return api;
+};
+
 export const maquinasService = {
   getAll: async (token?: string): Promise<Maquina[]> => {
     try {
@@ -23,7 +49,8 @@ export const maquinasService = {
       });
 
       if (!response.ok) throw new Error("No se pudo obtener la lista de máquinas.");
-      return await response.json();
+      const data: any[] = await response.json();
+      return data.map(mapApiToFrontend);
     } catch (error: any) {
       console.error("Error en maquinasService.getAll:", error);
       throw new Error(error.message || "Error al conectar con el servidor.");
@@ -38,14 +65,16 @@ export const maquinasService = {
   create: async (data: Omit<Maquina, "id">, token?: string): Promise<Maquina> => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const mappedData = mapFrontendToApi(data);
       const response = await fetch(`${API_URL}/maquinas`, {
         method: "POST",
         headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
+        body: JSON.stringify(mappedData),
       });
 
       if (!response.ok) throw new Error("No se pudo crear la máquina.");
-      return await response.json();
+      const created = await response.json();
+      return mapApiToFrontend(created);
     } catch (error: any) {
       console.error("Error en maquinasService.create:", error);
       throw new Error(error.message || "Error al crear la máquina.");
@@ -55,14 +84,16 @@ export const maquinasService = {
   update: async (id: string, data: Partial<Maquina>, token?: string): Promise<Maquina> => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const mappedData = mapFrontendToApi(data);
       const response = await fetch(`${API_URL}/maquinas/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
+        body: JSON.stringify(mappedData),
       });
 
       if (!response.ok) throw new Error(`No se pudo actualizar la máquina con ID: ${id}`);
-      return await response.json();
+      const updated = await response.json();
+      return mapApiToFrontend(updated);
     } catch (error: any) {
       console.error("Error en maquinasService.update:", error);
       throw new Error(error.message || "Error al actualizar la máquina.");

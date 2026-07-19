@@ -83,7 +83,7 @@ export const insumosService = {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${API_URL}/insumos/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: getAuthHeaders(token),
         body: JSON.stringify(data),
       });
