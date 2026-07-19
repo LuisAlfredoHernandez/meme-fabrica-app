@@ -59,7 +59,7 @@ export default function OperariosPage() {
 
     const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string) => {
         if (!asignando || !asignando.id) return;
-        
+
         const success = await createAsignacion({
             orden_id: ordenId,
             operario_id: asignando.id,
@@ -127,7 +127,7 @@ export default function OperariosPage() {
                     {filtrados.map(o => {
                         const est = ESTADO_CFG[o.estado] || ESTADO_CFG.pendiente;
                         const oAsignaciones = asignaciones.filter(a => a.operario_id === o.id);
-                        
+
                         return (
                             <div key={o.id} className="rounded-2xl border bg-[#13161e] overflow-hidden flex flex-col hover:border-white/10 transition-colors" style={{ borderColor: AppColors.border }}>
                                 <div className="p-4 border-b flex items-center gap-4" style={{ borderColor: AppColors.border }}>
@@ -154,7 +154,7 @@ export default function OperariosPage() {
                                             const nivel = hab.nivel_eficiencia ?? 0;
                                             const colorBarra = nivel >= 85 ? AppColors.emerald : nivel >= 70 ? AppColors.amber : AppColors.red;
                                             return (
-                                                <div key={hab.maquina}>
+                                                <div key={hab.maquina + (hab.nivel_eficiencia ?? 0)}>
                                                     <div className="flex justify-between items-center mb-1">
                                                         <span className="text-xs font-bold capitalize flex items-center gap-2" style={{ color: cfg.color }}>
                                                             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.color }} />
@@ -176,7 +176,7 @@ export default function OperariosPage() {
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                                             <ClipboardList className="w-3.5 h-3.5 text-orange-500" /> Órdenes Asignadas ({oAsignaciones.length})
                                         </p>
-                                        
+
                                         {oAsignaciones.length > 0 ? (
                                             <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                                                 {oAsignaciones.map(asig => {

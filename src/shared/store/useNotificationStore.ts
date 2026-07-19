@@ -28,10 +28,13 @@ export interface ToastItem {
 }
 
 interface NotificationState {
+    currentUserId: string | null;
     notifications: NotificationItem[];
+    processedSyncIds: string[];
     toasts: ToastItem[];
     selectedNotification: NotificationItem | null;
     actions: {
+        syncUser: (userId: string) => void;
         addNotification: (
             titulo: string,
             mensaje: string,
@@ -56,10 +59,24 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>()(
     persist(
         (set) => ({
+            currentUserId: null,
             notifications: [],
+            processedSyncIds: [],
             toasts: [],
             selectedNotification: null,
             actions: {
+                syncUser: (userId) => {
+                    set((state) => {
+                        if (state.currentUserId !== userId) {
+                            return {
+                                currentUserId: userId,
+                                notifications: [],
+                                processedSyncIds: [],
+                            };
+                        }
+                        return state;
+                    });
+                },
                 addNotification: (titulo, mensaje, tipo, detalles) => {
                     const id = Math.random().toString(36).substring(2, 9);
                     const now = new Date().toISOString();
@@ -125,11 +142,13 @@ export const useNotificationStore = create<NotificationState>()(
                     set((state) => {
                         const newNotifications = [...state.notifications];
                         let updated = false;
+                        const newProcessed = new Set(state.processedSyncIds || []);
 
                         pendientes.forEach((p) => {
-                            if (!newNotifications.some((n) => n.id === p.id)) {
+                            const syncId = `val_${p.id}`;
+                            if (!newProcessed.has(syncId)) {
                                 const newNotif: NotificationItem = {
-                                    id: p.id,
+                                    id: syncId,
                                     titulo: "Revisión Pendiente",
                                     mensaje: `El operario ${p.operarioNombre} ha reportado avance de producción. Pendiente de validación.`,
                                     tipo: "warning",
@@ -141,11 +160,12 @@ export const useNotificationStore = create<NotificationState>()(
                                     }
                                 };
                                 newNotifications.push(newNotif);
+                                newProcessed.add(syncId);
                                 updated = true;
                             }
                         });
 
-                        const pendingIds = new Set(pendientes.map((p) => p.id));
+                        const pendingIds = new Set(pendientes.map((p) => `val_${p.id}`));
                         const cleanedNotifications = newNotifications.filter((n) => {
                             if (n.titulo === "Revisión Pendiente" && n.tipo === "warning") {
                                 if (!pendingIds.has(n.id)) {
@@ -162,6 +182,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         return {
                             notifications: cleanedNotifications.slice(0, 50),
+                            processedSyncIds: Array.from(newProcessed).slice(-200)
                         };
                     });
                 },
@@ -169,12 +190,13 @@ export const useNotificationStore = create<NotificationState>()(
                     set((state) => {
                         const newNotifications = [...state.notifications];
                         let updated = false;
+                        const newProcessed = new Set(state.processedSyncIds || []);
 
                         assignments.forEach((a) => {
-                            const notificationId = `asig_created_${a.id}`;
-                            if (!newNotifications.some((n) => n.id === notificationId)) {
+                            const syncId = `asig_created_${a.id}`;
+                            if (!newProcessed.has(syncId)) {
                                 const newNotif: NotificationItem = {
-                                    id: notificationId,
+                                    id: syncId,
                                     titulo: "Nueva Tarea Asignada",
                                     mensaje: `El supervisor te ha asignado una nueva tarea de producción para la orden ${a.ordenNumero}.`,
                                     tipo: "warning",
@@ -185,6 +207,7 @@ export const useNotificationStore = create<NotificationState>()(
                                     }
                                 };
                                 newNotifications.push(newNotif);
+                                newProcessed.add(syncId);
                                 updated = true;
                             }
                         });
@@ -206,6 +229,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         return {
                             notifications: cleanedNotifications.slice(0, 50),
+                            processedSyncIds: Array.from(newProcessed).slice(-200)
                         };
                     });
                 },

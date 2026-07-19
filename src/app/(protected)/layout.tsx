@@ -41,7 +41,14 @@ export default function ProtectedLayout({
     const [isWsConnected, setIsWsConnected] = useState(false);
     const toasts = useToasts();
     const selectedNotification = useSelectedNotification();
-    const { addNotification, addToastOnly, removeToast, setSelectedNotification, syncPendingValidations, syncOperatorAssignments } = useNotificationActions();
+    const { addNotification, addToastOnly, removeToast, setSelectedNotification, syncPendingValidations, syncOperatorAssignments, syncUser } = useNotificationActions();
+
+    // Sincronizar el usuario actual para evitar mezcla de notificaciones entre cuentas y prevenir reaparición
+    useEffect(() => {
+        if (isAuthenticated && user?.id) {
+            syncUser(user.id);
+        }
+    }, [isAuthenticated, user, syncUser]);
 
     // Sincronizar reportes de avance pendientes con el historial de notificaciones del supervisor/admin
     useEffect(() => {
