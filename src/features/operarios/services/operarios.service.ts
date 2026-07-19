@@ -42,7 +42,10 @@ export const operariosService = {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("No se pudo crear el operario.");
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || "No se pudo crear el operario.");
+      }
       return await response.json();
     } catch (error: any) {
       console.error("Error en operariosService.create:", error);
@@ -59,7 +62,10 @@ export const operariosService = {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error(`No se pudo actualizar el operario con ID: ${id}`);
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `No se pudo actualizar el operario con ID: ${id}`);
+      }
       return await response.json();
     } catch (error: any) {
       console.error("Error en operariosService.update:", error);

@@ -156,7 +156,20 @@ export function ModalGestionInsumo({
             )}
 
             <form
-                onSubmit={handleSubmit(onSubmitAction, (err) => console.log("Errores de validación del formulario:", err))}
+                onSubmit={handleSubmit(onSubmitAction, (errors: any) => {
+                    console.error("🚨 Error de Validación en Formulario Insumos:", { errors, currentValues: getValues() });
+                    Object.entries(errors).forEach(([field, error]: [string, any]) => {
+                        let mensaje = error.message;
+                        if (!mensaje) {
+                            mensaje = `El campo ${field} contiene un error.`;
+                        }
+                        addToastOnly(
+                            "Error de Validación",
+                            mensaje,
+                            "warning"
+                        );
+                    });
+                })}
                 className="w-full max-w-md flex flex-col rounded-2xl shadow-2xl overflow-hidden border"
                 style={{ background: AppColors.surface, borderColor: AppColors.border }}
             >

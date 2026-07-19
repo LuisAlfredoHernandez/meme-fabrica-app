@@ -53,7 +53,13 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     const onActualSubmit = async (data: OperarioFormData) => {
         try {
             if (isExisting && data.id) {
-                await updateOperario(data.id, data as Operario);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { id, rol, password, ...updateData } = data;
+                const payload: any = { ...updateData };
+                if (password && password.trim() !== "") {
+                    payload.password = password;
+                }
+                await updateOperario(data.id, payload as Operario);
                 addToastOnly("Operario Actualizado", `Datos de ${data.nombre} actualizados con éxito.`, "success");
             } else {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -82,11 +88,29 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         }
     };
 
-    const onInvalidSubmit = (errors: unknown) => {
+    const onInvalidSubmit = (errors: any) => {
         console.error("🚨 Error de Validación en Formulario Operarios:", {
             timestamp: new Date().toISOString(),
-            errors, // Aquí verás qué campo falló y por qué (Zod error messages)
+            errors,
             currentValues: getValues()
+        });
+
+        // Mostrar toasts para cada error de validación
+        Object.entries(errors).forEach(([field, error]: [string, any]) => {
+            let mensaje = error.message;
+
+            // Zod produce mensajes feos por defecto para enums inválidos o requeridos no provistos.
+            if (field === "maquinaActual") {
+                mensaje = "Debe seleccionar una máquina y tenerla como máquina actual.";
+            } else if (!mensaje) {
+                mensaje = `El campo ${field} contiene un error.`;
+            }
+
+            addToastOnly(
+                "Error de Validación",
+                mensaje,
+                "warning"
+            );
         });
     };
 
@@ -134,26 +158,38 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     </div>
                                 )}
                             </div>
-                            <div className="relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                <input
-                                    value={query}
-                                    onChange={e => {
-                                        setQuery(e.target.value);
-                                        setIsOpen(true);
-                                        if (!isExisting) {
-                                            const partes = e.target.value.trim().split(" ");
-                                            setValue("nombre", partes[0] || "");
-                                            setValue("apellido", partes.slice(1).join(" ") || "");
-                                            setValue("habilidades", []);
-                                            setValue("correo", "");
-                                        }
-                                        if (isExisting) setIsExisting(false);
-                                    }}
-                                    onFocus={() => setIsOpen(true)}
-                                    placeholder="Escribe el nombre completo..."
-                                    className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border border-[#1e2130] bg-[#0d1018] focus:border-orange-500/50 transition-all"
-                                />
+                            <div className="flex items-center gap-2">
+                                <div className="relative group flex-1">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <input
+                                        value={query}
+                                        onChange={e => {
+                                            setQuery(e.target.value);
+                                            setIsOpen(true);
+                                            if (!isExisting) {
+                                                const partes = e.target.value.trim().split(" ");
+                                                setValue("nombre", partes[0] || "");
+                                                setValue("apellido", partes.slice(1).join(" ") || "");
+                                                setValue("habilidades", []);
+                                                setValue("correo", "");
+                                            }
+                                            if (isExisting) setIsExisting(false);
+                                        }}
+                                        onFocus={() => setIsOpen(true)}
+                                        placeholder="Escribe el nombre completo..."
+                                        className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border border-[#1e2130] bg-[#0d1018] focus:border-orange-500/50 transition-all"
+                                    />
+                                </div>
+                                {isExisting && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(true)}
+                                        className="h-11 w-11 shrink-0 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center justify-center"
+                                        title="Eliminar Operario"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                )}
                             </div>
 
                             {isOpen && filteredOperarios.length > 0 && (
@@ -248,16 +284,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                     {/* Footer */}
                     <div className="flex items-center gap-3 px-6 py-5 bg-black/20 border-t border-[#1e2130]">
-                        {isExisting && (
-                            <button
-                                type="button"
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className="px-4 h-12 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center justify-center"
-                                title="Eliminar Operario"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                        )}
                         <button type="button" onClick={onClose} className="flex-1 h-12 rounded-xl border border-[#1e2130] text-sm font-semibold text-slate-400 hover:bg-white/5 cursor-pointer">
                             Cancelar
                         </button>

@@ -76,7 +76,20 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
     };
 
     const onInvalidSubmit = (errors: FieldErrors<MaquinaFormData>) => {
-        console.error("🚨 Error de Validación:", { errors, currentValues: getValues() });
+        console.error("🚨 Error de Validación en Formulario Maquinas:", { errors, currentValues: getValues() });
+
+        Object.entries(errors).forEach(([field, error]: [string, any]) => {
+            let mensaje = error.message;
+            if (!mensaje) {
+                mensaje = `El campo ${field} contiene un error.`;
+            }
+
+            addToastOnly(
+                "Error de Validación",
+                mensaje,
+                "warning"
+            );
+        });
     };
 
 

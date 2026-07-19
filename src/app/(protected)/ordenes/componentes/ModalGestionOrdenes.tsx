@@ -133,11 +133,30 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
         }
     };
 
-    const onInvalidSubmit = (errors: unknown) => {
-        console.error("🚨 Error de Validación en Formulario Operarios:", {
+    const onInvalidSubmit = (errors: any) => {
+        console.error("🚨 Error de Validación en Formulario Ordenes:", {
             timestamp: new Date().toISOString(),
             errors,
             currentValues: getValues()
+        });
+
+        Object.entries(errors).forEach(([field, error]: [string, any]) => {
+            let mensaje = error.message;
+            if (!mensaje && error.root) mensaje = error.root.message;
+            if (!mensaje) {
+                // Si es un error de array (como 'lineas' o 'insumos'), el error es anidado.
+                if (Array.isArray(error)) {
+                    mensaje = `Hay errores en las prendas o insumos de la orden. Revisa las cantidades.`;
+                } else {
+                    mensaje = `El campo ${field} contiene un error.`;
+                }
+            }
+
+            addToastOnly(
+                "Error de Validación",
+                mensaje,
+                "warning"
+            );
         });
     };
 
