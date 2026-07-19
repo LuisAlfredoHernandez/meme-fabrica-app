@@ -10,8 +10,10 @@ import { useEffect, useState } from "react";
 import { FieldErrors, useForm } from "react-hook-form";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
+import { generateNextCodigo } from "@/features/maquinas/utils/maquina.utils";
+
 export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, onClose: () => void }) {
-    const { actions, maquinaTypes } = useMaquinasStore();
+    const { maquinas, actions, maquinaTypes } = useMaquinasStore();
     const { addToastOnly } = useNotificationActions();
 
     const isExisting = !!maquina;
@@ -33,7 +35,10 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
 
     useEffect(() => {
         actions.fetchAllMaquinaTypes();
-    }, [actions, actions.fetchAllMaquinaTypes]);
+        if (maquinas.length === 0) {
+            actions.fetchMaquinas();
+        }
+    }, [actions, actions.fetchAllMaquinaTypes, actions.fetchMaquinas, maquinas.length]);
 
 
     const filteredMaquinarias = maquinaTypes.filter(maquina =>
@@ -44,6 +49,14 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
     // Observamos el estado para aplicar estilos visuales en los botones
     const estadoActual = watch("estado");
     const valorSelectorTipo = watch("tipo");
+
+    // Autogenerar el código de máquina según el tipo seleccionado cuando se crea una nueva
+    useEffect(() => {
+        if (!isExisting && valorSelectorTipo) {
+            const autoCodigo = generateNextCodigo(valorSelectorTipo, maquinas);
+            setValue("codigo", autoCodigo, { shouldValidate: true });
+        }
+    }, [valorSelectorTipo, isExisting, maquinas, setValue]);
 
     const onActualSubmit = async (data: MaquinaFormData) => {
         try {
