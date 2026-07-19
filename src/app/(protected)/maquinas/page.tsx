@@ -26,9 +26,10 @@ export default function MaquinasPage() {
             <Header title="Maquinaria y Equipos" subtitle="Gestión de activos y estado operativo" buttonLabel="Nueva máquina" onButtonClick={() => { setSelectedMaquina(null); setIsModalOpen(true) }} />
 
             {/* Cards de Métricas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <StatCard label="Total Equipos" valor={maquinas.length} />
                 <StatCard label="Operativas" valor={maquinas.filter(m => m.estado === 'operativa').length} labelColor={AppColors.emerald} />
+                <StatCard label="Bajo Revisión" valor={maquinas.filter(m => m.estado === 'bajo_revision').length} labelColor="#fbbf24" />
                 <StatCard label="En Mantenimiento" valor={maquinas.filter(m => m.estado === 'mantenimiento').length} labelColor={AppColors.amber} />
                 <StatCard label="Fuera de Servicio" valor={maquinas.filter(m => m.estado === 'fuera_servicio').length} labelColor={AppColors.red} />
             </div>

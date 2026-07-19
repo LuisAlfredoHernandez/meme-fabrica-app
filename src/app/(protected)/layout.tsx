@@ -34,7 +34,7 @@ export default function ProtectedLayout({
     const { fetchAsignaciones } = useAsignacionActions();
     const { asignaciones } = useAsignacionStore();
     const { fetchOrdenes } = useOrdenActions();
-    const { fetchMaquinas } = useMaquinasActions();
+    const { fetchMaquinas, fetchReportesAveriaPendientes } = useMaquinasActions();
     const { fetchOperarios } = useOperarioActions();
     const { fetchPendientes } = useValidacionActions();
     const { pendientes } = useValidacionStore();
@@ -203,21 +203,36 @@ export default function ProtectedLayout({
                     
                     if (
                         message.event === "machine_updated" ||
-                        message.event === "reporte_averia_created"
+                        message.event === "reporte_averia_created" ||
+                        message.event === "reporte_averia_processed"
                     ) {
                         fetchMaquinas();
+                        fetchReportesAveriaPendientes();
+
                         if (message.event === "reporte_averia_created") {
-                            if (!isCurrentUser) {
+                            if (!isCurrentUser && user.rol !== "operario") {
                                 const maquinaDetalle = message.maquina_codigo ? `${message.maquina_tipo || ""} (${message.maquina_codigo})` : "de la planta";
                                 addNotification(
-                                    "Falla de Equipo", 
-                                    `Se reportó una avería crítica en máquina ${maquinaDetalle}. Enviada a mantenimiento.`, 
-                                    "error",
-                                    {
-                                        maquina_codigo: message.maquina_codigo,
-                                        maquina_tipo: message.maquina_tipo,
-                                        motivo: message.descripcion
-                                    }
+                                    "Máquina Bajo Revisión", 
+                                    `Se reportó una avería en máquina ${maquinaDetalle}. El equipo ha pasado a BAJO REVISIÓN.`, 
+                                    "warning"
+                                );
+                            }
+                        } else if (message.event === "reporte_averia_processed") {
+                            const estadoTxt = message.aprobado ? "FUERA DE SERVICIO" : "OPERATIVA";
+                            if (user.rol === "operario") {
+                                addNotification(
+                                    message.aprobado ? "Avería Aprobada" : "Avería Rechazada",
+                                    message.aprobado
+                                        ? "Tu reporte de avería fue aprobado por el supervisor. La máquina pasa a FUERA DE SERVICIO."
+                                        : "Tu reporte de avería fue rechazado por el supervisor. La máquina vuelve a estar OPERATIVA.",
+                                    message.aprobado ? "error" : "info"
+                                );
+                            } else if (!isCurrentUser) {
+                                addNotification(
+                                    "Avería Procesada", 
+                                    `Se evaluó el reporte de avería. La máquina ha pasado a ${estadoTxt}.`, 
+                                    message.aprobado ? "error" : "info"
                                 );
                             }
                         } else if (message.event === "machine_updated") {
@@ -259,25 +274,26 @@ export default function ProtectedLayout({
             }
             clearTimeout(reconnectTimeout);
         };
-    }, [isAuthenticated, user, fetchOrdenes, fetchAsignaciones, fetchMaquinas, fetchOperarios]);
+    }, [isAuthenticated, user, fetchOrdenes, fetchAsignaciones, fetchMaquinas, fetchOperarios, fetchReportesAveriaPendientes]);
 
     // Fallback de polling activo global si no hay conexión de WebSocket
     useEffect(() => {
         if (!isAuthenticated || !user || isWsConnected) return;
 
-        console.log("[Global WS] Activando fallback de polling (cada 5 segundos)... En espera de reconexión WebSocket.");
+        console.log("[Global WS] Activando fallback de polling (cada 4 segundos)... En espera de reconexión WebSocket.");
         const interval = setInterval(() => {
             fetchOrdenes();
             fetchAsignaciones();
             fetchMaquinas();
             fetchOperarios();
+            fetchReportesAveriaPendientes();
             if (user.rol !== "operario") {
                 fetchPendientes();
             }
-        }, 5000);
+        }, 4000);
 
         return () => clearInterval(interval);
-    }, [isWsConnected, isAuthenticated, user, fetchOrdenes, fetchAsignaciones, fetchMaquinas, fetchOperarios]);
+    }, [isWsConnected, isAuthenticated, user, fetchOrdenes, fetchAsignaciones, fetchMaquinas, fetchOperarios, fetchReportesAveriaPendientes, fetchPendientes]);
 
     useEffect(() => {
         setMounted(true);

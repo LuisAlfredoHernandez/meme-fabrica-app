@@ -43,9 +43,11 @@ export const maquinasService = {
   getAll: async (token?: string): Promise<Maquina[]> => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/maquinas`, {
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_URL}/maquinas?_t=${timestamp}`, {
         method: "GET",
         headers: getAuthHeaders(token),
+        cache: "no-store",
       });
 
       if (!response.ok) throw new Error("No se pudo obtener la lista de máquinas.");
@@ -109,11 +111,70 @@ export const maquinasService = {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("No se pudo enviar el reporte de avería.");
+      if (!response.ok) {
+        let errMsg = "No se pudo enviar el reporte de avería.";
+        try {
+          const errData = await response.json();
+          if (errData.detail) {
+            errMsg = typeof errData.detail === "string" ? errData.detail : JSON.stringify(errData.detail);
+          }
+        } catch (e) {}
+        console.error("[maquinasService.reportarAveria] HTTP Error:", response.status, errMsg);
+        throw new Error(errMsg);
+      }
       return await response.json();
     } catch (error: any) {
       console.error("Error en maquinasService.reportarAveria:", error);
       throw new Error(error.message || "Error al enviar el reporte de avería.");
+    }
+  },
+
+  getReportesAveriaPendientes: async (token?: string): Promise<ReporteAveria[]> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const timestamp = new Date().getTime();
+      const response = await fetch(`${API_URL}/reportes-averia/pendientes?_t=${timestamp}`, {
+        method: "GET",
+        headers: getAuthHeaders(token),
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        console.error("[maquinasService.getReportesAveriaPendientes] HTTP Error:", response.status, errText);
+        throw new Error("No se pudieron obtener los reportes de avería pendientes.");
+      }
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en maquinasService.getReportesAveriaPendientes:", error);
+      return [];
+    }
+  },
+
+  procesarReporteAveria: async (id: string, aprobado: boolean, notas?: string, token?: string): Promise<ReporteAveria> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/reportes-averia/${id}/procesar`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+        body: JSON.stringify({ aprobado, notas }),
+      });
+
+      if (!response.ok) {
+        let errMsg = "No se pudo procesar el reporte de avería.";
+        try {
+          const errData = await response.json();
+          if (errData.detail) {
+            errMsg = typeof errData.detail === "string" ? errData.detail : JSON.stringify(errData.detail);
+          }
+        } catch (e) {}
+        console.error("[maquinasService.procesarReporteAveria] HTTP Error:", response.status, errMsg);
+        throw new Error(errMsg);
+      }
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en maquinasService.procesarReporteAveria:", error);
+      throw new Error(error.message || "Error al procesar el reporte de avería.");
     }
   },
 };

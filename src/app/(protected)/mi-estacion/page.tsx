@@ -13,7 +13,7 @@ import { TareaAsignadaCard } from "@/features/operarios/components/TareaAsignada
 import { FormularioReporteAvance } from "@/features/operarios/components/FormularioReporteAvance";
 import { FormularioReporteFalla } from "@/features/maquinas/components/FormularioReporteFalla";
 import { AppColors } from "@/shared/constants";
-import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
+import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle, Clock, Wrench } from "lucide-react";
 
 export default function MiEstacionPage() {
     const { user } = useAuthStore();
@@ -21,8 +21,8 @@ export default function MiEstacionPage() {
     const { operarios, isLoading: loadingOperarios } = useOperarioStore();
     const { fetchOperarios } = useOperarioActions();
 
-    const { maquinas, isLoading: loadingMaquinas } = useMaquinasStore();
-    const { fetchMaquinas, reportarAveria } = useMaquinasActions();
+    const { maquinas, reportesAveriaPendientes, isLoading: loadingMaquinas } = useMaquinasStore();
+    const { fetchMaquinas, fetchReportesAveriaPendientes, reportarAveria } = useMaquinasActions();
 
     const { asignaciones } = useAsignacionStore();
     const { fetchAsignaciones, reportarAvance } = useAsignacionActions();
@@ -41,8 +41,45 @@ export default function MiEstacionPage() {
         ? operarios.find(o => o.correo === user.correo || o.nombre === user.nombre) || null
         : null;
 
-    const miMaquina = miOperario?.maquinaActual && maquinas.length > 0
-        ? maquinas.find(m => m.tipo === miOperario.maquinaActual) || null
+    // 1. Prioridad: Máquina asignada explícitamente al operario
+    let miMaquinaRaw = miOperario && maquinas.length > 0
+        ? maquinas.find(m => m.operarioAsignado === miOperario.id) || null
+        : null;
+
+    // 2. Si no tiene una explícitamente asignada, pero tiene un reporte de avería pendiente,
+    // buscamos esa máquina para que pueda ver su estado de revisión.
+    if (!miMaquinaRaw && miOperario && reportesAveriaPendientes.length > 0) {
+        const miReporte = reportesAveriaPendientes.find(r => r.operario_id === miOperario.id);
+        if (miReporte) {
+            miMaquinaRaw = maquinas.find(m => m.id === miReporte.maquina_id) || null;
+        }
+    }
+
+    // 3. Si aún no tiene, buscamos una máquina del tipo que opera.
+    // Para evitar que "salte" a una funcional de otro, primero buscamos si hay alguna 
+    // averiada que no tenga operario (quizás se desasignó al dañarse).
+    if (!miMaquinaRaw && miOperario?.maquinaActual && maquinas.length > 0) {
+        const maquinasDelTipo = maquinas.filter(m => m.tipo === miOperario.maquinaActual);
+        
+        miMaquinaRaw = 
+            // Intentar encontrar una que él mismo esté usando y no esté asignada a NADIE más
+            maquinasDelTipo.find(m => !m.operarioAsignado && m.estado !== "operativa") ||
+            maquinasDelTipo.find(m => !m.operarioAsignado) || 
+            maquinasDelTipo[0] || 
+            null;
+    }
+
+    const hasPendingAveria = miMaquinaRaw && reportesAveriaPendientes.length > 0
+        ? reportesAveriaPendientes.some(
+            r => (r.maquina_id === miMaquinaRaw.id || r.maquina_codigo === miMaquinaRaw.codigo || (miOperario && r.operario_id === miOperario.id)) && r.estado === "pendiente"
+        )
+        : false;
+
+    const miMaquina = miMaquinaRaw
+        ? {
+            ...miMaquinaRaw,
+            estado: hasPendingAveria ? ("bajo_revision" as const) : miMaquinaRaw.estado
+        }
         : null;
 
     const PRIORIDAD_VALORES: Record<string, number> = {
@@ -93,9 +130,10 @@ export default function MiEstacionPage() {
         // Carga inicial
         fetchOperarios();
         fetchMaquinas();
+        fetchReportesAveriaPendientes();
         fetchAsignaciones();
         fetchOrdenes();
-    }, [fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
+    }, [fetchOperarios, fetchMaquinas, fetchReportesAveriaPendientes, fetchAsignaciones, fetchOrdenes]);
 
     // Detección de cambios en tiempo real en las órdenes del operario
     useEffect(() => {
@@ -183,6 +221,22 @@ export default function MiEstacionPage() {
     const eficiencia = habilidadEnMaquina && habilidadEnMaquina.nivel_eficiencia !== undefined
         ? `${habilidadEnMaquina.nivel_eficiencia}%`
         : "N/A";
+
+    const estadoCfg = (() => {
+        switch (miMaquina?.estado) {
+            case "operativa":
+                return { label: "OPERATIVA", color: "#34d399", icon: CheckCircle2 };
+            case "bajo_revision":
+                return { label: "REVISIÓN", color: "#fbbf24", icon: Clock };
+            case "mantenimiento":
+                return { label: "MANTENIMIENTO", color: "#f59e0b", icon: Wrench };
+            case "fuera_servicio":
+                return { label: "FUERA DE SERVICIO", color: "#f43f5e", icon: AlertTriangle };
+            default:
+                return { label: "DESCONOCIDO", color: "#94a3b8", icon: AlertTriangle };
+        }
+    })();
+
     return (
         <div className="w-full h-full overflow-y-auto custom-scrollbar p-6">
             <div className="mb-6">
@@ -215,7 +269,6 @@ export default function MiEstacionPage() {
                 )}
             </div>
 
-            {/* Kpis / Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <StatCard
                     label="Máquina Actual"
@@ -232,10 +285,10 @@ export default function MiEstacionPage() {
                 />
                 <StatCard
                     label="Estado de Máquina"
-                    valor={miMaquina?.estado ? miMaquina.estado.toUpperCase() : "Desconocido"}
-                    icon={miMaquina?.estado === "operativa" ? CheckCircle2 : AlertTriangle}
-                    color={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
-                    labelColor={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
+                    valor={estadoCfg.label}
+                    icon={estadoCfg.icon}
+                    color={estadoCfg.color}
+                    labelColor={estadoCfg.color}
                 />
                 <StatCard
                     label="Unidades Buenas"

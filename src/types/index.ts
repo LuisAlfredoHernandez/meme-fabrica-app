@@ -51,7 +51,7 @@ export type TipoProducto =
 export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"] as const;
 export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
-export const MAQUINAS_STATUS_LIST = ["operativa", "mantenimiento", "fuera_servicio"] as const;
+export const MAQUINAS_STATUS_LIST = ["operativa", "bajo_revision", "mantenimiento", "fuera_servicio"] as const;
 export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
 export const USUARIO_ROL = ["administrador", "subjefe", "operario"] as const;
@@ -95,6 +95,21 @@ export interface Maquina {
   capacidadPorHora: number; // piezas/hora estimadas
   operarioAsignado?: string; // Empleado.id
   estado: MaquinaStatus;
+}
+
+export interface ReporteAveria {
+  id: string;
+  maquina_id: string;
+  operario_id: string;
+  descripcion: string;
+  tipo_falla: string;
+  gravedad: string;
+  detiene_produccion?: boolean;
+  estado: "pendiente" | "aprobado" | "rechazado";
+  fecha_reporte: string;
+  operario_nombre?: string;
+  maquina_codigo?: string;
+  maquina_nombre?: string;
 }
 
 export interface Insumo {
@@ -157,18 +172,6 @@ export interface AsignacionOrden {
   };
 }
 
-// ─── Reporte de Averías de Máquinas ──────────────────────────
-export interface ReporteAveria {
-  id?: string;
-  maquina_id: string;
-  operario_id: string;
-  descripcion: string;
-  tipo_falla: string;
-  gravedad: string;
-  detiene_produccion: boolean;
-  fecha_reporte?: string;
-  estado?: string;
-}
 
 // ─── Registro de Producción ──────────────────────────────────
 
