@@ -15,8 +15,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
         nombre: "Juan",
         apellido: "Perez",
         rol: "administrador",
-        estado: "activo",
-        ultimaConexion: "Ahora mismo"
+        estado: "activo"
     },
     {
         id: "u2",
@@ -25,8 +24,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
         nombre: "Carmen",
         apellido: "Méndez",
         rol: "subjefe",
-        estado: "activo",
-        ultimaConexion: "Hace 2 horas"
+        estado: "activo"
     },
     {
         id: "u3",
@@ -35,8 +33,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
         nombre: "Ramon",
         apellido: "Perez",
         rol: "operario",
-        estado: "activo",
-        ultimaConexion: "Hace 1 horas"
+        estado: "activo"
     },
 ];
 
@@ -161,15 +158,14 @@ export const authService = {
     /**
      * Crea una nueva cuenta de acceso.
      */
-    registerUser: (data: Omit<Usuario, "id" | "ultimaConexion"> & { pass: string }): Promise<Usuario> => {
+    registerUser: (data: Omit<Usuario, "id"> & { pass: string }): Promise<Usuario> => {
         console.log("Registrando nuevo acceso al sistema...", data.correo);
 
         return new Promise((resolve) => {
             setTimeout(() => {
                 const newUser: Usuario = {
                     ...data,
-                    id: `u${Math.random().toString(36).substr(2, 5)}`,
-                    ultimaConexion: "Nunca"
+                    id: `u${Math.random().toString(36).substr(2, 5)}`
                 };
 
                 MOCK_CREDENTIALS.push(newUser);

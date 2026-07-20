@@ -68,7 +68,6 @@ export interface Usuario {
   rol: RolUsuario;
   estado: Status;
   password?: string;
-  ultimaConexion?: string;
 }
 
 export interface Operario extends Usuario {

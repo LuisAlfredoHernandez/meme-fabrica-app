@@ -17,6 +17,16 @@ const TAREAS_COMUNES = [
     "Empaque y etiqueta"
 ];
 
+const TAREAS_POR_MAQUINA: Record<string, string[]> = {
+    "corte": ["Cortes correspondientes"],
+    "merrow": ["Sobrehilado (overlook)", "Confección general"],
+    "plana": ["Confección general", "Acabado / Costura fina"],
+    "cover": ["Confección general", "Acabado / Costura fina"],
+    "plancha_dtf": ["Estampado", "Planchado"],
+    "peso": ["Empaque y etiqueta"],
+    "otro": ["Empaque y etiqueta", "Otras tareas"]
+};
+
 interface Props {
     operario: Operario;
     onClose: () => void;
@@ -32,7 +42,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
 
     const [selectedOrd, setSelectedOrd] = useState("");
     const [selectedMaquina, setSelectedMaquina] = useState("");
-    const [selectedTareaPreset, setSelectedTareaPreset] = useState(TAREAS_COMUNES[0]);
+    const [selectedTareaPreset, setSelectedTareaPreset] = useState("");
     const [customTarea, setCustomTarea] = useState("");
     const [isCustomTarea, setIsCustomTarea] = useState(false);
     const [piezasRequeridas, setPiezasRequeridas] = useState<number>(0);
@@ -61,6 +71,18 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
             setPiezasRequeridas(0);
         }
     }, [selectedOrd, ordenes]);
+
+    const tareasDisponibles = operario.habilidades.length > 0 
+        ? Array.from(new Set(operario.habilidades.flatMap(h => TAREAS_POR_MAQUINA[h.maquina] || [])))
+        : TAREAS_COMUNES;
+
+    const finalTareas = tareasDisponibles.length > 0 ? tareasDisponibles : TAREAS_COMUNES;
+
+    useEffect(() => {
+        if (finalTareas.length > 0 && !finalTareas.includes(selectedTareaPreset)) {
+            setSelectedTareaPreset(finalTareas[0]);
+        }
+    }, [finalTareas, selectedTareaPreset]);
 
     const handleConfirmar = () => {
         if (!selectedOrd) return;
@@ -185,7 +207,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                     onChange={(e) => setSelectedTareaPreset(e.target.value)}
                                     className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#0d1018] border border-[#1e2130] text-sm text-white focus:outline-none focus:border-orange-500/50 appearance-none font-medium"
                                 >
-                                    {TAREAS_COMUNES.map(t => (
+                                    {finalTareas.map(t => (
                                         <option key={t} value={t}>{t}</option>
                                     ))}
                                 </select>
