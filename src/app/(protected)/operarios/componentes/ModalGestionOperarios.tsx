@@ -32,7 +32,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
             estado: "inactivo",
             rol: "operario",
             password: "",
-            maquinaActual: "" as any,
             habilidades: []
         }
     });
@@ -99,10 +98,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         Object.entries(errors).forEach(([field, error]: [string, any]) => {
             let mensaje = error.message;
 
-            // Zod produce mensajes feos por defecto para enums inválidos o requeridos no provistos.
-            if (field === "maquinaActual") {
-                mensaje = "Debe seleccionar una máquina y tenerla como máquina actual.";
-            } else if (!mensaje) {
+            if (!mensaje) {
                 mensaje = `El campo ${field} contiene un error.`;
             }
 
@@ -279,6 +275,10 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                         <EstacionesSelector />
                         {errors.habilidades && (
                             <p className="text-[10px] text-red-400 mt-1 px-1">{errors.habilidades.message}</p>
+                        )}
+                        
+                        {errors.maquina_actual_id && (
+                            <p className="text-[10px] text-red-400 mt-1 px-1">{errors.maquina_actual_id.message}</p>
                         )}
                     </div>
 

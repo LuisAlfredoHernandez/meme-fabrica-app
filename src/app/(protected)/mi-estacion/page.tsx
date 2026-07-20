@@ -41,33 +41,10 @@ export default function MiEstacionPage() {
         ? operarios.find(o => o.correo === user.correo || o.nombre === user.nombre) || null
         : null;
 
-    // 1. Prioridad: Máquina asignada explícitamente al operario
-    let miMaquinaRaw = miOperario && maquinas.length > 0
-        ? maquinas.find(m => m.operarioAsignado === miOperario.id) || null
+    // Buscar la máquina física que el operario tiene asignada actualmente
+    const miMaquinaRaw = miOperario && miOperario.maquina_actual_id && maquinas.length > 0
+        ? maquinas.find(m => m.id === miOperario.maquina_actual_id) || null
         : null;
-
-    // 2. Si no tiene una explícitamente asignada, pero tiene un reporte de avería pendiente,
-    // buscamos esa máquina para que pueda ver su estado de revisión.
-    if (!miMaquinaRaw && miOperario && reportesAveriaPendientes.length > 0) {
-        const miReporte = reportesAveriaPendientes.find(r => r.operario_id === miOperario.id);
-        if (miReporte) {
-            miMaquinaRaw = maquinas.find(m => m.id === miReporte.maquina_id) || null;
-        }
-    }
-
-    // 3. Si aún no tiene, buscamos una máquina del tipo que opera.
-    // Para evitar que "salte" a una funcional de otro, primero buscamos si hay alguna 
-    // averiada que no tenga operario (quizás se desasignó al dañarse).
-    if (!miMaquinaRaw && miOperario?.maquinaActual && maquinas.length > 0) {
-        const maquinasDelTipo = maquinas.filter(m => m.tipo === miOperario.maquinaActual);
-        
-        miMaquinaRaw = 
-            // Intentar encontrar una que él mismo esté usando y no esté asignada a NADIE más
-            maquinasDelTipo.find(m => !m.operarioAsignado && m.estado !== "operativa") ||
-            maquinasDelTipo.find(m => !m.operarioAsignado) || 
-            maquinasDelTipo[0] || 
-            null;
-    }
 
     const hasPendingAveria = miMaquinaRaw && reportesAveriaPendientes.length > 0
         ? reportesAveriaPendientes.some(
@@ -216,8 +193,8 @@ export default function MiEstacionPage() {
         );
     }
 
-    // Calcular eficiencia
-    const habilidadEnMaquina = miOperario.habilidades.find(h => h.maquina === miOperario.maquinaActual);
+    // Calcular eficiencia basada en el tipo de la máquina asignada
+    const habilidadEnMaquina = miMaquina && miOperario.habilidades.find(h => h.maquina === miMaquina.tipo);
     const eficiencia = habilidadEnMaquina && habilidadEnMaquina.nivel_eficiencia !== undefined
         ? `${habilidadEnMaquina.nivel_eficiencia}%`
         : "N/A";
@@ -272,7 +249,7 @@ export default function MiEstacionPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <StatCard
                     label="Máquina Actual"
-                    valor={miOperario.maquinaActual ? miOperario.maquinaActual.toUpperCase() : "Ninguna"}
+                    valor={miMaquina ? `${miMaquina.nombre} (${miMaquina.codigo})` : "Ninguna"}
                     icon={Factory}
                     color={AppColors.orange}
                 />
@@ -312,7 +289,7 @@ export default function MiEstacionPage() {
                     misAsignaciones={misAsignaciones}
                     ordenes={ordenes}
                     maquinaEstado={miMaquina?.estado}
-                    maquinaActual={miOperario.maquinaActual}
+                    maquinaActual={miMaquina?.tipo}
                     reportarAvance={reportarAvance}
                 />
 

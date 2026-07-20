@@ -17,8 +17,13 @@ export const habilidadMaquinariaSchema = z.object({
 });
 
 export const operarioSchema = usuarioSchema.extend({
-    habilidades: z.array(habilidadMaquinariaSchema).min(1, "Selecciona al menos una máquina"),
-    maquinaActual: z.enum(MAQUINAS_LIST),
+    habilidades: z.array(habilidadMaquinariaSchema)
+        .min(1, "Selecciona al menos una máquina")
+        .refine(
+            (items) => new Set(items.map((i) => i.maquina)).size === items.length,
+            { message: "No puede haber habilidades duplicadas para el mismo tipo de máquina." }
+        ),
+    maquina_actual_id: z.string().uuid("Debe ser un ID válido").optional().nullable(),
     orden_actual_id: z.string().optional().nullable(),
 });
 

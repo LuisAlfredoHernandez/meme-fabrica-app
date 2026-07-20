@@ -57,7 +57,7 @@ export default function OperariosPage() {
 
     const [modalAbierto, setModalAbierto] = useState(false);
 
-    const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string) => {
+    const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string, maquinaId?: string) => {
         if (!asignando || !asignando.id) return;
 
         const success = await createAsignacion({
@@ -74,7 +74,8 @@ export default function OperariosPage() {
             // Opcionalmente actualizar el estado del operario y vincular a la orden más reciente
             await updateOperario(asignando.id, {
                 orden_actual_id: ordenId,
-                estado: "activo"
+                estado: "activo",
+                maquina_actual_id: maquinaId || null
             });
         }
         setAsig(null); // Cerramos modal
