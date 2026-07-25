@@ -527,6 +527,10 @@ export default function IAPage() {
     };
 
     const runSimulation = async (cant: number) => {
+        if (!cant || cant <= 0 || isNaN(cant)) {
+            setSimulacionMts([]);
+            return;
+        }
         setSimulando(true);
         try {
             const data = await simulateMtsAction(cant);
