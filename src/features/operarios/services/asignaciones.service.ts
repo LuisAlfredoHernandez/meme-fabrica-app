@@ -1,23 +1,10 @@
 import type { AsignacionOrden } from "@/types";
-
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
+import { apiClient } from "@/shared/apiClient";
 
 export const asignacionesService = {
   getAll: async (token?: string): Promise<AsignacionOrden[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/asignaciones`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/asignaciones", { token });
 
       if (!response.ok) throw new Error("No se pudo obtener la lista de asignaciones.");
       return await response.json();
@@ -29,12 +16,7 @@ export const asignacionesService = {
 
   create: async (data: Omit<AsignacionOrden, "id" | "fecha_asignacion">, token?: string): Promise<AsignacionOrden> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/asignaciones`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.post("/asignaciones", data, { token });
 
       if (!response.ok) throw new Error("No se pudo crear la asignación.");
       return await response.json();
@@ -46,12 +28,7 @@ export const asignacionesService = {
 
   update: async (id: string, data: Partial<AsignacionOrden>, token?: string): Promise<AsignacionOrden> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/asignaciones/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.patch(`/asignaciones/${id}`, data, { token });
 
       if (!response.ok) throw new Error(`No se pudo actualizar la asignación con ID: ${id}`);
       return await response.json();
@@ -63,11 +40,7 @@ export const asignacionesService = {
 
   delete: async (id: string, token?: string): Promise<boolean> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/asignaciones/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.delete(`/asignaciones/${id}`, { token });
 
       if (!response.ok) throw new Error(`Error al eliminar la asignación con ID: ${id}`);
       return true;
@@ -82,12 +55,7 @@ export const asignacionesService = {
     token?: string
   ): Promise<any> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/reportes-avance`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.post("/reportes-avance", data, { token });
 
       if (!response.ok) throw new Error("No se pudo enviar el reporte de avance.");
       return await response.json();

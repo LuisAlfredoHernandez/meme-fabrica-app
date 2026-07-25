@@ -1,20 +1,8 @@
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
+import { apiClient } from "@/shared/apiClient";
 
 export const iaService = {
   getProjections: async (token?: string): Promise<any[]> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/projections`, {
-      method: "GET",
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiClient.get("/ia/projections", { token });
     if (!response.ok) {
       throw new Error("No se pudieron obtener las proyecciones de IA.");
     }
@@ -22,11 +10,7 @@ export const iaService = {
   },
 
   getBottlenecks: async (token?: string): Promise<{ cuellos: any[]; recomendaciones: any[] }> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/bottlenecks`, {
-      method: "GET",
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiClient.get("/ia/bottlenecks", { token });
     if (!response.ok) {
       throw new Error("No se pudieron obtener los cuellos de botella de IA.");
     }
@@ -34,12 +18,7 @@ export const iaService = {
   },
 
   simulateMts: async (cantidad: number, token?: string): Promise<any[]> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/simulate-mts`, {
-      method: "POST",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify({ cantidad_piezas: cantidad }),
-    });
+    const response = await apiClient.post("/ia/simulate-mts", { cantidad_piezas: cantidad }, { token });
     if (!response.ok) {
       throw new Error("Fallo en la simulación de impacto MTS.");
     }
@@ -47,11 +26,7 @@ export const iaService = {
   },
 
   trainModel: async (token?: string): Promise<any> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/train`, {
-      method: "POST",
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiClient.post("/ia/train", undefined, { token });
     if (!response.ok) {
       const err = await response.json();
       throw new Error(err.detail || "Fallo en el reentrenamiento de IA.");
@@ -60,11 +35,7 @@ export const iaService = {
   },
 
   seedData: async (token?: string): Promise<any> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/seed`, {
-      method: "POST",
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiClient.post("/ia/seed", undefined, { token });
     if (!response.ok) {
       throw new Error("Error al sembrar datos históricos en la base de datos.");
     }
@@ -72,20 +43,10 @@ export const iaService = {
   },
 
   uploadTrainData: async (file: File, token?: string): Promise<any> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
     const formData = new FormData();
     formData.append("file", file);
 
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_URL}/ia/upload-train-data`, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
+    const response = await apiClient.post("/ia/upload-train-data", formData, { token });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.detail || "Error al subir el archivo de datos históricos.");
@@ -100,17 +61,12 @@ export const iaService = {
     tipoPrenda: string,
     token?: string
   ): Promise<{ tiempo_estimado_horas: number; margen_error_horas: number; prenda_nueva: boolean; algoritmo_usado: string }> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/predict/delivery-time`, {
-      method: "POST",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify({
-        cantidad_piezas: cantidadPiezas,
-        prioridad_alta: prioridadAlta,
-        lineas_produccion: lineasProduccion,
-        tipo_prenda: tipoPrenda,
-      }),
-    });
+    const response = await apiClient.post("/ia/predict/delivery-time", {
+      cantidad_piezas: cantidadPiezas,
+      prioridad_alta: prioridadAlta,
+      lineas_produccion: lineasProduccion,
+      tipo_prenda: tipoPrenda,
+    }, { token });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.detail || "Fallo al calcular la estimación del tiempo.");
@@ -135,16 +91,11 @@ export const iaService = {
       prenda_nueva: boolean;
     }[];
   }> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/predict/order-items`, {
-      method: "POST",
-      headers: getAuthHeaders(token),
-      body: JSON.stringify({
-        items,
-        prioridad_alta: prioridadAlta,
-        lineas_produccion: lineasProduccion,
-      }),
-    });
+    const response = await apiClient.post("/ia/predict/order-items", {
+      items,
+      prioridad_alta: prioridadAlta,
+      lineas_produccion: lineasProduccion,
+    }, { token });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.detail || "Fallo al calcular la estimación consolidada.");
@@ -161,11 +112,7 @@ export const iaService = {
     fecha_calibracion: string | null;
     columnas_entrenamiento: string[];
   }> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/status`, {
-      method: "GET",
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiClient.get("/ia/status", { token });
     if (!response.ok) {
       throw new Error("No se pudo obtener el estado del modelo de IA.");
     }
@@ -173,11 +120,7 @@ export const iaService = {
   },
 
   exportHistory: async (token?: string): Promise<Response> => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const response = await fetch(`${API_URL}/ia/export-history`, {
-      method: "GET",
-      headers: getAuthHeaders(token),
-    });
+    const response = await apiClient.get("/ia/export-history", { token });
     if (!response.ok) {
       throw new Error("No se pudo exportar el historial a Excel.");
     }

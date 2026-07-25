@@ -1,4 +1,5 @@
 import { Orden, Temporada } from "@/types";
+import { apiClient } from "@/shared/apiClient";
 
 /**
  * Mappings for Temporada enum to reconcile frontend lowercase Spanish values with backend TitleCase/ASCII values.
@@ -145,16 +146,6 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
   return payload;
 };
 
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
-
 /**
  * Service to manage production orders by communicating with the backend API.
  */
@@ -164,11 +155,7 @@ export const ordenesService = {
    */
   getAll: async (token?: string): Promise<Orden[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/ordenes", { token });
 
       if (!response.ok) {
         throw new Error("No se pudo obtener la lista de órdenes.");
@@ -187,14 +174,9 @@ export const ordenesService = {
    */
   create: async (data: Omit<Orden, "id">, token?: string): Promise<Orden> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const mappedData = mapFrontendToApi(data);
 
-      const response = await fetch(`${API_URL}/ordenes`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(mappedData),
-      });
+      const response = await apiClient.post("/ordenes", mappedData, { token });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -215,14 +197,9 @@ export const ordenesService = {
    */
   update: async (id: string, data: Partial<Orden>, token?: string): Promise<Orden> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const mappedData = mapFrontendUpdateToApi(data);
 
-      const response = await fetch(`${API_URL}/ordenes/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(mappedData),
-      });
+      const response = await apiClient.patch(`/ordenes/${id}`, mappedData, { token });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -243,11 +220,7 @@ export const ordenesService = {
    */
   delete: async (id: string, token?: string): Promise<boolean> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.delete(`/ordenes/${id}`, { token });
 
       if (!response.ok) {
         const errorJson = await response.json().catch(() => ({}));
@@ -266,11 +239,7 @@ export const ordenesService = {
    */
   getById: async (id: string, token?: string): Promise<Orden | undefined> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes/${id}`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get(`/ordenes/${id}`, { token });
 
       if (!response.ok) {
         if (response.status === 404) return undefined;
@@ -290,11 +259,7 @@ export const ordenesService = {
    */
   getPrendas: async (token?: string): Promise<string[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes/prendas`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/ordenes/prendas", { token });
 
       if (!response.ok) {
         throw new Error("No se pudo obtener la lista de prendas.");

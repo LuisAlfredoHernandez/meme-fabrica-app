@@ -40,7 +40,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
 const API_LATENCY = 500;
 
 export const authService = {
-    login: async (email: string, pass: string): Promise<{ token: string; user: Usuario | Operario }> => {
+    login: async (email: string, pass: string): Promise<{ token: string; refreshToken?: string; user: Usuario | Operario }> => {
         console.log(`Intentando login para: ${email}...`);
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -73,7 +73,7 @@ export const authService = {
             // Obtener el usuario actual con el token recibido
             const user = await authService.getCurrentUser(data.access_token);
 
-            return { token: data.access_token, user };
+            return { token: data.access_token, refreshToken: data.refresh_token, user };
         } catch (error: any) {
             console.error("Error en login:", error);
             throw new Error(error.message || "Error al conectar con el servidor.");

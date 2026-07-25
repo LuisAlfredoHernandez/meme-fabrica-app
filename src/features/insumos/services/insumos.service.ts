@@ -2,22 +2,9 @@
 // features/insumos/services/insumos.service.ts
 // ─────────────────────────────────────────────────────────────
 import type { Insumo } from "@/types";
+import { apiClient } from "@/shared/apiClient";
 
 export type TipoInsumo = "tela" | "accesorio";
-
-/**
- * Helper interno para obtener headers con autenticación de manera agnóstica.
- * En un entorno real se recomienda enviar el token o utilizar un interceptor de fetch.
- */
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
 
 /**
  * Servicio para la gestión de insumos conectándose a la API Real.
@@ -29,11 +16,7 @@ export const insumosService = {
    */
   getAll: async (token?: string): Promise<Insumo[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/insumos`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/insumos", { token });
 
       if (!response.ok) {
         throw new Error("No se pudo obtener la lista de insumos.");
@@ -54,12 +37,7 @@ export const insumosService = {
    */
   create: async (data: Omit<Insumo, "id">, token?: string): Promise<Insumo> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/insumos`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.post("/insumos", data, { token });
 
       if (!response.ok) {
         throw new Error("No se pudo crear el insumo.");
@@ -81,12 +59,7 @@ export const insumosService = {
    */
   update: async (id: string, data: Partial<Insumo>, token?: string): Promise<Insumo> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/insumos/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.patch(`/insumos/${id}`, data, { token });
 
       if (!response.ok) {
         throw new Error(`No se pudo actualizar el insumo con ID: ${id}`);
@@ -107,11 +80,7 @@ export const insumosService = {
    */
   delete: async (id: string, token?: string): Promise<boolean> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/insumos/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.delete(`/insumos/${id}`, { token });
 
       if (!response.ok) {
         const errorJson = await response.json().catch(() => ({}));
@@ -132,11 +101,7 @@ export const insumosService = {
    */
   getById: async (id: string, token?: string): Promise<Insumo | undefined> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/insumos/${id}`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get(`/insumos/${id}`, { token });
 
       if (!response.ok) {
         if (response.status === 404) return undefined;

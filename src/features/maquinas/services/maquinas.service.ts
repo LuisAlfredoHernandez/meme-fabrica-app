@@ -1,17 +1,5 @@
 import { Maquina, TipoMaquina, MAQUINAS_LIST, ReporteAveria } from "@/types";
-
-/**
- * Helper interno para obtener headers con autenticación de manera agnóstica.
- */
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
+import { apiClient } from "@/shared/apiClient";
 
 export const mapApiToFrontend = (api: any): Maquina => {
   return {
@@ -42,13 +30,8 @@ export const mapFrontendToApi = (maquina: Partial<Maquina>): any => {
 export const maquinasService = {
   getAll: async (token?: string): Promise<Maquina[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const timestamp = new Date().getTime();
-      const response = await fetch(`${API_URL}/maquinas?_t=${timestamp}`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-        cache: "no-store",
-      });
+      const response = await apiClient.get(`/maquinas?_t=${timestamp}`, { token, cache: "no-store" });
 
       if (!response.ok) throw new Error("No se pudo obtener la lista de máquinas.");
       const data: any[] = await response.json();
@@ -66,13 +49,8 @@ export const maquinasService = {
 
   create: async (data: Omit<Maquina, "id">, token?: string): Promise<Maquina> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const mappedData = mapFrontendToApi(data);
-      const response = await fetch(`${API_URL}/maquinas`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(mappedData),
-      });
+      const response = await apiClient.post("/maquinas", mappedData, { token });
 
       if (!response.ok) throw new Error("No se pudo crear la máquina.");
       const created = await response.json();
@@ -85,13 +63,8 @@ export const maquinasService = {
 
   update: async (id: string, data: Partial<Maquina>, token?: string): Promise<Maquina> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const mappedData = mapFrontendToApi(data);
-      const response = await fetch(`${API_URL}/maquinas/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(mappedData),
-      });
+      const response = await apiClient.patch(`/maquinas/${id}`, mappedData, { token });
 
       if (!response.ok) throw new Error(`No se pudo actualizar la máquina con ID: ${id}`);
       const updated = await response.json();
@@ -104,12 +77,7 @@ export const maquinasService = {
 
   reportarAveria: async (data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">, token?: string): Promise<ReporteAveria> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/reportes-averia`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.post("/reportes-averia", data, { token });
 
       if (!response.ok) {
         let errMsg = "No se pudo enviar el reporte de avería.";
@@ -131,13 +99,8 @@ export const maquinasService = {
 
   getReportesAveriaPendientes: async (token?: string): Promise<ReporteAveria[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const timestamp = new Date().getTime();
-      const response = await fetch(`${API_URL}/reportes-averia/pendientes?_t=${timestamp}`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-        cache: "no-store",
-      });
+      const response = await apiClient.get(`/reportes-averia/pendientes?_t=${timestamp}`, { token, cache: "no-store" });
 
       if (!response.ok) {
         const errText = await response.text().catch(() => "");
@@ -153,12 +116,7 @@ export const maquinasService = {
 
   procesarReporteAveria: async (id: string, aprobado: boolean, notas?: string, token?: string): Promise<ReporteAveria> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/reportes-averia/${id}/procesar`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify({ aprobado, notas }),
-      });
+      const response = await apiClient.post(`/reportes-averia/${id}/procesar`, { aprobado, notas }, { token });
 
       if (!response.ok) {
         let errMsg = "No se pudo procesar el reporte de avería.";

@@ -1,11 +1,11 @@
 "use server"; // Indica que esto solo corre en el servidor
 import { cookies } from "next/headers";
 import { authService } from "@/features/login/services/login.services";
-import { Usuario } from '@/types';
+import { Usuario, LoginResponse } from '@/types';
 
 export async function loginAction(email: string, pass: string) {
     try {
-        const { token, user } = await authService.login(email, pass);
+        const { token, refreshToken, user } = await authService.login(email, pass);
 
         if (user) {
             const cookieStore = await cookies();
@@ -22,8 +22,17 @@ export async function loginAction(email: string, pass: string) {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
-                maxAge: 60 * 60 * 24,
+                maxAge: 60 * 60 * 24, // 1 día
             });
+
+            if (refreshToken) {
+                cookieStore.set("refresh_token", refreshToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: 60 * 60 * 24 * 7, // 7 días
+                });
+            }
 
             cookieStore.set("user_role", user.rol, { httpOnly: true });
 
@@ -37,8 +46,61 @@ export async function loginAction(email: string, pass: string) {
 export async function logoutAction() {
     const cookieStore = await cookies();
     cookieStore.delete("meme_session");
+    cookieStore.delete("access_token");
+    cookieStore.delete("refresh_token");
     cookieStore.delete("user_role");
     return { success: true };
+}
+
+export async function refreshTokenAction() {
+    try {
+        const cookieStore = await cookies();
+        const refreshToken = cookieStore.get("refresh_token")?.value;
+
+        if (!refreshToken) {
+            throw new Error("No refresh token found");
+        }
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${API_URL}/refresh`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+
+        if (!response.ok) {
+            cookieStore.delete("meme_session");
+            cookieStore.delete("access_token");
+            cookieStore.delete("refresh_token");
+            cookieStore.delete("user_role");
+            return { success: false, error: "Session expired" };
+        }
+
+        const data: LoginResponse = await response.json();
+
+        cookieStore.set("access_token", data.access_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24,
+        });
+
+        if (data.refresh_token) {
+            cookieStore.set("refresh_token", data.refresh_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: 60 * 60 * 24 * 7,
+            });
+        }
+
+        return { success: true, token: data.access_token };
+    } catch (error) {
+        console.error("Error in refreshTokenAction:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Error refreshing token" };
+    }
 }
 
 export async function registerUserAction(data: Omit<Usuario, "id"> & { pass: string }) {
