@@ -76,6 +76,7 @@ export interface Operario extends Usuario {
   orden_actual_id?: string;
   piezas_buenas?: number;
   piezas_defectuosas?: number;
+  sesion_activa_desde?: string | null;
 }
 
 export interface HabilidadMaquinaria {

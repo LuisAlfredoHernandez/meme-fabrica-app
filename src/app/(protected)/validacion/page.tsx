@@ -29,7 +29,18 @@ export default function ValidacionPage() {
     const [selectedReport, setSelectedReport] = useState<ValidacionReporte | null>(null);
     const [buenas, setBuenas] = useState<number | "">("");
     const [defectuosas, setDefectuosas] = useState<number | "">("");
+    const [fechaInicio, setFechaInicio] = useState<string>("");
+    const [fechaFin, setFechaFin] = useState<string>("");
     const [isValidating, setIsValidating] = useState(false);
+
+    // Helper for datetime-local
+    const formatForDatetimeLocal = (isoString?: string | null) => {
+        if (!isoString) return "";
+        const date = new Date(isoString);
+        if (isNaN(date.getTime())) return "";
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
 
     // Selección de avería
     const [selectedAveria, setSelectedAveria] = useState<ReporteAveria | null>(null);
@@ -46,6 +57,8 @@ export default function ValidacionPage() {
         setSelectedReport(report);
         setBuenas(report.piezasReportadas);
         setDefectuosas(0);
+        setFechaInicio(report.fechaInicio ? formatForDatetimeLocal(report.fechaInicio) : "");
+        setFechaFin(report.fechaFin ? formatForDatetimeLocal(report.fechaFin) : "");
     };
 
     const handleValidate = async (e: React.FormEvent) => {
@@ -53,7 +66,9 @@ export default function ValidacionPage() {
         if (!selectedReport || buenas === "" || defectuosas === "") return;
 
         setIsValidating(true);
-        const success = await validarReporte(selectedReport.id, Number(buenas), Number(defectuosas));
+        const isoInicio = fechaInicio ? new Date(fechaInicio).toISOString() : null;
+        const isoFin = fechaFin ? new Date(fechaFin).toISOString() : null;
+        const success = await validarReporte(selectedReport.id, Number(buenas), Number(defectuosas), isoInicio, isoFin);
         setIsValidating(false);
 
         if (success) {
@@ -250,7 +265,21 @@ export default function ValidacionPage() {
 
                                 <div className="bg-[#080b10] border border-[#1e2130] rounded-2xl p-5 mb-6">
                                     <p className="text-xs text-slate-400 font-medium mb-1">Operario: <span className="text-white font-bold">{selectedReport.operarioNombre}</span></p>
-                                    <p className="text-xs text-slate-400 font-medium">Unidades Propuestas: <span className="text-orange-400 font-black text-base">{selectedReport.piezasReportadas}</span></p>
+                                    <p className="text-xs text-slate-400 font-medium mb-1">Unidades Propuestas: <span className="text-orange-400 font-black text-base">{selectedReport.piezasReportadas}</span></p>
+                                    <div className="flex gap-4 mt-3 pt-3 border-t border-[#1e2130]">
+                                        <div>
+                                            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Inicio Reportado</p>
+                                            <p className="text-xs text-slate-300 font-mono">
+                                                {selectedReport.fechaInicio ? new Date(selectedReport.fechaInicio).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) : 'No Registrado'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Fin Reportado</p>
+                                            <p className="text-xs text-slate-300 font-mono">
+                                                {selectedReport.fechaFin ? new Date(selectedReport.fechaFin).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) : 'No Registrado'}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <form onSubmit={handleValidate} className="space-y-5">
@@ -275,6 +304,30 @@ export default function ValidacionPage() {
                                             onChange={(e) => setDefectuosas(Number(e.target.value))}
                                             className="w-full bg-[#080b10] border border-red-500/30 rounded-xl px-4 py-4 text-red-400 text-xl font-black focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all shadow-inner"
                                         />
+                                    </div>
+
+                                    <div className="pt-4 border-t border-[#1e2130] space-y-4">
+                                        <p className="text-xs text-slate-400 font-medium mb-2">Ajuste de tiempos (Opcional si deseas sobreescribirlos)</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hora de Inicio</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={fechaInicio}
+                                                    onChange={(e) => setFechaInicio(e.target.value)}
+                                                    className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3 py-2.5 text-slate-300 text-xs font-mono focus:outline-none focus:border-[#818cf8] focus:ring-1 focus:ring-[#818cf8]/50 transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hora de Fin</label>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={fechaFin}
+                                                    onChange={(e) => setFechaFin(e.target.value)}
+                                                    className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3 py-2.5 text-slate-300 text-xs font-mono focus:outline-none focus:border-[#818cf8] focus:ring-1 focus:ring-[#818cf8]/50 transition-all"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {buenas !== "" && defectuosas !== "" && (Number(buenas) + Number(defectuosas)) !== selectedReport.piezasReportadas && (

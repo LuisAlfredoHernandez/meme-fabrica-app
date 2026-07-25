@@ -19,7 +19,7 @@ export default function MiEstacionPage() {
     const { user } = useAuthStore();
 
     const { operarios, isLoading: loadingOperarios } = useOperarioStore();
-    const { fetchOperarios } = useOperarioActions();
+    const { fetchOperarios, iniciarSesion } = useOperarioActions();
 
     const { maquinas, reportesAveriaPendientes, isLoading: loadingMaquinas } = useMaquinasStore();
     const { fetchMaquinas, fetchReportesAveriaPendientes, reportarAveria } = useMaquinasActions();
@@ -286,6 +286,8 @@ export default function MiEstacionPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Formulario de Producción */}
                 <FormularioReporteAvance
+                    miOperario={miOperario}
+                    iniciarSesion={iniciarSesion}
                     misAsignaciones={misAsignaciones}
                     ordenes={ordenes}
                     maquinaEstado={miMaquina?.estado}

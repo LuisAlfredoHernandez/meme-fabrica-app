@@ -110,4 +110,23 @@ export const operariosService = {
       throw new Error(error.message || "Error al conectar con el servidor.");
     }
   },
+
+  iniciarSesion: async (token?: string): Promise<Operario> => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${API_URL}/operarios/me/iniciar-sesion`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || "Error al iniciar sesión de trabajo.");
+      }
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en operariosService.iniciarSesion:", error);
+      throw new Error(error.message || "Error de red al iniciar sesión.");
+    }
+  },
 };

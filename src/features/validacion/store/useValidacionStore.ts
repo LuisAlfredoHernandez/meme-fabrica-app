@@ -10,7 +10,7 @@ interface ValidacionState {
 
 interface ValidacionActions {
     fetchPendientes: () => Promise<void>;
-    validarReporte: (id: string, buenas: number, defectuosas: number) => Promise<boolean>;
+    validarReporte: (id: string, buenas: number, defectuosas: number, fechaInicio?: string | null, fechaFin?: string | null) => Promise<boolean>;
 }
 
 export const useValidacionStore = create<ValidacionState & { actions: ValidacionActions }>((set, get) => ({
@@ -27,10 +27,10 @@ export const useValidacionStore = create<ValidacionState & { actions: Validacion
                 set({ error: "Error al cargar reportes pendientes", isLoading: false });
             }
         },
-        validarReporte: async (id: string, buenas: number, defectuosas: number) => {
+        validarReporte: async (id: string, buenas: number, defectuosas: number, fechaInicio?: string | null, fechaFin?: string | null) => {
             set({ isLoading: true, error: null });
             try {
-                const success = await validarReporteAction(id, buenas, defectuosas);
+                const success = await validarReporteAction(id, buenas, defectuosas, fechaInicio, fechaFin);
                 if (success) {
                     set(state => ({
                         pendientes: state.pendientes.filter(p => p.id !== id),

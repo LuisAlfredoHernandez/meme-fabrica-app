@@ -173,4 +173,4 @@ export const useMaquinasStore = create<MaquinasState>()(
 );
 
 // Hook helper para extraer acciones
-export const useMaquinasActions = () => useMaquinasStore((state) => state.actions);
+export const useMaquinasActions = () => useMaquinasStore((state) => state.actions);// trigger reload

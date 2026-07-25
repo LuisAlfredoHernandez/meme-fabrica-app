@@ -36,3 +36,8 @@ export async function getOperarioByIdAction(id: string): Promise<Operario | unde
   const token = await getToken();
   return operariosService.getById(id, token);
 }
+
+export async function iniciarSesionOperarioAction(): Promise<Operario> {
+  const token = await getToken();
+  return operariosService.iniciarSesion(token);
+}

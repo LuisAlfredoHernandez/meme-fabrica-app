@@ -194,8 +194,13 @@ export default function ProtectedLayout({
                                 if (isTargetOperator) {
                                     const tipoNotif = message.estado === "validado" ? "success" : "error";
                                     const titNotif = message.estado === "validado" ? "Reporte Validado" : "Reporte Rechazado";
+                                    
+                                    const fechaInicioStr = message.fecha_inicio ? new Date(message.fecha_inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
+                                    const fechaFinStr = message.fecha_fin ? new Date(message.fecha_fin).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
+                                    const timeMsg = (fechaInicioStr && fechaFinStr) ? ` Tu supervisor ha registrado tu tiempo de ${fechaInicioStr} a ${fechaFinStr}.` : "";
+
                                     const msgNotif = message.estado === "validado" 
-                                        ? `Tu reporte de la Orden ${message.orden_numero || ""} fue certificado con éxito.` 
+                                        ? `Tu reporte de la Orden ${message.orden_numero || ""} fue certificado con éxito.${timeMsg}` 
                                         : `Tu reporte de la Orden ${message.orden_numero || ""} fue rechazado por el supervisor.`;
                                     addNotification(titNotif, msgNotif, tipoNotif, {
                                         piezas_reportadas: message.piezas_reportadas,

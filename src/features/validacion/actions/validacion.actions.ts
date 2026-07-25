@@ -15,7 +15,7 @@ export async function fetchPendientesAction(): Promise<ValidacionReporte[]> {
   return validacionService.getPendientes(token);
 }
 
-export async function validarReporteAction(id: string, buenas: number, defectuosas: number): Promise<boolean> {
+export async function validarReporteAction(id: string, buenas: number, defectuosas: number, fechaInicio?: string | null, fechaFin?: string | null): Promise<boolean> {
   const token = await getToken();
-  return validacionService.validarReporte(id, buenas, defectuosas, token);
+  return validacionService.validarReporte(id, buenas, defectuosas, fechaInicio, fechaFin, token);
 }

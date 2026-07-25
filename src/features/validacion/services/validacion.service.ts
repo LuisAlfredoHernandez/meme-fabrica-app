@@ -36,6 +36,8 @@ export const validacionService = {
                 piezasValidadasBuenas: item.piezas_buenas,
                 piezasValidadasDefectuosas: item.piezas_defectuosas,
                 estado: item.estado,
+                fechaInicio: item.fecha_inicio,
+                fechaFin: item.fecha_fin,
             }));
         } catch (error) {
             console.error("Error en validacionService.getPendientes:", error);
@@ -43,17 +45,21 @@ export const validacionService = {
         }
     },
 
-    async validarReporte(id: string, buenas: number, defectuosas: number, token?: string): Promise<boolean> {
+    async validarReporte(id: string, buenas: number, defectuosas: number, fechaInicio?: string | null, fechaFin?: string | null, token?: string): Promise<boolean> {
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const payload: any = {
+                piezas_buenas: buenas,
+                piezas_defectuosas: defectuosas,
+                estado: "validado"
+            };
+            if (fechaInicio) payload.fecha_inicio = fechaInicio;
+            if (fechaFin) payload.fecha_fin = fechaFin;
+            
             const response = await fetch(`${API_URL}/reportes-avance/${id}/validar`, {
                 method: "POST",
                 headers: getAuthHeaders(token),
-                body: JSON.stringify({
-                    piezas_buenas: buenas,
-                    piezas_defectuosas: defectuosas,
-                    estado: "validado"
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) throw new Error(`No se pudo validar el reporte con ID: ${id}`);
