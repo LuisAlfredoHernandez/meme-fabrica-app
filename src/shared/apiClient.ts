@@ -43,6 +43,8 @@ async function request(path: string, options: RequestOptions = {}) {
     if (response.status === 401 && !skipAuth) {
         console.log(`[apiClient] Petición a ${url} falló con 401. Intentando refrescar token...`);
         let refreshSuccess = false;
+        let isNetworkOrServerError = false;
+        
         try {
             const refreshResult = await refreshTokenAction();
             if (refreshResult.success && refreshResult.token) {
@@ -55,14 +57,24 @@ async function request(path: string, options: RequestOptions = {}) {
                 refreshSuccess = true;
             } else {
                 console.error("[apiClient] Falló el refresco del token:", refreshResult.error);
+                if (refreshResult.isNetworkError || refreshResult.isAuthError === false) {
+                    isNetworkOrServerError = true;
+                }
             }
         } catch (refreshError) {
-            console.error("[apiClient] Excepción al refrescar token:", refreshError);
+            console.error("[apiClient] Excepción grave al refrescar token:", refreshError);
+            isNetworkOrServerError = true;
         }
 
         if (!refreshSuccess) {
-            console.log("[apiClient] Redirigiendo a /login tras fallo definitivo de autenticación.");
-            redirect("/login");
+            if (isNetworkOrServerError) {
+                console.warn("[apiClient] Fallo de red o servidor al intentar refrescar. Abortando sin cerrar sesión.");
+                // Lanzamos el error hacia la UI para que muestre un mensaje de reintento/offline
+                throw new Error("NETWORK_OR_SERVER_ERROR_DURING_REFRESH");
+            } else {
+                console.log("[apiClient] Redirigiendo a /login tras fallo definitivo de autenticación (Token expirado/inválido).");
+                redirect("/login");
+            }
         }
     }
 

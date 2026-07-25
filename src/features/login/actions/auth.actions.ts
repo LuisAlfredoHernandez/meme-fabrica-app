@@ -71,11 +71,17 @@ export async function refreshTokenAction() {
         });
 
         if (!response.ok) {
-            cookieStore.delete("meme_session");
-            cookieStore.delete("access_token");
-            cookieStore.delete("refresh_token");
-            cookieStore.delete("user_role");
-            return { success: false, error: "Session expired" };
+            // Solo borramos la sesión si el refresh token fue explícitamente rechazado
+            if (response.status === 401 || response.status === 403) {
+                cookieStore.delete("meme_session");
+                cookieStore.delete("access_token");
+                cookieStore.delete("refresh_token");
+                cookieStore.delete("user_role");
+                return { success: false, error: "Session expired", isAuthError: true };
+            }
+            
+            // Si es un error 500 u otro, no expulsamos al usuario
+            return { success: false, error: `Server error: ${response.status}`, isAuthError: false };
         }
 
         const data: LoginResponse = await response.json();
@@ -99,7 +105,11 @@ export async function refreshTokenAction() {
         return { success: true, token: data.access_token };
     } catch (error) {
         console.error("Error in refreshTokenAction:", error);
-        return { success: false, error: error instanceof Error ? error.message : "Error refreshing token" };
+        return { 
+            success: false, 
+            error: error instanceof Error ? error.message : "Error refreshing token",
+            isNetworkError: true // Indicamos que falló la conexión (offline/cors/etc)
+        };
     }
 }
 
