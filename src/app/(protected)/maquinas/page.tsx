@@ -4,7 +4,7 @@ import { ModalGestionMaquina } from "./componentes/ModalGestionMaquina";
 import { useEffect, useState } from "react";
 import { Maquina } from "@/types";
 import { Settings } from "lucide-react";
-import { StatusBadge } from "./componentes/StatusBadge.";
+import { StatusBadge } from "@/features/maquinas/components/StatusBadge";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";

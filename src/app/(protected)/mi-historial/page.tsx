@@ -8,6 +8,7 @@ import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrde
 import { StatCard } from "@/components/StatCard";
 import { TareaAsignadaCard } from "@/features/operarios/components/TareaAsignadaCard";
 import { History, CheckCircle2, AlertCircle, Zap, ZapOff, CheckCircle } from "lucide-react";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function MiHistorialPage() {
     const { user } = useAuthStore();
@@ -76,11 +77,7 @@ export default function MiHistorialPage() {
     };
 
     if (loadingOperarios) {
-        return (
-            <div className="p-8 flex items-center justify-center min-h-screen text-slate-400">
-                <Zap className="animate-spin w-8 h-8 text-orange-500 mr-4" /> Cargando historial...
-            </div>
-        );
+        return <LoadingScreen message="Cargando historial..." />;
     }
 
     if (!miOperario) {

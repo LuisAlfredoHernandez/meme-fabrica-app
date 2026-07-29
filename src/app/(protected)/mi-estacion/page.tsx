@@ -14,6 +14,7 @@ import { FormularioReporteAvance } from "@/features/operarios/components/Formula
 import { FormularioReporteFalla } from "@/features/maquinas/components/FormularioReporteFalla";
 import { AppColors } from "@/shared/constants";
 import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle, Clock, Wrench } from "lucide-react";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function MiEstacionPage() {
     const { user } = useAuthStore();
@@ -191,11 +192,7 @@ export default function MiEstacionPage() {
     }, [ordenes, misAsignacionesTodas]);
 
     if (loadingOperarios || loadingMaquinas) {
-        return (
-            <div className="p-8 flex items-center justify-center min-h-screen text-slate-400">
-                <Zap className="animate-spin w-8 h-8 text-orange-500 mr-4" /> Cargando mi estación...
-            </div>
-        );
+        return <LoadingScreen message="Preparando tu estación..." />;
     }
 
     if (!miOperario) {

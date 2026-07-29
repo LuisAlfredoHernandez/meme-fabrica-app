@@ -5,7 +5,7 @@ import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/
 import { Wrench, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { ReporteAveria } from "@/types";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
-import { StatusBadge } from "@/features/maquinas/componentes/StatusBadge.";
+import { StatusBadge } from "@/features/maquinas/components/StatusBadge";
 
 export function GestionAverias() {
     const { reportesAveriaPendientes } = useMaquinasStore();
