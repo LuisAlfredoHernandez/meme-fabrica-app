@@ -133,7 +133,7 @@ export default function MiEstacionPage() {
         }
 
         const currentStates: { [key: string]: { numero: string; estado: string; prioridad: string } } = {};
-        
+
         misAsignacionesTodas.forEach(asig => {
             const ord = ordenes.find(o => o.id === asig.orden_id);
             if (ord) {
@@ -171,13 +171,13 @@ export default function MiEstacionPage() {
                         tipo
                     );
                 }
- 
+
                 // Validar cambios de prioridad
                 if (curr.prioridad !== prev.prioridad) {
                     let tipo: "info" | "warning" | "error" = "info";
                     if (curr.prioridad === "urgente") tipo = "error";
                     else if (curr.prioridad === "alta") tipo = "warning";
- 
+
                     addNotification(
                         `Prioridad Modificada — ${curr.numero}`,
                         `La prioridad cambió de "${prev.prioridad.toUpperCase()}" a "${curr.prioridad.toUpperCase()}".`,
@@ -231,7 +231,7 @@ export default function MiEstacionPage() {
     return (
         <div className="w-full h-full overflow-y-auto custom-scrollbar p-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Mi Estación de Trabajo</h1>
+                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Estación de Trabajo</h1>
                 <p className="text-slate-400 font-medium">Bienvenido <span className="text-white">{miOperario.nombre}</span>.</p>
             </div>
 

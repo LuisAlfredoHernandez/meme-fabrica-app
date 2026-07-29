@@ -76,9 +76,9 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
                         boxShadow: `0 4px 15px ${C.orange}40`,
                         transform: isHovered ? 'scale(1.1) rotate(-5deg)' : 'scale(1) rotate(0deg)'
                     }}>
-                    <img 
-                        src="/icons/icon-192x192.png" 
-                        alt="Meme Fábrica Logo" 
+                    <img
+                        src="/icons/icon-192x192.png"
+                        alt="Meme Fábrica Logo"
                         className="w-full h-full object-cover"
                     />
                 </div>

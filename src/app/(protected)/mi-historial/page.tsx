@@ -97,7 +97,7 @@ export default function MiHistorialPage() {
     const totalDefectuosas = miOperario.piezas_defectuosas ?? 0;
     const totalPiezas = totalBuenas + totalDefectuosas;
     const porcentajeDefectos = totalPiezas > 0 ? ((totalDefectuosas / totalPiezas) * 100).toFixed(1) : "0.0";
-    
+
     // Contar tipos de máquinas manejadas en el historial (simplificado por habilidades por ahora)
     const maquinasManejadas = miOperario.habilidades.length;
 
@@ -106,7 +106,7 @@ export default function MiHistorialPage() {
             <div className="mb-6 flex items-center gap-3">
                 <History className="w-8 h-8 text-emerald-500" />
                 <div>
-                    <h1 className="text-3xl font-black text-white mb-1 tracking-tight">Mi Historial de Producción</h1>
+                    <h1 className="text-3xl font-black text-white mb-1 tracking-tight">Historial de Producción</h1>
                     <p className="text-slate-400 font-medium text-sm">Resumen de tu rendimiento y tareas completadas.</p>
                 </div>
             </div>
