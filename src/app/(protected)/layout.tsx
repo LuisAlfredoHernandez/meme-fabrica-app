@@ -321,7 +321,7 @@ export default function ProtectedLayout({
     // o redirección principal despues de login
     useEffect(() => {
         if (mounted && user) {
-            if (user.rol === "operario" && pathname !== "/mi-estacion") {
+            if (user.rol === "operario" && pathname !== "/mi-estacion" && pathname !== "/mi-historial") {
                 router.push("/mi-estacion");
             } else if ((user.rol === "administrador" || user.rol === "subjefe") && pathname === "/") {
                 router.push("/dashboard");

@@ -66,7 +66,7 @@ export default function MiEstacionPage() {
         baja: 1
     };
 
-    const misAsignaciones = miOperario
+    const misAsignacionesTodas = miOperario
         ? [...asignaciones]
             .filter(a => a.operario_id === miOperario.id)
             .sort((a, b) => {
@@ -87,6 +87,20 @@ export default function MiEstacionPage() {
                 return dateA - dateB;
             })
         : [];
+
+    const misAsignacionesActivas = misAsignacionesTodas.filter(a => {
+        const ord = ordenes.find(o => o.id === a.orden_id);
+        const isOrderCompleted = ord?.estado === "completada";
+        const isTaskCompleted = a.piezas_completadas >= a.piezas_requeridas;
+        return !isOrderCompleted && !isTaskCompleted;
+    });
+
+    const misAsignacionesCompletadas = misAsignacionesTodas.filter(a => {
+        const ord = ordenes.find(o => o.id === a.orden_id);
+        const isOrderCompleted = ord?.estado === "completada";
+        const isTaskCompleted = a.piezas_completadas >= a.piezas_requeridas;
+        return isOrderCompleted || isTaskCompleted;
+    });
 
     const ORDEN_ESTADO_STYLE: Record<string, { label: string; bg: string; text: string }> = {
         pendiente: { label: "Pendiente", bg: "bg-slate-500/10", text: "text-slate-400" },
@@ -114,13 +128,13 @@ export default function MiEstacionPage() {
 
     // Detección de cambios en tiempo real en las órdenes del operario
     useEffect(() => {
-        if (misAsignaciones.length === 0 || ordenes.length === 0) {
+        if (misAsignacionesTodas.length === 0 || ordenes.length === 0) {
             return;
         }
 
         const currentStates: { [key: string]: { numero: string; estado: string; prioridad: string } } = {};
         
-        misAsignaciones.forEach(asig => {
+        misAsignacionesTodas.forEach(asig => {
             const ord = ordenes.find(o => o.id === asig.orden_id);
             if (ord) {
                 currentStates[ord.id] = {
@@ -174,7 +188,7 @@ export default function MiEstacionPage() {
         });
 
         prevOrdersRef.current = currentStates;
-    }, [ordenes, misAsignaciones]);
+    }, [ordenes, misAsignacionesTodas]);
 
     if (loadingOperarios || loadingMaquinas) {
         return (
@@ -224,12 +238,12 @@ export default function MiEstacionPage() {
             {/* Listado de Tareas Asignadas */}
             <div className="mb-6 space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignaciones.length})
+                    <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignacionesActivas.length})
                 </h2>
 
-                {misAsignaciones.length > 0 ? (
+                {misAsignacionesActivas.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {misAsignaciones.map(asig => (
+                        {misAsignacionesActivas.map(asig => (
                             <TareaAsignadaCard
                                 key={asig.id}
                                 asig={asig}
@@ -241,10 +255,13 @@ export default function MiEstacionPage() {
                     </div>
                 ) : (
                     <div className="p-6 text-center rounded-3xl bg-[#13161e] border border-white/5 text-slate-500 font-semibold italic text-sm">
-                        No tienes tareas asignadas por el supervisor en este momento.
+                        No tienes tareas pendientes asignadas por el supervisor en este momento.
                     </div>
                 )}
             </div>
+
+            {/* Spacer */}
+            <div className="h-4"></div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <StatCard
@@ -288,7 +305,7 @@ export default function MiEstacionPage() {
                 <FormularioReporteAvance
                     miOperario={miOperario}
                     iniciarSesion={iniciarSesion}
-                    misAsignaciones={misAsignaciones}
+                    misAsignaciones={misAsignacionesActivas}
                     ordenes={ordenes}
                     maquinaEstado={miMaquina?.estado}
                     maquinaActual={miMaquina?.tipo}
