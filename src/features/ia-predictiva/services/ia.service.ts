@@ -25,6 +25,14 @@ export const iaService = {
     return response.json();
   },
 
+  getActiveDelays: async (token?: string): Promise<{ riesgo: string; msg: string }[]> => {
+    const response = await apiClient.get("/ia/active-delays", { token });
+    if (!response.ok) {
+      throw new Error("No se pudieron obtener las alertas tempranas de retrasos.");
+    }
+    return response.json();
+  },
+
   trainModel: async (token?: string): Promise<any> => {
     const response = await apiClient.post("/ia/train", undefined, { token });
     if (!response.ok) {

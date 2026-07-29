@@ -25,7 +25,8 @@ import {
     getIaStatusAction,
     predictDeliveryTimeAction,
     predictOrderItemsAction,
-    exportHistoryAction
+    exportHistoryAction,
+    getActiveDelaysAction
 } from "@/features/ia-predictiva/actions/ia.actions";
 
 const AppColors = {
@@ -445,6 +446,7 @@ export default function IAPage() {
     const [proyecciones, setProyecciones] = useState<any[]>([]);
     const [cuellos, setCuellos] = useState<any[]>([]);
     const [recs, setRecs] = useState<any[]>([]);
+    const [activeDelays, setActiveDelays] = useState<{ riesgo: string; msg: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [expCuello, setExp] = useState<Record<string, boolean>>({});
 
@@ -515,10 +517,12 @@ export default function IAPage() {
             const proj = await getProjectionsAction();
             const bnecks = await getBottlenecksAction();
             const status = await getIaStatusAction();
+            const delays = await getActiveDelaysAction();
             setProyecciones(proj);
             setCuellos(bnecks.cuellos);
             setRecs(bnecks.recomendaciones);
             setModelStatus(status);
+            setActiveDelays(delays);
         } catch (e) {
             console.error("Fallo al consultar microservicio de ML:", e);
         } finally {
@@ -995,16 +999,26 @@ export default function IAPage() {
                                 <h3 className="font-bold text-white text-sm">Detección Temprana de Retrasos en Cola Activa (RF14)</h3>
                             </div>
                             <div className="p-5 space-y-3">
-                                {[
-                                    { riesgo: "alto", msg: "ORD-1237 (Confección): 22 piezas de 300 requeridas (7.3%). Alto riesgo de retraso.", color: AppColors.red },
-                                    { riesgo: "bajo", msg: "ORD-1234 (Cortes): 49 piezas de 50 requeridas (98%). Listo para validación final.", color: AppColors.emerald },
-                                ].map((r, i) => (
-                                    <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-xl"
-                                        style={{ background: `${r.color}08`, border: `1px solid ${r.color}25` }}>
-                                        <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: r.color }} />
-                                        <p className="text-sm text-slate-300" style={{ color: "#cbd5e1" }}>{r.msg}</p>
+                                {activeDelays.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                                        <CheckCircle2 className="w-10 h-10 mb-2" style={{ color: AppColors.emerald }} />
+                                        <p className="text-sm font-bold text-white">Saludable</p>
+                                        <p className="text-xs text-slate-400 mt-1 max-w-[250px]">
+                                            No se detectan retrasos. Todas las órdenes en cola están avanzando a tiempo.
+                                        </p>
                                     </div>
-                                ))}
+                                ) : (
+                                    activeDelays.map((r, i) => {
+                                        const color = r.riesgo === "alto" ? AppColors.red : AppColors.amber;
+                                        return (
+                                            <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-xl"
+                                                style={{ background: `${color}08`, border: `1px solid ${color}25` }}>
+                                                <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ background: color }} />
+                                                <p className="text-sm text-slate-300" style={{ color: "#cbd5e1" }}>{r.msg}</p>
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
                         </div>
 

@@ -23,6 +23,11 @@ export async function simulateMtsAction(cantidad: number): Promise<any[]> {
   return iaService.simulateMts(cantidad, token);
 }
 
+export async function getActiveDelaysAction(): Promise<{ riesgo: string; msg: string }[]> {
+  const token = await getToken();
+  return iaService.getActiveDelays(token);
+}
+
 export async function trainModelAction(): Promise<any> {
   const token = await getToken();
   return iaService.trainModel(token);
