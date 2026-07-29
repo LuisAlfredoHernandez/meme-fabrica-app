@@ -42,6 +42,7 @@ export default function MaquinasPage() {
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>ID / Nombre</th>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>Modelo</th>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>Estado</th>
+                            <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>En Uso</th>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase" style={{ background: AppColors.surface }}>Último Mantenimiento</th>
                             <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-right" style={{ background: AppColors.surface }}>Acciones</th>
                         </tr>
@@ -58,6 +59,11 @@ export default function MaquinasPage() {
                                 <td className="p-4 text-sm text-slate-300">{m.modelo}</td>
                                 <td className="p-4">
                                     <StatusBadge status={m.estado} />
+                                </td>
+                                <td className="p-4">
+                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${m.operarioAsignado ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                                        {m.operarioAsignado ? 'Sí' : 'No'}
+                                    </span>
                                 </td>
                                 <td className="p-4 text-sm text-slate-500">12 Abr 2026</td>
                                 <td className="p-4 text-right">
