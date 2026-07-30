@@ -51,7 +51,7 @@ export const asignacionesService = {
   },
 
   reportarAvance: async (
-    data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string },
+    data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string; fecha_fin?: string },
     token?: string
   ): Promise<any> => {
     try {

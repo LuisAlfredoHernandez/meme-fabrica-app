@@ -301,7 +301,6 @@ export default function MiEstacionPage() {
                 {/* Formulario de Producción */}
                 <FormularioReporteAvance
                     miOperario={miOperario}
-                    iniciarSesion={iniciarSesion}
                     misAsignaciones={misAsignacionesActivas}
                     ordenes={ordenes}
                     maquinaEstado={miMaquina?.estado}

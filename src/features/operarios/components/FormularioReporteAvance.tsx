@@ -1,23 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AsignacionOrden, Orden, Operario } from "@/types";
-import { CheckCircle2, Play, Clock } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
+import { useWorkSessionStore, useWorkSessionActions } from "../store/useWorkSessionStore";
 
 interface FormularioReporteAvanceProps {
     miOperario: Operario;
-    iniciarSesion: () => Promise<boolean>;
     misAsignaciones: AsignacionOrden[];
     ordenes: Orden[];
     maquinaEstado?: string;
     maquinaActual?: string;
-    reportarAvance: (data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string }) => Promise<boolean>;
+    reportarAvance: (data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string; fecha_fin?: string }) => Promise<boolean>;
 }
 
 export function FormularioReporteAvance({
     miOperario,
-    iniciarSesion,
     misAsignaciones,
     ordenes,
     maquinaEstado,
@@ -27,106 +26,78 @@ export function FormularioReporteAvance({
     const [selectedAsigId, setSelectedAsigId] = useState("");
     const [piezasProducidas, setPiezasProducidas] = useState<number | "">("");
     const [piezasDefectuosas, setPiezasDefectuosas] = useState<number | "">("");
-    const [timeSelectionMode, setTimeSelectionMode] = useState<"15m" | "30m" | "1h" | "2h" | "manual" | "">("");
-    const [manualTime, setManualTime] = useState<string>("");
-    const [iniciandoSesion, setIniciandoSesion] = useState(false);
-    const [showManualTimePrompt, setShowManualTimePrompt] = useState(false);
     const { addToastOnly } = useNotificationActions();
+    
+    const { activeTaskId, sessions } = useWorkSessionStore();
+    const { clearSession } = useWorkSessionActions();
+
+    useEffect(() => {
+        if (activeTaskId && misAsignaciones.some(a => a.id === activeTaskId)) {
+            setSelectedAsigId(activeTaskId);
+        }
+    }, [activeTaskId, misAsignaciones]);
 
     const selectedAsig = misAsignaciones.find(a => a.id === selectedAsigId);
     const selectedAsigOrder = selectedAsig ? ordenes.find(o => o.id === selectedAsig.orden_id) : null;
     const selectedAsigIsPaused = selectedAsigOrder?.estado === "pausada";
     const selectedAsigIsCancelled = selectedAsigOrder?.estado === "cancelada";
     const selectedAsigIsInactive = selectedAsigIsPaused || selectedAsigIsCancelled;
+    
+    const currentSession = selectedAsigId ? sessions[selectedAsigId] : null;
 
     const handleReportarProduccion = async (e: React.FormEvent) => {
         e.preventDefault();
         if (piezasProducidas === "" || piezasDefectuosas === "") return;
+        if (!selectedAsigId || !currentSession) return;
 
-        // Si no hay sesión activa, requerimos el tiempo
         let calculatedFechaInicio: string | undefined = undefined;
+        let calculatedFechaFin: string | undefined = undefined;
 
-        if (!miOperario.sesion_activa_desde) {
-            if (!timeSelectionMode) {
-                setShowManualTimePrompt(true);
-                if (showManualTimePrompt) {
-                    addToastOnly("Atención", "Selecciona hace cuánto tiempo empezaste.", "error");
-                }
-                return;
-            }
-
-            if (timeSelectionMode === "manual" && !manualTime) {
-                addToastOnly("Atención", "Ingresa la hora exacta en el reloj.", "error");
-                return;
-            }
-
-            const now = new Date();
-            if (timeSelectionMode === "15m") {
-                calculatedFechaInicio = new Date(now.getTime() - 15 * 60000).toISOString();
-            } else if (timeSelectionMode === "30m") {
-                calculatedFechaInicio = new Date(now.getTime() - 30 * 60000).toISOString();
-            } else if (timeSelectionMode === "1h") {
-                calculatedFechaInicio = new Date(now.getTime() - 60 * 60000).toISOString();
-            } else if (timeSelectionMode === "2h") {
-                calculatedFechaInicio = new Date(now.getTime() - 120 * 60000).toISOString();
-            } else if (timeSelectionMode === "manual") {
-                const [hours, minutes] = manualTime.split(":").map(Number);
-                now.setHours(hours, minutes, 0, 0);
-                calculatedFechaInicio = now.toISOString();
-            }
+        // Ensure we capture current time if still in progress
+        const now = new Date().toISOString();
+        const intervals = currentSession.intervals;
+        
+        if (intervals.length > 0) {
+            calculatedFechaInicio = intervals[0].start;
+            const lastInterval = intervals[intervals.length - 1];
+            calculatedFechaFin = lastInterval.end || now;
         }
 
-        if (selectedAsigId) {
-            const targetAsig = misAsignaciones.find(a => a.id === selectedAsigId);
-            if (targetAsig) {
-                const totalReportado = Number(piezasProducidas) + Number(piezasDefectuosas);
+        const targetAsig = misAsignaciones.find(a => a.id === selectedAsigId);
+        if (targetAsig) {
+            const totalReportado = Number(piezasProducidas) + Number(piezasDefectuosas);
 
-                const success = await reportarAvance({
-                    asignacion_id: targetAsig.id,
-                    piezas_reportadas: totalReportado,
-                    piezas_buenas: Number(piezasProducidas),
-                    piezas_defectuosas: Number(piezasDefectuosas),
-                    maquina_id: maquinaActual || undefined,
-                    notas: `Reportadas por operario: ${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas.`,
-                    fecha_inicio: calculatedFechaInicio
-                });
+            const success = await reportarAvance({
+                asignacion_id: targetAsig.id,
+                piezas_reportadas: totalReportado,
+                piezas_buenas: Number(piezasProducidas),
+                piezas_defectuosas: Number(piezasDefectuosas),
+                maquina_id: maquinaActual || undefined,
+                notas: `Reportadas por operario: ${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas.`,
+                fecha_inicio: calculatedFechaInicio,
+                fecha_fin: calculatedFechaFin
+            });
 
-                if (success) {
-                    addToastOnly(
-                        "Avance Reportado",
-                        `Tu reporte de avance de ${totalReportado} piezas (${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas) ha sido enviado.`,
-                        "success"
-                    );
-                } else {
-                    addToastOnly(
-                        "Error de Reporte",
-                        "Error al enviar la solicitud de avance.",
-                        "error"
-                    );
-                }
+            if (success) {
+                addToastOnly(
+                    "Avance Reportado",
+                    `Tu reporte de avance de ${totalReportado} piezas (${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas) ha sido enviado.`,
+                    "success"
+                );
+                // Reset the timer since pieces were reported successfully
+                clearSession(targetAsig.id);
+            } else {
+                addToastOnly(
+                    "Error de Reporte",
+                    "Error al enviar la solicitud de avance.",
+                    "error"
+                );
             }
         }
 
         setPiezasProducidas("");
         setPiezasDefectuosas("");
-        setTimeSelectionMode("");
-        setManualTime("");
-        setShowManualTimePrompt(false);
         setSelectedAsigId("");
-    };
-
-    const handleIniciarTarea = async () => {
-        setIniciandoSesion(true);
-        try {
-            const success = await iniciarSesion();
-            if (success) {
-                addToastOnly("Tarea Iniciada", "Se ha registrado la hora de inicio de tu tarea.", "success");
-            }
-        } catch (error) {
-            addToastOnly("Error", "No se pudo iniciar la tarea.", "error");
-        } finally {
-            setIniciandoSesion(false);
-        }
     };
 
     return (
@@ -138,17 +109,6 @@ export function FormularioReporteAvance({
                     </div>
                     <h2 className="text-xl font-bold text-white">Reportar Avance</h2>
                 </div>
-                {!miOperario.sesion_activa_desde && (
-                    <button
-                        type="button"
-                        onClick={handleIniciarTarea}
-                        disabled={iniciandoSesion}
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
-                    >
-                        <Play className="w-4 h-4" />
-                        {iniciandoSesion ? "Iniciando..." : "Iniciar Tarea"}
-                    </button>
-                )}
             </div>
 
             <form onSubmit={handleReportarProduccion} className="space-y-3.5">
@@ -203,61 +163,19 @@ export function FormularioReporteAvance({
                     />
                 </div>
 
-                {showManualTimePrompt && !miOperario.sesion_activa_desde && (
-                    <div className="group bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-4 animate-in fade-in zoom-in duration-300">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Clock className="w-5 h-5 text-red-400" />
-                            <label className="block text-sm font-bold text-red-400 uppercase tracking-wider">¿A qué hora empezaste?</label>
+                {selectedAsigId && !currentSession && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="text-sm font-bold text-amber-500">Debes iniciar la tarea</p>
+                            <p className="text-xs text-amber-400/80">No has iniciado sesión de trabajo para esta orden. Haz clic en "Empezar" en la tarjeta de la tarea arriba antes de reportar el avance.</p>
                         </div>
-                        <p className="text-sm text-slate-300 mb-4">
-                            No has iniciado tu tarea. Selecciona rápidamente hace cuánto tiempo empezaste a coser este lote:
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                            <button
-                                type="button"
-                                onClick={() => setTimeSelectionMode("15m")}
-                                className={`py-2.5 rounded-lg text-sm font-semibold transition-colors ${timeSelectionMode === "15m" ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"}`}
-                            >Hace 15 min</button>
-                            <button
-                                type="button"
-                                onClick={() => setTimeSelectionMode("30m")}
-                                className={`py-2.5 rounded-lg text-sm font-semibold transition-colors ${timeSelectionMode === "30m" ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"}`}
-                            >Hace 30 min</button>
-                            <button
-                                type="button"
-                                onClick={() => setTimeSelectionMode("1h")}
-                                className={`py-2.5 rounded-lg text-sm font-semibold transition-colors ${timeSelectionMode === "1h" ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"}`}
-                            >Hace 1 hora</button>
-                            <button
-                                type="button"
-                                onClick={() => setTimeSelectionMode("2h")}
-                                className={`py-2.5 rounded-lg text-sm font-semibold transition-colors ${timeSelectionMode === "2h" ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"}`}
-                            >Hace 2 horas</button>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setTimeSelectionMode("manual")}
-                            className={`w-full py-2.5 mb-3 rounded-lg text-sm font-semibold transition-colors ${timeSelectionMode === "manual" ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"}`}
-                        >Otra hora exacta (Reloj)</button>
-
-                        {timeSelectionMode === "manual" && (
-                            <input
-                                type="time"
-                                required
-                                disabled={selectedAsigIsInactive}
-                                value={manualTime}
-                                onChange={(e) => setManualTime(e.target.value)}
-                                className="w-full bg-[#080b10] border border-red-500/50 rounded-lg px-4 py-3 text-lg text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all shadow-inner"
-                            />
-                        )}
                     </div>
                 )}
 
                 <button
                     type="submit"
-                    disabled={maquinaEstado !== "operativa" || !selectedAsigId || selectedAsigIsInactive}
+                    disabled={maquinaEstado !== "operativa" || !selectedAsigId || selectedAsigIsInactive || !currentSession}
                     className="w-full mt-2.5 py-3 rounded-xl font-black text-white transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] disabled:hover:shadow-none border border-orange-400/20"
                 >
                     {maquinaEstado !== "operativa"
@@ -268,6 +186,8 @@ export function FormularioReporteAvance({
                         ? "Orden Cancelada - No se puede reportar"
                         : !selectedAsigId
                         ? "Seleccione una tarea"
+                        : !currentSession
+                        ? "Tarea no iniciada"
                         : "Guardar Producción"}
                 </button>
             </form>

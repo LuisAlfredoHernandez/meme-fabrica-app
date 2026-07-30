@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AsignacionOrden, Orden } from "@/types";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Play, Pause, Clock } from "lucide-react";
+import { useWorkSessionStore, useWorkSessionActions } from "../store/useWorkSessionStore";
 
 interface TareaAsignadaCardProps {
     asig: AsignacionOrden;
@@ -23,12 +25,60 @@ export function TareaAsignadaCard({
     const orderStatus = ordenCompleta?.estado || "pendiente";
     const isOrderPaused = orderStatus === "pausada";
     const isOrderCancelled = orderStatus === "cancelada";
+    
+    // Work session integration
+    const session = useWorkSessionStore(state => state.sessions[asig.id]);
+    const { startTask, pauseTask } = useWorkSessionActions();
+    const isActive = session?.status === "in_progress";
+    
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    useEffect(() => {
+        if (!session) {
+            setElapsedSeconds(0);
+            return;
+        }
+
+        let intervalId: NodeJS.Timeout;
+
+        const calculateElapsed = () => {
+            let total = session.accumulatedSeconds;
+            if (session.status === "in_progress") {
+                const lastStart = session.intervals[session.intervals.length - 1]?.start;
+                if (lastStart) {
+                    total += Math.floor((Date.now() - new Date(lastStart).getTime()) / 1000);
+                }
+            }
+            setElapsedSeconds(total);
+        };
+
+        calculateElapsed();
+
+        if (session.status === "in_progress") {
+            intervalId = setInterval(calculateElapsed, 1000);
+        }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [session]);
+
+    const formatTime = (totalSeconds: number) => {
+        const hrs = Math.floor(totalSeconds / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const isInactive = isOrderPaused || isOrderCancelled;
 
     return (
         <div
             className={`bg-gradient-to-br from-[#13161e] to-[#0d1018] border rounded-3xl p-5 space-y-4 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 shadow-lg ${isOrderCancelled ? 'border-red-500/20 opacity-70' :
                 isOrderPaused ? 'border-amber-500/20 opacity-80 animate-[pulse_3s_infinite]' :
-                    'border-[#1e2130]'
+                isActive ? 'border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/30' :
+                'border-[#1e2130]'
                 }`}
         >
             <div className="space-y-2">
@@ -53,10 +103,36 @@ export function TareaAsignadaCard({
                             </div>
                         )}
                     </div>
+                    {/* Timer and Play/Pause Actions */}
+                    {!isDone && !isInactive && (
+                        <div className="flex flex-col items-end gap-1.5">
+                            {session && (
+                                <div className={`flex items-center gap-1.5 text-xs font-mono font-bold ${isActive ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                    <Clock className="w-3.5 h-3.5" />
+                                    {formatTime(elapsedSeconds)}
+                                </div>
+                            )}
+                            {isActive ? (
+                                <button 
+                                    onClick={() => pauseTask(asig.id)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-[10px] font-bold uppercase transition-colors"
+                                >
+                                    <Pause className="w-3 h-3" /> Pausar
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={() => startTask(asig.id)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-[10px] font-bold uppercase transition-colors"
+                                >
+                                    <Play className="w-3 h-3" /> {session ? 'Continuar' : 'Empezar'}
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-white leading-tight">{asig.tarea}</h3>
-                    <p className="text-[11px] text-slate-500 font-medium">Cliente: {asig.orden?.cliente || ordenCompleta?.cliente || 'N/A'}</p>
+                    <h3 className="text-sm font-bold text-white leading-tight mt-1">{asig.tarea}</h3>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">Cliente: {asig.orden?.cliente || ordenCompleta?.cliente || 'N/A'}</p>
                 </div>
             </div>
 
