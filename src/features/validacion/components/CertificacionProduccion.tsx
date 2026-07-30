@@ -135,50 +135,78 @@ export function CertificacionProduccion() {
                             <h2 className="text-xl font-bold text-white">Certificar Unidades</h2>
                         </div>
 
-                        <div className="bg-[#080b10] border border-[#1e2130] rounded-2xl p-5 mb-6">
-                            <p className="text-xs text-slate-400 font-medium mb-1">Operario: <span className="text-white font-bold">{selectedReport.operarioNombre}</span></p>
-                            <p className="text-xs text-slate-400 font-medium mb-1">Total Reportado: <span className="text-orange-400 font-black text-base">{selectedReport.piezasReportadas}</span></p>
-                            {selectedReport.notas && (
-                                <p className="text-xs text-slate-400 font-medium mb-1">Detalle del Operario: <span className="text-emerald-400 font-semibold">{selectedReport.notas.replace('Reportadas por operario: ', '')}</span></p>
-                            )}
-                            <div className="flex gap-4 mt-3 pt-3 border-t border-[#1e2130]">
+                        <div className="bg-[#080b10] border border-[#1e2130] rounded-2xl p-5 mb-6 shadow-inner">
+                            <div className="flex justify-between items-center mb-5">
                                 <div>
-                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Inicio Reportado</p>
-                                    <p className="text-xs text-slate-300 font-mono">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Operario</p>
+                                    <p className="text-white font-bold text-lg">{selectedReport.operarioNombre}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Total Reportado</p>
+                                    <p className="text-orange-400 font-black text-2xl bg-orange-500/10 px-3 py-1 rounded-xl border border-orange-500/20 inline-block">{selectedReport.piezasReportadas}</p>
+                                </div>
+                            </div>
+
+                            {/* Extract details from notes if available */}
+                            {(() => {
+                                if (!selectedReport.notas) return null;
+                                const match = selectedReport.notas.match(/(\d+)\s*buenas,\s*(\d+)\s*defectuosas/i);
+                                if (!match) return <p className="text-xs text-slate-400 italic mb-4">Nota: {selectedReport.notas}</p>;
+                                
+                                return (
+                                    <div className="flex items-center justify-between bg-[#13161e] p-3 rounded-xl border border-[#1e2130] mb-5">
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Desglose del Operario:</p>
+                                        <div className="flex gap-2">
+                                            <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-black flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5"/> {match[1]} Buenas</span>
+                                            <span className="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-xs font-black flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5"/> {match[2]} Defectuosas</span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            <div className="flex gap-6 pt-4 border-t border-[#1e2130]">
+                                <div className="flex-1">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3 h-3"/> Inicio Reportado</p>
+                                    <p className="text-sm text-slate-300 font-mono font-medium">
                                         {selectedReport.fechaInicio ? new Date(selectedReport.fechaInicio).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) : 'No Registrado'}
                                     </p>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Fin Reportado</p>
-                                    <p className="text-xs text-slate-300 font-mono">
+                                <div className="w-px h-8 bg-slate-800"></div>
+                                <div className="flex-1 text-right">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5 justify-end"><Clock className="w-3 h-3"/> Fin Reportado</p>
+                                    <p className="text-sm text-slate-300 font-mono font-medium">
                                         {selectedReport.fechaFin ? new Date(selectedReport.fechaFin).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) : 'No Registrado'}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <form onSubmit={handleValidate} className="space-y-5">
-                            <div>
-                                <label className="block text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">Unidades Buenas (Validadas)</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    required
-                                    value={buenas}
-                                    onChange={(e) => setBuenas(Number(e.target.value))}
-                                    className="w-full bg-[#080b10] border border-emerald-500/30 rounded-xl px-4 py-4 text-emerald-400 text-xl font-black focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all shadow-inner"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Unidades Defectuosas</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    required
-                                    value={defectuosas}
-                                    onChange={(e) => setDefectuosas(Number(e.target.value))}
-                                    className="w-full bg-[#080b10] border border-red-500/30 rounded-xl px-4 py-4 text-red-400 text-xl font-black focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all shadow-inner"
-                                />
+                        <form onSubmit={handleValidate} className="space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="group">
+                                    <label className="block text-[10px] font-bold text-emerald-500 uppercase tracking-wider mb-2 group-hover:text-emerald-400 transition-colors">Buenas (Validadas)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        required
+                                        value={buenas}
+                                        onChange={(e) => setBuenas(Number(e.target.value))}
+                                        className="w-full bg-[#13161e] border border-emerald-500/20 rounded-xl px-4 py-3.5 text-emerald-400 text-2xl font-black focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all shadow-inner hover:border-emerald-500/40"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[10px] font-bold text-red-500 uppercase tracking-wider mb-2 group-hover:text-red-400 transition-colors">Defectuosas</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        required
+                                        value={defectuosas}
+                                        onChange={(e) => setDefectuosas(Number(e.target.value))}
+                                        className="w-full bg-[#13161e] border border-red-500/20 rounded-xl px-4 py-3.5 text-red-400 text-2xl font-black focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all shadow-inner hover:border-red-500/40"
+                                        placeholder="0"
+                                    />
+                                </div>
                             </div>
 
                             <div className="pt-4 border-t border-[#1e2130] space-y-4">
