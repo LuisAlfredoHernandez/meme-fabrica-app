@@ -28,8 +28,8 @@ export function CertificacionProduccion() {
 
     const handleSelectReport = (report: ValidacionReporte) => {
         setSelectedReport(report);
-        setBuenas(report.piezasReportadas);
-        setDefectuosas(0);
+        setBuenas("");
+        setDefectuosas("");
         setFechaInicio(report.fechaInicio ? formatForDatetimeLocal(report.fechaInicio) : "");
         setFechaFin(report.fechaFin ? formatForDatetimeLocal(report.fechaFin) : "");
     };
@@ -114,7 +114,7 @@ export function CertificacionProduccion() {
                                     </div>
                                     <div className="w-px h-8 bg-slate-800"></div>
                                     <div className="flex-1 text-right">
-                                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Propuestas</p>
+                                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Total</p>
                                         <p className="text-xl font-black text-orange-400">{report.piezasReportadas} <span className="text-xs font-normal text-slate-500">pzs</span></p>
                                     </div>
                                 </div>
@@ -137,7 +137,10 @@ export function CertificacionProduccion() {
 
                         <div className="bg-[#080b10] border border-[#1e2130] rounded-2xl p-5 mb-6">
                             <p className="text-xs text-slate-400 font-medium mb-1">Operario: <span className="text-white font-bold">{selectedReport.operarioNombre}</span></p>
-                            <p className="text-xs text-slate-400 font-medium mb-1">Unidades Propuestas: <span className="text-orange-400 font-black text-base">{selectedReport.piezasReportadas}</span></p>
+                            <p className="text-xs text-slate-400 font-medium mb-1">Total Reportado: <span className="text-orange-400 font-black text-base">{selectedReport.piezasReportadas}</span></p>
+                            {selectedReport.notas && (
+                                <p className="text-xs text-slate-400 font-medium mb-1">Detalle del Operario: <span className="text-emerald-400 font-semibold">{selectedReport.notas.replace('Reportadas por operario: ', '')}</span></p>
+                            )}
                             <div className="flex gap-4 mt-3 pt-3 border-t border-[#1e2130]">
                                 <div>
                                     <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Inicio Reportado</p>
@@ -202,16 +205,23 @@ export function CertificacionProduccion() {
                                 </div>
                             </div>
 
-                            {buenas !== "" && defectuosas !== "" && selectedReport && (Number(buenas) + Number(defectuosas)) !== selectedReport.piezasReportadas && (
-                                <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex gap-3">
-                                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                                    <p className="text-xs text-amber-400 font-medium">La suma de buenas y defectuosas ({Number(buenas) + Number(defectuosas)}) no coincide con lo reportado ({selectedReport.piezasReportadas}). Puedes ajustar esto si hubo un error del operario.</p>
+                            {buenas !== "" && defectuosas !== "" && selectedReport && (Number(buenas) + Number(defectuosas)) > selectedReport.piezasReportadas && (
+                                <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl flex gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                    <p className="text-xs text-red-400 font-medium">La suma de buenas y defectuosas ({Number(buenas) + Number(defectuosas)}) no puede superar el total reportado ({selectedReport.piezasReportadas}).</p>
+                                </div>
+                            )}
+                            
+                            {buenas !== "" && defectuosas !== "" && selectedReport && (Number(buenas) + Number(defectuosas)) < selectedReport.piezasReportadas && (
+                                <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl flex gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                    <p className="text-xs text-red-400 font-medium">La suma de buenas y defectuosas ({Number(buenas) + Number(defectuosas)}) no puede ser menor al total reportado ({selectedReport.piezasReportadas}).</p>
                                 </div>
                             )}
 
                             <button
                                 type="submit"
-                                disabled={isValidating}
+                                disabled={isValidating || buenas === "" || defectuosas === "" || (selectedReport ? (Number(buenas) + Number(defectuosas)) !== selectedReport.piezasReportadas : false)}
                                 className="w-full mt-4 py-4 rounded-xl font-black text-white transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-[#818cf8] to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-[#818cf8]/25 border border-[#818cf8]/20 flex items-center justify-center gap-2"
                             >
                                 {isValidating ? "Procesando..." : <><CheckCircle2 className="w-5 h-5" /> Confirmar y Validar</>}

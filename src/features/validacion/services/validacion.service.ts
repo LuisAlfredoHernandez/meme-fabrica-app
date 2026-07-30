@@ -25,6 +25,7 @@ export const validacionService = {
                 estado: item.estado,
                 fechaInicio: item.fecha_inicio,
                 fechaFin: item.fecha_fin,
+                notas: item.notas,
             }));
         } catch (error) {
             console.error("Error en validacionService.getPendientes:", error);

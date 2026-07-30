@@ -12,7 +12,7 @@ interface FormularioReporteAvanceProps {
     ordenes: Orden[];
     maquinaEstado?: string;
     maquinaActual?: string;
-    reportarAvance: (data: { asignacion_id: string; piezas_reportadas: number; maquina_id?: string; notas?: string; fecha_inicio?: string }) => Promise<boolean>;
+    reportarAvance: (data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string }) => Promise<boolean>;
 }
 
 export function FormularioReporteAvance({
@@ -84,6 +84,8 @@ export function FormularioReporteAvance({
                 const success = await reportarAvance({
                     asignacion_id: targetAsig.id,
                     piezas_reportadas: totalReportado,
+                    piezas_buenas: Number(piezasProducidas),
+                    piezas_defectuosas: Number(piezasDefectuosas),
                     maquina_id: maquinaActual || undefined,
                     notas: `Reportadas por operario: ${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas.`,
                     fecha_inicio: calculatedFechaInicio

@@ -13,6 +13,7 @@ export const ValidacionSchema = z.object({
     estado: z.enum(["pendiente", "validado", "rechazado"]),
     fechaInicio: z.string().optional().nullable(),
     fechaFin: z.string().optional().nullable(),
+    notas: z.string().optional().nullable(),
 });
 
 export type ValidacionReporte = z.infer<typeof ValidacionSchema>;
