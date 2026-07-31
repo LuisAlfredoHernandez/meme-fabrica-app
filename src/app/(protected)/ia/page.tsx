@@ -83,6 +83,7 @@ function PanelGestionModelo({ status, onSuccess }: PanelProps) {
     const [exportando, setExportando] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [confirmText, setConfirmText] = useState("");
+    const [showExcelFormat, setShowExcelFormat] = useState(false);
 
     const ejecutarReentrenamiento = async () => {
         setReentrena(true);
@@ -208,7 +209,60 @@ function PanelGestionModelo({ status, onSuccess }: PanelProps) {
                         <span title="Sube una plantilla Excel con el historial para calibrar la IA">
                             <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-pointer hover:text-slate-400" />
                         </span>
+                        <button 
+                            onClick={() => setShowExcelFormat(!showExcelFormat)}
+                            className="ml-auto text-[10px] text-indigo-400 hover:text-indigo-300 font-bold underline cursor-pointer"
+                        >
+                            {showExcelFormat ? "Ocultar formato requerido" : "Ver formato requerido"}
+                        </button>
                     </div>
+
+                    {showExcelFormat && (
+                        <div className="p-3 bg-[#090b10] rounded-xl border border-indigo-500/20 text-xs">
+                            <p className="text-slate-300 mb-2 font-medium">El archivo Excel (.xlsx o .xls) debe contener <strong>exactamente</strong> las siguientes columnas en la primera fila:</p>
+                            <div className="overflow-x-auto border border-white/5 rounded-lg">
+                                <table className="w-full text-left text-[10px]">
+                                    <thead className="bg-slate-800/50 text-slate-400 uppercase">
+                                        <tr>
+                                            <th className="p-2 whitespace-nowrap">Fecha</th>
+                                            <th className="p-2 whitespace-nowrap">Número de Orden</th>
+                                            <th className="p-2 whitespace-nowrap">Cliente</th>
+                                            <th className="p-2 whitespace-nowrap">Tipo</th>
+                                            <th className="p-2 whitespace-nowrap">Prioridad</th>
+                                            <th className="p-2 whitespace-nowrap">Operario</th>
+                                            <th className="p-2 whitespace-nowrap">Máquina</th>
+                                            <th className="p-2 whitespace-nowrap">Prenda</th>
+                                            <th className="p-2 whitespace-nowrap">Piezas Requeridas</th>
+                                            <th className="p-2 whitespace-nowrap">Piezas Buenas</th>
+                                            <th className="p-2 whitespace-nowrap">Piezas Defectuosas</th>
+                                            <th className="p-2 whitespace-nowrap">Horas de Costura</th>
+                                            <th className="p-2 whitespace-nowrap">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5 text-slate-300">
+                                        <tr>
+                                            <td className="p-2 whitespace-nowrap">2026-03-15</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">ORD-2026-001</td>
+                                            <td className="p-2 whitespace-nowrap">Nike Inc</td>
+                                            <td className="p-2 whitespace-nowrap">MTO</td>
+                                            <td className="p-2 whitespace-nowrap">alta</td>
+                                            <td className="p-2 whitespace-nowrap">Juan Pérez</td>
+                                            <td className="p-2 whitespace-nowrap">MERROW-01</td>
+                                            <td className="p-2 whitespace-nowrap">camiseta</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">500</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">495</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">5</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">8.5</td>
+                                            <td className="p-2 whitespace-nowrap text-emerald-400 font-bold">validado</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p className="text-[10px] text-slate-500 mt-2">
+                                * Nota: Asegúrate de que no haya espacios al final de los nombres de las columnas. Se requiere al menos 1 día de registros validados y 2 órdenes.
+                            </p>
+                        </div>
+                    )}
                     
                     {!file ? (
                         <label className="flex flex-col items-center justify-center border border-dashed border-[#1e2130] hover:border-indigo-500/50 rounded-xl p-6 cursor-pointer group transition-all bg-[#090b10]">
