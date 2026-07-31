@@ -150,7 +150,7 @@ export function CertificacionProduccion() {
                             {/* Extract details from notes if available */}
                             {(() => {
                                 if (!selectedReport.notas) return null;
-                                const match = selectedReport.notas.match(/(\d+)\s*buenas,\s*(\d+)\s*defectuosas/i);
+                                const match = selectedReport.notas.match(/(\d+)\s*buenas,\s*(\d+)\s*defectuosas(?:.*\s*Tiempo trabajando:\s*([\d.]+)\s*hrs)?/i);
                                 if (!match) return <p className="text-xs text-slate-400 italic mb-4">Nota: {selectedReport.notas}</p>;
                                 
                                 return (
@@ -169,6 +169,25 @@ export function CertificacionProduccion() {
                                     <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3 h-3"/> Inicio Reportado</p>
                                     <p className="text-sm text-slate-300 font-mono font-medium">
                                         {selectedReport.fechaInicio ? new Date(selectedReport.fechaInicio).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) : 'No Registrado'}
+                                    </p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-800"></div>
+                                <div className="flex-1 text-center">
+                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 flex items-center justify-center gap-1.5"><Clock className="w-3 h-3"/> Tiempo Total</p>
+                                    <p className="text-sm text-emerald-400 font-mono font-bold">
+                                        {(() => {
+                                            if (selectedReport.notas) {
+                                                const match = selectedReport.notas.match(/Tiempo trabajando:\s*([\d.]+)\s*hrs/i);
+                                                if (match && match[1]) {
+                                                    return `${match[1]} hrs`;
+                                                }
+                                            }
+                                            if (selectedReport.fechaInicio && selectedReport.fechaFin) {
+                                                const diffMs = new Date(selectedReport.fechaFin).getTime() - new Date(selectedReport.fechaInicio).getTime();
+                                                if (diffMs > 0) return `${(diffMs / (1000 * 60 * 60)).toFixed(2)} hrs`;
+                                            }
+                                            return "N/A";
+                                        })()}
                                     </p>
                                 </div>
                                 <div className="w-px h-8 bg-slate-800"></div>

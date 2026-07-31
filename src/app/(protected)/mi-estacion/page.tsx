@@ -8,7 +8,7 @@ import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/s
 import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { StatCard } from "@/components/StatCard";
-
+import { useWorkSessionStore } from "@/features/operarios/store/useWorkSessionStore";
 import { TareaAsignadaCard } from "@/features/operarios/components/TareaAsignadaCard";
 import { FormularioReporteAvance } from "@/features/operarios/components/FormularioReporteAvance";
 import { FormularioReporteFalla } from "@/features/maquinas/components/FormularioReporteFalla";
@@ -20,7 +20,7 @@ export default function MiEstacionPage() {
     const { user } = useAuthStore();
 
     const { operarios, isLoading: loadingOperarios } = useOperarioStore();
-    const { fetchOperarios, iniciarSesion } = useOperarioActions();
+    const { fetchOperarios } = useOperarioActions();
 
     const { maquinas, reportesAveriaPendientes, isLoading: loadingMaquinas } = useMaquinasStore();
     const { fetchMaquinas, fetchReportesAveriaPendientes, reportarAveria } = useMaquinasActions();
@@ -31,8 +31,7 @@ export default function MiEstacionPage() {
     const { ordenes } = useOrdenStore();
     const { fetchOrdenes } = useOrdenActions();
     const { addNotification } = useNotificationActions();
-
-
+    const { activeTaskId } = useWorkSessionStore();
 
     // Referencia para rastrear los estados anteriores de las órdenes asignadas
     const prevOrdersRef = useRef<{ [key: string]: { estado: string; prioridad: string } } | null>(null);
@@ -238,6 +237,17 @@ export default function MiEstacionPage() {
                     <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignacionesActivas.length})
                 </h2>
 
+                {!activeTaskId && misAsignacionesActivas.length > 0 && (
+                    <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-start gap-3 shadow-lg shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <Clock className="w-5 h-5 text-amber-500 animate-pulse" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-amber-500 mb-1">¡No olvides registrar tu tiempo!</h3>
+                            <p className="text-xs text-amber-400/80 leading-relaxed">No tienes ninguna tarea activa en este momento. Haz clic en el botón <strong className="text-amber-500 font-black">"Empezar"</strong> de la tarea que vayas a trabajar para que el sistema pueda contabilizar tu tiempo correctamente.</p>
+                        </div>
+                    </div>
+                )}
                 {misAsignacionesActivas.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {misAsignacionesActivas.map(asig => (

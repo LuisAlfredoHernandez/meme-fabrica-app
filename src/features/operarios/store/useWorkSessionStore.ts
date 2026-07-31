@@ -33,37 +33,45 @@ export const useWorkSessionStore = create<WorkSessionState>()(
                 const now = new Date().toISOString();
                 const state = get();
                 
-                // If there's another active task, pause it first
                 const newSessions = { ...state.sessions };
+                
+                // If there's another active task, pause it first
                 if (state.activeTaskId && state.activeTaskId !== asignacionId) {
-                    const prevSession = newSessions[state.activeTaskId];
+                    const prevSession = { ...newSessions[state.activeTaskId] };
                     if (prevSession && prevSession.status === "in_progress") {
-                        const lastInterval = prevSession.intervals[prevSession.intervals.length - 1];
+                        // Deep clone intervals to avoid mutating original
+                        prevSession.intervals = [...prevSession.intervals];
+                        const lastInterval = { ...prevSession.intervals[prevSession.intervals.length - 1] };
+                        
                         if (lastInterval && !lastInterval.end) {
                             lastInterval.end = now;
                             const diff = Math.floor((new Date(now).getTime() - new Date(lastInterval.start).getTime()) / 1000);
                             prevSession.accumulatedSeconds += diff;
+                            prevSession.intervals[prevSession.intervals.length - 1] = lastInterval;
                         }
                         prevSession.status = "paused";
+                        newSessions[state.activeTaskId] = prevSession;
                     }
                 }
 
                 // Initialize or resume the selected task
-                let currentSession = newSessions[asignacionId];
+                let currentSession = newSessions[asignacionId] ? { ...newSessions[asignacionId] } : null;
                 if (!currentSession) {
                     currentSession = {
                         asignacionId,
                         status: "in_progress",
-                        intervals: [],
+                        intervals: [{ start: now }],
                         accumulatedSeconds: 0
                     };
-                    newSessions[asignacionId] = currentSession;
+                } else {
+                    currentSession.intervals = [...currentSession.intervals];
+                    if (currentSession.status !== "in_progress") {
+                        currentSession.status = "in_progress";
+                        currentSession.intervals.push({ start: now });
+                    }
                 }
-
-                if (currentSession.status !== "in_progress") {
-                    currentSession.status = "in_progress";
-                    currentSession.intervals.push({ start: now });
-                }
+                
+                newSessions[asignacionId] = currentSession;
 
                 set({
                     sessions: newSessions,
@@ -75,16 +83,20 @@ export const useWorkSessionStore = create<WorkSessionState>()(
                 const now = new Date().toISOString();
                 const state = get();
                 const newSessions = { ...state.sessions };
-                const currentSession = newSessions[asignacionId];
+                const currentSession = newSessions[asignacionId] ? { ...newSessions[asignacionId] } : null;
 
                 if (currentSession && currentSession.status === "in_progress") {
-                    const lastInterval = currentSession.intervals[currentSession.intervals.length - 1];
+                    currentSession.intervals = [...currentSession.intervals];
+                    const lastInterval = { ...currentSession.intervals[currentSession.intervals.length - 1] };
+                    
                     if (lastInterval && !lastInterval.end) {
                         lastInterval.end = now;
                         const diff = Math.floor((new Date(now).getTime() - new Date(lastInterval.start).getTime()) / 1000);
                         currentSession.accumulatedSeconds += diff;
+                        currentSession.intervals[currentSession.intervals.length - 1] = lastInterval;
                     }
                     currentSession.status = "paused";
+                    newSessions[asignacionId] = currentSession;
                 }
 
                 set({

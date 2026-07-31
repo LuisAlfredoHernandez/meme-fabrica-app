@@ -55,6 +55,7 @@ This project follows a **Feature-Driven Architecture**, strongly separating doma
 ### Styling & UI Consistency (Tailwind v4)
 - **UI Consistency:** Rigorously follow the existing UI styles, color palettes, and spacing conventions of the application when generating new screens or features.
 - **Component Reusability:** Always prioritize reusing existing UI components (found in `src/components/` or feature-specific folders) before creating new ones to avoid duplication and maintain visual harmony.
+- **UI/UX & Usability Engineering:** All UI development MUST consider the best practices of UI/UX and usability engineering. Ensure interfaces are intuitive, provide clear visual feedback, use appropriate animations (e.g., tutorial-style pulses for first-time interactions), and guide the user imperatively when required to avoid confusion or errors.
 - Use Tailwind utility classes directly in `className`.
 - Do not create separate `.css` files unless absolutely necessary (e.g., `globals.css` base definitions).
 - When identified or needed create components.

@@ -29,7 +29,7 @@ export function FormularioReporteAvance({
     const { addToastOnly } = useNotificationActions();
     
     const { activeTaskId, sessions } = useWorkSessionStore();
-    const { clearSession } = useWorkSessionActions();
+    const { clearSession, pauseTask } = useWorkSessionActions();
 
     useEffect(() => {
         if (activeTaskId && misAsignaciones.some(a => a.id === activeTaskId)) {
@@ -44,6 +44,18 @@ export function FormularioReporteAvance({
     const selectedAsigIsInactive = selectedAsigIsPaused || selectedAsigIsCancelled;
     
     const currentSession = selectedAsigId ? sessions[selectedAsigId] : null;
+
+    const handleFormInteraction = (targetId?: string) => {
+        const idToCheck = targetId || selectedAsigId;
+        if (activeTaskId && idToCheck === activeTaskId) {
+            pauseTask(activeTaskId);
+            addToastOnly(
+                "Tarea Pausada", 
+                "El temporizador se ha detenido automáticamente para que puedas realizar el reporte.", 
+                "info"
+            );
+        }
+    };
 
     const handleReportarProduccion = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,13 +79,24 @@ export function FormularioReporteAvance({
         if (targetAsig) {
             const totalReportado = Number(piezasProducidas) + Number(piezasDefectuosas);
 
+            // Calculate actual working hours to attach to notes
+            let diffHorasStr = "0.00";
+            let totalSeconds = currentSession.accumulatedSeconds || 0;
+            if (currentSession.status === "in_progress" && intervals.length > 0) {
+                const lastStart = intervals[intervals.length - 1].start;
+                totalSeconds += Math.floor((new Date(now).getTime() - new Date(lastStart).getTime()) / 1000);
+            }
+            if (totalSeconds > 0) {
+                diffHorasStr = (totalSeconds / 3600).toFixed(2);
+            }
+
             const success = await reportarAvance({
                 asignacion_id: targetAsig.id,
                 piezas_reportadas: totalReportado,
                 piezas_buenas: Number(piezasProducidas),
                 piezas_defectuosas: Number(piezasDefectuosas),
                 maquina_id: maquinaActual || undefined,
-                notas: `Reportadas por operario: ${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas.`,
+                notas: `Reportadas por operario: ${piezasProducidas} buenas, ${piezasDefectuosas} defectuosas. Tiempo trabajando: ${diffHorasStr} hrs.`,
                 fecha_inicio: calculatedFechaInicio,
                 fecha_fin: calculatedFechaFin
             });
@@ -118,7 +141,11 @@ export function FormularioReporteAvance({
                     <select
                         required
                         value={selectedAsigId}
-                        onChange={(e) => setSelectedAsigId(e.target.value)}
+                        onChange={(e) => {
+                            const newId = e.target.value;
+                            setSelectedAsigId(newId);
+                            handleFormInteraction(newId);
+                        }}
                         className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 transition-all hover:border-slate-700"
                     >
                         <option value="">Seleccionar una tarea activa...</option>
@@ -145,6 +172,7 @@ export function FormularioReporteAvance({
                         disabled={selectedAsigIsInactive}
                         value={piezasProducidas}
                         onChange={(e) => setPiezasProducidas(Number(e.target.value))}
+                        onFocus={() => handleFormInteraction()}
                         className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all hover:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Ej. 10"
                     />
@@ -158,10 +186,34 @@ export function FormularioReporteAvance({
                         disabled={selectedAsigIsInactive}
                         value={piezasDefectuosas}
                         onChange={(e) => setPiezasDefectuosas(Number(e.target.value))}
+                        onFocus={() => handleFormInteraction()}
                         className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all hover:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Ej. 0"
                     />
                 </div>
+
+                {selectedAsigId && currentSession && (
+                    <div className="flex items-center justify-between bg-[#1e2130]/50 p-3.5 rounded-xl border border-white/5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" /> Tiempo Trabajado a Reportar
+                        </span>
+                        <span className="text-sm font-mono font-black text-emerald-400">
+                            {(() => {
+                                const now = new Date().toISOString();
+                                const intervals = currentSession.intervals;
+                                let totalSeconds = currentSession.accumulatedSeconds || 0;
+                                
+                                if (currentSession.status === "in_progress" && intervals.length > 0) {
+                                    const lastStart = intervals[intervals.length - 1].start;
+                                    totalSeconds += Math.floor((new Date(now).getTime() - new Date(lastStart).getTime()) / 1000);
+                                }
+                                
+                                const diffHoras = totalSeconds / 3600;
+                                return diffHoras > 0 ? `${diffHoras.toFixed(2)} hrs` : "0.00 hrs";
+                            })()}
+                        </span>
+                    </div>
+                )}
 
                 {selectedAsigId && !currentSession && (
                     <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
