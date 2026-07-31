@@ -28,6 +28,7 @@ import {
     exportHistoryAction,
     getActiveDelaysAction
 } from "@/features/ia-predictiva/actions/ia.actions";
+import { useOrdenStore } from "@/features/ordenes/store/useOrdenesStore";
 
 const AppColors = {
     bg: "#080b10", surface: "#13161e", border: "#1e2130",
@@ -323,18 +324,6 @@ function PanelGestionModelo({ status, onSuccess }: PanelProps) {
                     </div>
                 )}
 
-                {/* Botón Reentrenar (RF19) */}
-                <button
-                    onClick={ejecutarReentrenamiento}
-                    disabled={reentrenando || uploading}
-                    className="w-full h-12 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
-                >
-                    {reentrenando ? (
-                        <><RefreshCw className="w-4 h-4 animate-spin" /> Procesando reentrenamiento...</>
-                    ) : (
-                        <><Play className="w-4 h-4" /> Disparar reentrenamiento manual</>
-                    )}
-                </button>
 
                 {/* Botón Exportar Historial */}
                 <button
@@ -518,6 +507,7 @@ export default function IAPage() {
             const bnecks = await getBottlenecksAction();
             const status = await getIaStatusAction();
             const delays = await getActiveDelaysAction();
+
             setProyecciones(proj);
             setCuellos(bnecks.cuellos);
             setRecs(bnecks.recomendaciones);

@@ -71,7 +71,8 @@ export function TareaAsignadaCard({
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const isInactive = isOrderPaused || isOrderCancelled;
+    const isOrderCompleted = orderStatus === "completada";
+    const isInactive = isOrderPaused || isOrderCancelled || isOrderCompleted;
 
     return (
         <div
@@ -157,6 +158,12 @@ export function TareaAsignadaCard({
                 <div className="flex items-center gap-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-semibold">
                     <AlertTriangle className="w-4 h-4 shrink-0 text-red-500" />
                     <span>Orden CANCELADA. Producción abortada.</span>
+                </div>
+            )}
+            {isOrderCompleted && (
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+                    <span className="w-4 h-4 shrink-0 flex items-center justify-center text-emerald-500 font-bold">✓</span>
+                    <span>Orden COMPLETADA. Tarea archivada.</span>
                 </div>
             )}
 

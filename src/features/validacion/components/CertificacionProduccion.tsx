@@ -5,11 +5,14 @@ import { useValidacionStore, useValidacionActions } from "@/features/validacion/
 import { ClipboardCheck, CheckCircle2, Clock, Zap, Factory, AlertTriangle, ShieldCheck } from "lucide-react";
 import { ValidacionReporte } from "@/features/validacion/schemas/validacion.schema";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
+import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 
 export function CertificacionProduccion() {
     const { pendientes, isLoading } = useValidacionStore();
     const { validarReporte } = useValidacionActions();
     const { addToastOnly } = useNotificationActions();
+    const { fetchOrdenes, updateOrden } = useOrdenActions();
+    const { ordenes } = useOrdenStore();
 
     const [selectedReport, setSelectedReport] = useState<ValidacionReporte | null>(null);
     const [buenas, setBuenas] = useState<number | "">("");
@@ -39,6 +42,7 @@ export function CertificacionProduccion() {
         if (!selectedReport || buenas === "" || defectuosas === "") return;
 
         setIsValidating(true);
+        const reportOrdenId = selectedReport.ordenId;
         const isoInicio = fechaInicio ? new Date(fechaInicio).toISOString() : null;
         const isoFin = fechaFin ? new Date(fechaFin).toISOString() : null;
         const success = await validarReporte(selectedReport.id, Number(buenas), Number(defectuosas), isoInicio, isoFin);
@@ -53,6 +57,38 @@ export function CertificacionProduccion() {
                 "Reporte de producción validado exitosamente.",
                 "success"
             );
+
+            // Refrescar órdenes para obtener los datos más recientes
+            await fetchOrdenes();
+            
+            // Lógica de auto-completado si la orden alcanzó el 100%
+            if (reportOrdenId) {
+                // Pequeño timeout para asegurar que el backend ya procesó la validación
+                setTimeout(async () => {
+                    const storeOrdenes = useOrdenStore.getState().ordenes;
+                    const orderToUpdate = storeOrdenes.find((o) => o.id === reportOrdenId);
+                    
+                    if (orderToUpdate && orderToUpdate.estado === "en_proceso") {
+                        const totalCant = orderToUpdate.lineas.reduce((acc, l) => acc + l.cantidad, 0);
+                        const totalComp = orderToUpdate.lineas.reduce((acc, l) => acc + (l.cantidadCompletada ?? 0), 0);
+                        
+                        if (totalCant > 0 && totalComp >= totalCant) {
+                            try {
+                                await updateOrden(reportOrdenId, { ...orderToUpdate, estado: "completada" });
+                                addToastOnly(
+                                    "Orden Completada Automáticamente",
+                                    `La orden ${orderToUpdate.numero} alcanzó el 100% de avance y ha sido completada.`,
+                                    "success"
+                                );
+                                
+                                // El backend ahora se encarga de reentrenar y arreglar huérfanos.
+                            } catch (error) {
+                                console.error("No se pudo auto-completar la orden:", error);
+                            }
+                        }
+                    }
+                }, 1500);
+            }
         } else {
             addToastOnly(
                 "Error de Validación",
