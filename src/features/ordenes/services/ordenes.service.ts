@@ -229,7 +229,12 @@ export const ordenesService = {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error response details:", errorText);
-        throw new Error(`No se pudo actualizar la orden con ID: ${id}`);
+        let detailMsg = `No se pudo actualizar la orden con ID: ${id}`;
+        try {
+            const parsed = JSON.parse(errorText);
+            if (parsed.detail) detailMsg = parsed.detail;
+        } catch (e) {}
+        throw new Error(detailMsg);
       }
 
       const updated: any = await response.json();
