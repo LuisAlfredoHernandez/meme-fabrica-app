@@ -41,7 +41,6 @@ export const ordenSchema = z.object({
     fechaEntregaReal: z.string().datetime().optional(),
     creadaPor: z.string().optional(),
     notas: z.string().optional(),
-    cola: z.number().int().nonnegative().optional(),
     lineas: z.array(lineaOrdenSchema).min(1, "Debe haber al menos una línea"),
     asignaciones: z.array(asignacionCreateSchema).optional(),
 });

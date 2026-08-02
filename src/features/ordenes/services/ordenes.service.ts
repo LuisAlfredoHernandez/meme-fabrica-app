@@ -36,7 +36,6 @@ export const mapApiToFrontend = (api: any): Orden => {
     fechaEntregaReal: api.fecha_entrega_real ? api.fecha_entrega_real.split("T")[0] : undefined,
     creadaPor: "", // The backend does not maintain a creada_por field on the Orden entity.
     notas: api.notas || "",
-    cola: api.cola || 0,
     lineas: (api.lineas || []).map((linea: any) => ({
       id: linea.id,
       productoTipo: linea.producto_tipo || "otro",
@@ -128,7 +127,6 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
       : null;
   }
   if (data.notas !== undefined) payload.notas = data.notas;
-  if (data.cola !== undefined) payload.cola = data.cola;
   if (data.lineas !== undefined) {
     payload.lineas = data.lineas.map((linea: any) => {
       let prodTipo = linea.productoTipo || "otro";

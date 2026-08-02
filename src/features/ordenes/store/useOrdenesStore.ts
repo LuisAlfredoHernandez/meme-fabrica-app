@@ -16,7 +16,6 @@ interface OrdenState {
         fetchOrdenes: () => Promise<void>;
         createOrden: (data: Omit<Orden, "id">) => Promise<boolean>;
         updateOrden: (id: string, data: Partial<Orden>) => Promise<boolean>;
-        updateCola: (ordenesReordenadas: Orden[]) => Promise<void>;
         deleteOrden: (id: string) => Promise<boolean>;
         reset: () => void;
     };
@@ -84,34 +83,6 @@ export const useOrdenStore = create<OrdenState>()(
                         const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
                         set({ isLoading: false, error: errorMessage }, false, "ordenes/update_error");
                         throw e;
-                    }
-                },
-
-                updateCola: async (ordenesReordenadas: Orden[]) => {
-                    // 1. Actualización inmediata de la UI (Optimistic Update)
-                    set(
-                        (state) => ({
-                            ordenes: state.ordenes.map((original) => {
-                                const nuevaInfo = ordenesReordenadas.find((n) => n.id === original.id);
-                                return nuevaInfo ? { ...original, cola: nuevaInfo.cola } : original;
-                            }),
-                        }),
-                        false,
-                        "ordenes/update_cola_optimistic"
-                    );
-
-                    try {
-                        // 2. Sincronizar con el servicio a través de Server Actions en paralelo
-                        await Promise.all(
-                            ordenesReordenadas.map((o) =>
-                                updateOrdenAction(o.id, { cola: o.cola })
-                            )
-                        );
-                    } catch (e) {
-                        console.error("Error al sincronizar la cola con la DB", e);
-                        // Opcional: recargar datos reales si hay error
-                        const data = await fetchOrdenesAction();
-                        set({ ordenes: data }, false, "ordenes/update_cola_rollback");
                     }
                 },
 
