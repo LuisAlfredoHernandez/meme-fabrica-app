@@ -26,8 +26,16 @@ export default function LoginPage() {
         setCargando(true);
         const success = await login(usuario, password);
         setCargando(false);
-        if (success) router.push("/dashboard");
-        else setError("Credenciales inválidas. Verifica tu usuario y contraseña.");
+        if (success) {
+            const currentUser = useAuthStore.getState().user;
+            if (currentUser?.rol === "operario") {
+                router.push("/mi-estacion");
+            } else {
+                router.push("/dashboard");
+            }
+        } else {
+            setError("Credenciales inválidas. Verifica tu usuario y contraseña.");
+        }
     };
 
     return (

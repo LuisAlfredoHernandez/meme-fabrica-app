@@ -5,6 +5,7 @@ import { AsignacionOrden, Orden, Operario } from "@/types";
 import { CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { useWorkSessionStore, useWorkSessionActions } from "../store/useWorkSessionStore";
+import { useAsignacionStore } from "../store/useAsignacionStore";
 
 interface FormularioReporteAvanceProps {
     miOperario: Operario;
@@ -30,6 +31,7 @@ export function FormularioReporteAvance({
     
     const { activeTaskId, sessions } = useWorkSessionStore();
     const { clearSession, pauseTask } = useWorkSessionActions();
+    const { asignaciones: todasLasAsignaciones } = useAsignacionStore();
 
     useEffect(() => {
         if (activeTaskId && misAsignaciones.some(a => a.id === activeTaskId)) {
@@ -57,6 +59,32 @@ export function FormularioReporteAvance({
         }
     };
 
+    // --- LÓGICA DE FLUJO CONTINUO (WIP LIMITS) ---
+    const getLimits = () => {
+        if (!selectedAsigId) return { maxPiezas: 0, prevTarea: null };
+        const asig = misAsignaciones.find(a => a.id === selectedAsigId);
+        if (!asig) return { maxPiezas: 0, prevTarea: null };
+
+        const pipeline = todasLasAsignaciones
+            .filter(a => a.orden_id === asig.orden_id)
+            .sort((a, b) => new Date(a.fecha_asignacion).getTime() - new Date(b.fecha_asignacion).getTime());
+
+        const idx = pipeline.findIndex(a => a.id === selectedAsigId);
+        
+        if (idx === 0) {
+            return { maxPiezas: asig.piezas_requeridas - asig.piezas_completadas, prevTarea: null };
+        }
+        
+        if (idx > 0) {
+            const prevAsig = pipeline[idx - 1];
+            const maxPermitted = prevAsig.piezas_completadas - asig.piezas_completadas;
+            return { maxPiezas: maxPermitted > 0 ? maxPermitted : 0, prevTarea: prevAsig.tarea };
+        }
+        return { maxPiezas: 0, prevTarea: null };
+    };
+
+    const { maxPiezas, prevTarea } = getLimits();
+
     const handleReportarProduccion = async (e: React.FormEvent) => {
         e.preventDefault();
         if (piezasProducidas === "" || piezasDefectuosas === "") return;
@@ -78,6 +106,15 @@ export function FormularioReporteAvance({
         const targetAsig = misAsignaciones.find(a => a.id === selectedAsigId);
         if (targetAsig) {
             const totalReportado = Number(piezasProducidas) + Number(piezasDefectuosas);
+
+            if (totalReportado > maxPiezas) {
+                addToastOnly(
+                    "Límite de Piezas Excedido",
+                    `No puedes reportar ${totalReportado} piezas. Solo hay ${maxPiezas} piezas disponibles en este punto de la cadena de producción.`,
+                    "warning"
+                );
+                return;
+            }
 
             // Calculate actual working hours to attach to notes
             let diffHorasStr = "0.00";
@@ -163,22 +200,38 @@ export function FormularioReporteAvance({
                     </select>
                 </div>
 
-                <div className="group">
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-orange-400 transition-colors">Unidades Producidas (Buenas)</label>
-                    <input
-                        type="number"
-                        min="1"
-                        required
-                        disabled={selectedAsigIsInactive}
-                        value={piezasProducidas}
-                        onChange={(e) => setPiezasProducidas(Number(e.target.value))}
-                        onFocus={() => handleFormInteraction()}
-                        className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all hover:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        placeholder="Ej. 10"
-                    />
-                </div>
-                <div className="group">
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-orange-400 transition-colors">Unidades Defectuosas</label>
+                {selectedAsigId && (
+                    <div className={`p-3 border rounded-xl flex items-start gap-2 ${maxPiezas === 0 ? "border-red-500/30 bg-red-500/5 text-red-400" : "border-indigo-500/30 bg-indigo-500/5 text-indigo-300"}`}>
+                        {maxPiezas === 0 ? <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" /> : <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />}
+                        <div>
+                            <p className="text-xs font-bold">Límite de Producción (Flujo Continuo)</p>
+                            <p className="text-xs opacity-80 mt-1">
+                                {prevTarea 
+                                    ? (maxPiezas === 0 ? `Debes esperar a que el operario anterior (${prevTarea}) reporte piezas.` : `Puedes trabajar en máximo ${maxPiezas} piezas provenientes de ${prevTarea}.`)
+                                    : `Tienes ${maxPiezas} piezas por completar en esta orden.`
+                                }
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="group">
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-orange-400 transition-colors">Unidades Buenas</label>
+                        <input
+                            type="number"
+                            min="1"
+                            required
+                            disabled={selectedAsigIsInactive}
+                            value={piezasProducidas}
+                            onChange={(e) => setPiezasProducidas(Number(e.target.value))}
+                            onFocus={() => handleFormInteraction()}
+                            className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/50 transition-all hover:border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            placeholder="Ej. 10"
+                        />
+                    </div>
+                    <div className="group">
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 group-hover:text-orange-400 transition-colors">Unidades Defectuosas</label>
                     <input
                         type="number"
                         min="0"
@@ -191,6 +244,7 @@ export function FormularioReporteAvance({
                         placeholder="Ej. 0"
                     />
                 </div>
+            </div>
 
                 {selectedAsigId && currentSession && (
                     <div className="flex items-center justify-between bg-[#1e2130]/50 p-3.5 rounded-xl border border-white/5">

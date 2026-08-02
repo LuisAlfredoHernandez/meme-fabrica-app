@@ -250,15 +250,35 @@ export default function MiEstacionPage() {
                 )}
                 {misAsignacionesActivas.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {misAsignacionesActivas.map(asig => (
-                            <TareaAsignadaCard
-                                key={asig.id}
-                                asig={asig}
-                                ordenCompleta={ordenes.find(o => o.id === asig.orden_id)}
-                                prioridadStyle={ORDEN_PRIO_STYLE}
-                                estadoStyle={ORDEN_ESTADO_STYLE}
-                            />
-                        ))}
+                        {misAsignacionesActivas.map(asig => {
+                            // Calculate WIP limit for this card
+                            const pipeline = asignaciones
+                                .filter(a => a.orden_id === asig.orden_id)
+                                .sort((a, b) => new Date(a.fecha_asignacion).getTime() - new Date(b.fecha_asignacion).getTime());
+                            
+                            const idx = pipeline.findIndex(a => a.id === asig.id);
+                            let maxPermitidas = asig.piezas_requeridas - asig.piezas_completadas;
+                            let tareaAnterior = null;
+
+                            if (idx > 0) {
+                                const prevAsig = pipeline[idx - 1];
+                                const maxCalc = prevAsig.piezas_completadas - asig.piezas_completadas;
+                                maxPermitidas = maxCalc > 0 ? maxCalc : 0;
+                                tareaAnterior = prevAsig.tarea;
+                            }
+
+                            return (
+                                <TareaAsignadaCard
+                                    key={asig.id}
+                                    asig={asig}
+                                    ordenCompleta={ordenes.find(o => o.id === asig.orden_id)}
+                                    prioridadStyle={ORDEN_PRIO_STYLE}
+                                    estadoStyle={ORDEN_ESTADO_STYLE}
+                                    maxPiezasPermitidas={maxPermitidas}
+                                    tareaAnterior={tareaAnterior}
+                                />
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="p-6 text-center rounded-3xl bg-[#13161e] border border-white/5 text-slate-500 font-semibold italic text-sm">

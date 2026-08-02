@@ -10,6 +10,8 @@ interface TareaAsignadaCardProps {
     ordenCompleta?: Orden;
     prioridadStyle: Record<string, { color: string; bg: string }>;
     estadoStyle: Record<string, { label: string; bg: string; text: string }>;
+    maxPiezasPermitidas?: number;
+    tareaAnterior?: string | null;
 }
 
 export function TareaAsignadaCard({
@@ -17,6 +19,8 @@ export function TareaAsignadaCard({
     ordenCompleta,
     prioridadStyle,
     estadoStyle,
+    maxPiezasPermitidas,
+    tareaAnterior,
 }: TareaAsignadaCardProps) {
     const pct = asig.piezas_requeridas > 0 ? Math.round((asig.piezas_completadas / asig.piezas_requeridas) * 100) : 0;
     const isDone = asig.estado === "completada";
@@ -73,11 +77,14 @@ export function TareaAsignadaCard({
 
     const isOrderCompleted = orderStatus === "completada";
     const isInactive = isOrderPaused || isOrderCancelled || isOrderCompleted;
+    
+    const isBlocked = maxPiezasPermitidas === 0;
 
     return (
         <div
             className={`bg-gradient-to-br from-[#13161e] to-[#0d1018] border rounded-3xl p-5 space-y-4 flex flex-col justify-between hover:border-slate-800 transition-all duration-300 shadow-lg ${isOrderCancelled ? 'border-red-500/20 opacity-70' :
                 isOrderPaused ? 'border-amber-500/20 opacity-80 animate-[pulse_3s_infinite]' :
+                isBlocked ? 'border-indigo-500/30 opacity-70' :
                 isActive ? 'border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/30' :
                 'border-[#1e2130]'
                 }`}
@@ -142,8 +149,20 @@ export function TareaAsignadaCard({
                     )}
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-white leading-tight mt-1">{asig.tarea}</h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-white leading-tight mt-1">{asig.tarea}</h3>
+                        {isBlocked && (
+                            <span title={`Esperando piezas de ${tareaAnterior}`} className="text-indigo-400 mt-1">
+                                🔒
+                            </span>
+                        )}
+                    </div>
                     <p className="text-[11px] text-slate-500 font-medium mt-1">Cliente: {asig.orden?.cliente || ordenCompleta?.cliente || 'N/A'}</p>
+                    {maxPiezasPermitidas !== undefined && (
+                        <p className={`text-[10px] font-bold mt-1.5 ${isBlocked ? 'text-indigo-400' : 'text-emerald-400'}`}>
+                            Piezas Disponibles: {maxPiezasPermitidas}
+                        </p>
+                    )}
                 </div>
             </div>
 

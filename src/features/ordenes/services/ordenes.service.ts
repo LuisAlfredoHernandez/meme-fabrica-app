@@ -38,6 +38,7 @@ export const mapApiToFrontend = (api: any): Orden => {
     notas: api.notas || "",
     cola: api.cola || 0,
     lineas: (api.lineas || []).map((linea: any) => ({
+      id: linea.id,
       productoTipo: linea.producto_tipo || "otro",
       descripcion: linea.descripcion,
       cantidad: linea.cantidad,
@@ -49,6 +50,13 @@ export const mapApiToFrontend = (api: any): Orden => {
         cantidadRequerida: ins.cantidad_requerida,
         unidad: ins.unidad,
       })),
+    })),
+    asignaciones: (api.asignaciones || []).map((asig: any) => ({
+      id: asig.id,
+      operario_id: asig.operario_id,
+      tarea: asig.tarea,
+      piezas_requeridas: asig.piezas_requeridas,
+      notas: asig.notas || "",
     })),
   };
 };
@@ -92,6 +100,13 @@ export const mapFrontendToApi = (frontend: any): any => {
         })),
       };
     }),
+    asignaciones: (frontend.asignaciones || []).map((asig: any) => ({
+      id: asig.id,
+      operario_id: asig.operario_id,
+      tarea: asig.tarea,
+      piezas_requeridas: Number(asig.piezas_requeridas),
+      notas: asig.notas || "",
+    })),
   };
 };
 
@@ -128,6 +143,7 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
       }
 
       return {
+        id: linea.id,
         producto_tipo: prodTipo,
         descripcion: linea.descripcion,
         cantidad: Number(linea.cantidad),
@@ -141,6 +157,15 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
         })),
       };
     });
+  }
+  if (data.asignaciones !== undefined) {
+    payload.asignaciones = data.asignaciones.map((asig: any) => ({
+      id: asig.id,
+      operario_id: asig.operario_id,
+      tarea: asig.tarea,
+      piezas_requeridas: Number(asig.piezas_requeridas),
+      notas: asig.notas || "",
+    }));
   }
 
   return payload;

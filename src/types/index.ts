@@ -151,7 +151,8 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
-  cola: number
+  cola: number;
+  asignaciones?: any[];
 }
 
 // ─── Asignación de Órdenes a Operarios ────────────────────────
