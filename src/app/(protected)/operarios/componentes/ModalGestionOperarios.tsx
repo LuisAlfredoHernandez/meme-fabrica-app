@@ -12,8 +12,8 @@ import { EstacionesSelector } from "./EstacionesSelector";
 import { normalizeText } from "@/utils/formatters";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
-
-
+import { useMaquinasStore } from "@/features/maquinas/store/useMaquinasStore";
+import { Wrench } from "lucide-react";
 export function ModalGestionOperario({ onClose, operarios }: { onClose: () => void, operarios: Operario[] }) {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
@@ -37,7 +37,19 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     });
 
     const { register, handleSubmit, setValue, reset, getValues, formState: { errors } } = methods
+    const { maquinas } = useMaquinasStore();
+    
+    const currentHabilidades = methods.watch("habilidades") || [];
+    const currentMaquinaId = methods.watch("maquina_actual_id");
 
+    const maquinasDisponibles = useMemo(() => {
+        const tiposHabilidades = currentHabilidades.map(h => h.maquina);
+        return maquinas.filter(m => {
+            if (m.estado !== "operativa") return false;
+            if (!tiposHabilidades.includes(m.tipo)) return false;
+            return !m.operarioAsignado || m.id === currentMaquinaId;
+        });
+    }, [maquinas, currentHabilidades, currentMaquinaId]);
     const filteredOperarios = useMemo(() => {
         return operarios
             .filter(op => op.estado !== "terminado")
@@ -275,6 +287,29 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                         <EstacionesSelector />
                         {errors.habilidades && (
                             <p className="text-[10px] text-red-400 mt-1 px-1">{errors.habilidades.message}</p>
+                        )}
+                        
+                        {/* Selector de Máquina Asignada (Solo si existe el operario) */}
+                        {isExisting && (
+                            <div className="space-y-2 pt-4 border-t border-white/5">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                                    <Wrench className="w-3 h-3" /> Máquina Asignada
+                                </label>
+                                <select
+                                    {...register("maquina_actual_id")}
+                                    className="w-full bg-[#0d1018] border border-[#1e2130] rounded-xl px-4 h-11 text-xs font-medium text-white focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
+                                >
+                                    <option value="">-- Sin máquina asignada --</option>
+                                    {maquinasDisponibles.map(m => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.codigo} - {m.nombre} ({m.tipo}) {m.id === currentMaquinaId ? " (Actual)" : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-[9px] text-slate-500">
+                                    Solo se muestran máquinas operativas, libres, y acordes a las habilidades seleccionadas.
+                                </p>
+                            </div>
                         )}
                         
                         {errors.maquina_actual_id && (
