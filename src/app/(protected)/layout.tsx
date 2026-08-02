@@ -254,6 +254,25 @@ export default function ProtectedLayout({
                         }
                     }
                     
+                    if (message.event === "reasignacion_maquina") {
+                        fetchMaquinas();
+                        fetchOperarios();
+                        
+                        if (user.rol === "operario" && message.operario_id === user.id) {
+                            addNotification(
+                                "Máquina Reasignada", 
+                                `Por avería de tu equipo anterior, el supervisor te ha reasignado a la máquina ${message.nueva_maquina_codigo || ""} - ${message.nueva_maquina_nombre || ""}.`, 
+                                "success"
+                            );
+                        } else if (!isCurrentUser && user.rol !== "operario") {
+                            addNotification(
+                                "Reasignación Exitosa",
+                                `Un operario bloqueado ha sido reasignado a la máquina ${message.nueva_maquina_codigo || ""}.`,
+                                "info"
+                            );
+                        }
+                    }
+                    
                     if (message.event === "operator_updated") {
                         fetchOperarios();
                         if (!isCurrentUser && user.rol !== "operario") {

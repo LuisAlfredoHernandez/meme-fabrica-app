@@ -8,12 +8,13 @@ import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { StatusBadge } from "@/features/maquinas/components/StatusBadge";
 
 export function GestionAverias() {
-    const { reportesAveriaPendientes } = useMaquinasStore();
+    const { reportesAveriaPendientes, maquinas } = useMaquinasStore();
     const { fetchReportesAveriaPendientes, procesarReporteAveria, fetchMaquinas } = useMaquinasActions();
     const { addToastOnly } = useNotificationActions();
 
     const [selectedAveria, setSelectedAveria] = useState<ReporteAveria | null>(null);
     const [notasAveria, setNotasAveria] = useState("");
+    const [nuevaMaquinaId, setNuevaMaquinaId] = useState<string>("");
     const [isProcessingAveria, setIsProcessingAveria] = useState(false);
 
     const handleProcesarAveria = async (aprobado: boolean) => {
@@ -21,7 +22,7 @@ export function GestionAverias() {
 
         setIsProcessingAveria(true);
         try {
-            const success = await procesarReporteAveria(selectedAveria.id, aprobado, notasAveria);
+            const success = await procesarReporteAveria(selectedAveria.id, aprobado, notasAveria, aprobado ? nuevaMaquinaId : undefined);
             setIsProcessingAveria(false);
 
             if (success) {
@@ -36,6 +37,7 @@ export function GestionAverias() {
                 );
                 setSelectedAveria(null);
                 setNotasAveria("");
+                setNuevaMaquinaId("");
                 fetchMaquinas();
                 fetchReportesAveriaPendientes();
             } else {
@@ -66,7 +68,10 @@ export function GestionAverias() {
                         {reportesAveriaPendientes.map((report) => (
                             <div
                                 key={report.id}
-                                onClick={() => setSelectedAveria(report)}
+                                onClick={() => {
+                                    setSelectedAveria(report);
+                                    setNuevaMaquinaId("");
+                                }}
                                 className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 ${selectedAveria?.id === report.id
                                     ? "bg-amber-500/10 border-amber-500/50 shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                                     : "bg-[#080b10] border-[#1e2130] hover:border-amber-500/30 hover:bg-[#1a1d27]"
@@ -148,7 +153,33 @@ export function GestionAverias() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 pt-2">
+                            {selectedAveria.operario_id && selectedAveria.maquina_tipo && maquinas.filter(m => m.tipo === selectedAveria.maquina_tipo && m.estado === "operativa" && !m.operarioAsignado).length > 0 && (
+                                <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                                    <label className="block text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">
+                                        Reasignar Operario (Opcional)
+                                    </label>
+                                    <p className="text-xs text-slate-400 mb-2">
+                                        El operario {selectedAveria.operario_nombre} quedará bloqueado. Hay máquinas {selectedAveria.maquina_tipo} libres.
+                                    </p>
+                                    <select
+                                        value={nuevaMaquinaId}
+                                        onChange={e => setNuevaMaquinaId(e.target.value)}
+                                        className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl p-3 text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                                    >
+                                        <option value="">No reasignar (Quedará inactivo)</option>
+                                        {maquinas
+                                            .filter(m => m.tipo === selectedAveria.maquina_tipo && m.estado === "operativa" && !m.operarioAsignado)
+                                            .map(m => (
+                                                <option key={m.id} value={m.id}>
+                                                    {m.codigo} - {m.nombre}
+                                                </option>
+                                            ))
+                                        }
+                                    </select>
+                                </div>
+                            )}
+
+                        <div className="grid grid-cols-2 gap-3 pt-2">
                                 <button
                                     type="button"
                                     disabled={isProcessingAveria}

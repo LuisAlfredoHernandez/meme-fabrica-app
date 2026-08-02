@@ -47,7 +47,7 @@ export async function fetchReportesAveriaPendientesAction(): Promise<ReporteAver
   return maquinasService.getReportesAveriaPendientes(token);
 }
 
-export async function procesarReporteAveriaAction(id: string, aprobado: boolean, notas?: string): Promise<ReporteAveria> {
+export async function procesarReporteAveriaAction(id: string, aprobado: boolean, notas?: string, nuevaMaquinaId?: string): Promise<ReporteAveria> {
   const token = await getToken();
-  return maquinasService.procesarReporteAveria(id, aprobado, notas, token);
+  return maquinasService.procesarReporteAveria(id, aprobado, notas, nuevaMaquinaId, token);
 }

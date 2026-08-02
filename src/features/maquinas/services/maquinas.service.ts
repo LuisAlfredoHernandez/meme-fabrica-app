@@ -114,9 +114,11 @@ export const maquinasService = {
     }
   },
 
-  procesarReporteAveria: async (id: string, aprobado: boolean, notas?: string, token?: string): Promise<ReporteAveria> => {
+  procesarReporteAveria: async (id: string, aprobado: boolean, notas?: string, nuevaMaquinaId?: string, token?: string): Promise<ReporteAveria> => {
     try {
-      const response = await apiClient.post(`/reportes-averia/${id}/procesar`, { aprobado, notas }, { token });
+      const payload: any = { aprobado, notas };
+      if (nuevaMaquinaId) payload.nueva_maquina_id = nuevaMaquinaId;
+      const response = await apiClient.post(`/reportes-averia/${id}/procesar`, payload, { token });
 
       if (!response.ok) {
         let errMsg = "No se pudo procesar el reporte de avería.";

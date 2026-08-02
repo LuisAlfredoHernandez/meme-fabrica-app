@@ -110,6 +110,7 @@ export interface ReporteAveria {
   operario_nombre?: string;
   maquina_codigo?: string;
   maquina_nombre?: string;
+  maquina_tipo?: string;
 }
 
 export interface Insumo {
