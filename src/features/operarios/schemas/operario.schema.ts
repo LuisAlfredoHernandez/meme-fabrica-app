@@ -23,7 +23,7 @@ export const operarioSchema = usuarioSchema.extend({
             (items) => new Set(items.map((i) => i.maquina)).size === items.length,
             { message: "No puede haber habilidades duplicadas para el mismo tipo de máquina." }
         ),
-    maquina_actual_id: z.string().uuid("Debe ser un ID válido").optional().nullable(),
+    maquina_actual_id: z.string().uuid("Debe ser un ID válido").nullable().optional().or(z.literal("").transform(() => null)),
     orden_actual_id: z.string().optional().nullable(),
 });
 

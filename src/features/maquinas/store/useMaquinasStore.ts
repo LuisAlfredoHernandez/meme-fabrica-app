@@ -24,7 +24,7 @@ interface MaquinasState {
         createMaquina: (data: Omit<Maquina, "id">) => Promise<boolean>;
         updateMaquina: (id: string, data: Partial<Maquina>) => Promise<boolean>;
         reportarAveria: (data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">) => Promise<boolean>;
-        procesarReporteAveria: (id: string, aprobado: boolean, notas?: string) => Promise<boolean>;
+        procesarReporteAveria: (id: string, aprobado: boolean, notas?: string, nuevaMaquinaId?: string) => Promise<boolean>;
         reset: () => void;
     };
 }
@@ -131,20 +131,11 @@ export const useMaquinasStore = create<MaquinasState>()(
                     }
                 },
 
-                procesarReporteAveria: async (id, aprobado, notas) => {
+                procesarReporteAveria: async (id, aprobado, notas, nuevaMaquinaId) => {
                     set({ isLoading: true }, false, "maquinas/procesar_averia_start");
                     try {
-                        const res = await procesarReporteAveriaAction(id, aprobado, notas);
+                        const res = await procesarReporteAveriaAction(id, aprobado, notas, nuevaMaquinaId);
                         const nuevoEstado: any = aprobado ? "fuera_servicio" : "operativa";
-                        
-                        // Asegurar que el estado de la máquina se actualiza en la base de datos
-                        if (res && res.maquina_id) {
-                            try {
-                                await updateMaquinaAction(res.maquina_id, { estado: nuevoEstado });
-                            } catch (updateErr) {
-                                console.error("No se pudo actualizar el estado de la máquina en DB:", updateErr);
-                            }
-                        }
 
                         set(
                             (state) => ({

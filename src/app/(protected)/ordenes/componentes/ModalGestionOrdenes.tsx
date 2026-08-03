@@ -4,7 +4,7 @@ import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.s
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { getPrendasAction } from "@/features/ordenes/actions/ordenes.actions";
 import { AppColors } from "@/shared/constants";
-import { Orden } from "@/types";
+import { Orden, MAQUINAS_LIST } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.actions";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
+import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { CardLineaOrden } from "./CardLineaOrden";
 
 
@@ -31,9 +32,12 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
     });
 
     const { fields, append, remove } = useFieldArray({ control, name: "lineas" });
+    const { fields: asigFields, append: appendAsig, remove: removeAsig } = useFieldArray({ control, name: "asignaciones" });
     const { createOrden, updateOrden } = useOrdenActions();
     const { insumos } = useInsumosStore();
     const { fetchInsumos } = useInsumosActions();
+    const { operarios } = useOperarioStore();
+    const { fetchOperarios } = useOperarioActions();
     const isEdit = !!orden;
     const [listaPrendas, setListaPrendas] = useState<string[]>([]);
 
@@ -104,12 +108,14 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
         };
         cargarPrendas();
         fetchInsumos();
-    }, [fetchInsumos]);
+        fetchOperarios();
+    }, [fetchInsumos, fetchOperarios]);
 
     const vTipo = watch("tipo");
     const vCliente = watch("cliente");
     const vFechaEntrega = watch("fechaEntregaEstimada");
     const vLineas = watch("lineas");
+    const vAsignaciones = watch("asignaciones");
 
     useEffect(() => {
         if (orden) {
@@ -182,7 +188,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
             `}</style>
 
             <form onSubmit={handleSubmit(onActualSubmit, onInvalidSubmit)}
-                className="w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+                className="w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
                 style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
 
                 {/* Header */}
@@ -197,7 +203,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                 </div>
 
                 <fieldset disabled={readOnly} className="contents">
-                <div className="p-6 space-y-5 overflow-hidden flex-1 flex flex-col">
+                <div className="p-6 md:p-8 space-y-8 overflow-y-auto flex-1 flex flex-col custom-scrollbar">
                     {/* Sección Fija: Datos Generales */}
                     <div className="space-y-4 shrink-0">
                         <div className="space-y-1.5">
@@ -231,14 +237,15 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                         </div>
                     </div>
 
-                    {/* SECCIÓN DE PRENDAS (Con Scroll Homogéneo) */}
-                    <div className="flex flex-col flex-1 min-h-0 space-y-3 relative">
-                        <div className="flex justify-between items-center px-1 shrink-0">
+                    {/* SECCIÓN DE PRENDAS (Sin scroll anidado restrictivo) */}
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex justify-between items-center px-1">
                             <label className="text-[11px] font-black uppercase tracking-widest text-orange-500">Prendas / Items</label>
                             {!readOnly && (
                                 <button type="button" onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", color: "", insumos: [] })}
-                                    className="group flex items-center justify-center p-1 rounded-lg border border-orange-500/30 hover:bg-orange-500/10 cursor-pointer transition-all">
-                                    <Plus className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
+                                    className="group flex items-center justify-center px-3 py-1.5 rounded-lg border border-orange-500/30 hover:bg-orange-500/10 cursor-pointer transition-all gap-1">
+                                    <Plus className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[10px] font-bold text-orange-500 uppercase">Añadir Prenda</span>
                                 </button>
                             )}
                         </div>
@@ -246,12 +253,10 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                             <p className="text-xs text-red-400 px-1 mt-0.5">{errors.lineas.message}</p>
                         )}
 
-                        {/* Área de Scroll con Máscara Visual */}
-                        <div className="flex-1 overflow-hidden relative scroll-mask">
-                            <div className="order-items-scroll h-full overflow-y-auto pr-3 space-y-4 py-4" style={{ maxHeight: "420px" }}>
-                                {fields.map((field, index) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="h-full">
                                     <CardLineaOrden
-                                        key={field.id}
                                         index={index}
                                         register={register}
                                         errors={errors}
@@ -264,8 +269,83 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                                         onRemove={() => remove(index)}
                                         showRemoveButton={fields.length > 1}
                                     />
-                                ))}
-                            </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* SECCIÓN DE LÍNEA DE PRODUCCIÓN (PIPELINE) */}
+                    <div className="flex flex-col space-y-4 pt-6 border-t border-white/10">
+                        <div className="flex justify-between items-center px-1">
+                            <label className="text-[11px] font-black uppercase tracking-widest text-indigo-500">Línea de Producción (Pipeline)</label>
+                            {!readOnly && (
+                                <button type="button" onClick={() => appendAsig({ operario_id: "", tarea: "", piezas_requeridas: 1, notas: "" })}
+                                    className="group flex items-center justify-center px-3 py-1.5 rounded-lg border border-indigo-500/30 hover:bg-indigo-500/10 cursor-pointer transition-all gap-1">
+                                    <Plus className="w-4 h-4 text-indigo-500 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[10px] font-bold text-indigo-500 uppercase">Añadir Tarea</span>
+                                </button>
+                            )}
+                        </div>
+                        {errors.asignaciones?.message && (
+                            <p className="text-xs text-red-400 px-1">{errors.asignaciones.message}</p>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-4">
+                            {asigFields.map((field, index) => (
+                                <div key={field.id} className="flex items-center gap-4 min-w-[260px] flex-1">
+                                    <div className="w-full p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex flex-col gap-3 relative shadow-inner">
+                                        <div className="absolute -top-2.5 -left-2.5 w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[11px] font-bold z-10 shadow-lg shadow-indigo-500/40 border-2 border-[#13161e]">
+                                            {index + 1}
+                                        </div>
+                                        {!readOnly && (
+                                            <button type="button" onClick={() => removeAsig(index)} className="absolute top-2 right-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 p-1 rounded-md transition-colors">
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                        
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Nombre de Tarea</label>
+                                            <select {...register(`asignaciones.${index}.tarea`)} disabled={readOnly} className="w-full text-sm bg-black/20 rounded-md px-2 py-1.5 border border-white/5 text-white focus:outline-none focus:border-indigo-500 transition-colors capitalize">
+                                                <option value="">Seleccionar tarea...</option>
+                                                {MAQUINAS_LIST.map(maq => (
+                                                    <option key={maq} value={maq}>{maq.replace("_", " ")}</option>
+                                                ))}
+                                            </select>
+                                            {errors.asignaciones?.[index]?.tarea && <p className="text-[9px] text-red-400">{errors.asignaciones[index]?.tarea?.message}</p>}
+                                        </div>
+                                        
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Operario Asignado</label>
+                                            <select {...register(`asignaciones.${index}.operario_id`)} disabled={readOnly} className="w-full text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                                                <option value="">Seleccionar operario...</option>
+                                                {operarios.filter(op => {
+                                                    if (op.estado !== 'activo') return false;
+                                                    const selectedTarea = vAsignaciones?.[index]?.tarea;
+                                                    if (!selectedTarea) return true;
+                                                    return op.habilidades?.some(h => h.maquina === selectedTarea);
+                                                }).map(op => (
+                                                    <option key={op.id} value={op.id}>{op.nombre} {op.apellido}</option>
+                                                ))}
+                                            </select>
+                                            {errors.asignaciones?.[index]?.operario_id && <p className="text-[9px] text-red-400">{errors.asignaciones[index]?.operario_id?.message}</p>}
+                                        </div>
+                                        
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Piezas a Completar</label>
+                                            <input type="number" min="1" {...register(`asignaciones.${index}.piezas_requeridas`, { valueAsNumber: true })} disabled={readOnly} className="w-full text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                                            {errors.asignaciones?.[index]?.piezas_requeridas && <p className="text-[9px] text-red-400">{errors.asignaciones[index]?.piezas_requeridas?.message}</p>}
+                                        </div>
+                                    </div>
+                                    {index < asigFields.length - 1 && (
+                                        <div className="hidden md:flex text-indigo-500/50 shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            {asigFields.length === 0 && (
+                                <div className="text-sm text-slate-500 italic p-4 bg-white/5 rounded-xl border border-white/5 w-full text-center">No has añadido ninguna tarea al pipeline. El sistema registrará un flujo continuo vacío.</div>
+                            )}
                         </div>
                     </div>
 

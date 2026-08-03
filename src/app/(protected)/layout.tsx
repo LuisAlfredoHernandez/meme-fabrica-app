@@ -254,6 +254,25 @@ export default function ProtectedLayout({
                         }
                     }
                     
+                    if (message.event === "reasignacion_maquina") {
+                        fetchMaquinas();
+                        fetchOperarios();
+                        
+                        if (user.rol === "operario" && message.operario_id === user.id) {
+                            addNotification(
+                                "Máquina Reasignada", 
+                                `Por avería de tu equipo anterior, el supervisor te ha reasignado a la máquina ${message.nueva_maquina_codigo || ""} - ${message.nueva_maquina_nombre || ""}.`, 
+                                "success"
+                            );
+                        } else if (!isCurrentUser && user.rol !== "operario") {
+                            addNotification(
+                                "Reasignación Exitosa",
+                                `Un operario bloqueado ha sido reasignado a la máquina ${message.nueva_maquina_codigo || ""}.`,
+                                "info"
+                            );
+                        }
+                    }
+                    
                     if (message.event === "operator_updated") {
                         fetchOperarios();
                         if (!isCurrentUser && user.rol !== "operario") {
@@ -321,7 +340,7 @@ export default function ProtectedLayout({
     // o redirección principal despues de login
     useEffect(() => {
         if (mounted && user) {
-            if (user.rol === "operario" && pathname !== "/mi-estacion") {
+            if (user.rol === "operario" && pathname !== "/mi-estacion" && pathname !== "/mi-historial") {
                 router.push("/mi-estacion");
             } else if ((user.rol === "administrador" || user.rol === "subjefe") && pathname === "/") {
                 router.push("/dashboard");

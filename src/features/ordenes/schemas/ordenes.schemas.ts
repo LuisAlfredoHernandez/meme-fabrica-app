@@ -9,13 +9,22 @@ const insumoSchema = z.object({
 });
 
 export const lineaOrdenSchema = z.object({
+    id: z.string().optional(),
     productoTipo: z.custom<TipoProducto>().optional(),
-    descripcion: z.string(),
+    descripcion: z.string().min(2, "Debe seleccionar o escribir una prenda"),
     cantidad: z.number().int().positive("La cantidad de prendas debe ser mayor a 0"),
     cantidadCompletada: z.number().optional(),
     talla: z.string(),
     color: z.string().optional(),
-    insumos: z.array(insumoSchema).optional(),
+    insumos: z.array(insumoSchema).min(1, "Debe incluir al menos un insumo (ej. tela, hilos)"),
+});
+
+export const asignacionCreateSchema = z.object({
+    id: z.string().optional(),
+    operario_id: z.string().uuid("ID de operario inválido"),
+    tarea: z.string().min(2, "La tarea debe tener al menos 2 caracteres"),
+    piezas_requeridas: z.number().int().positive("La cantidad debe ser mayor a 0"),
+    notas: z.string().optional(),
 });
 
 export const ordenSchema = z.object({
@@ -32,8 +41,8 @@ export const ordenSchema = z.object({
     fechaEntregaReal: z.string().datetime().optional(),
     creadaPor: z.string().optional(),
     notas: z.string().optional(),
-    cola: z.number().int().nonnegative().optional(),
     lineas: z.array(lineaOrdenSchema).min(1, "Debe haber al menos una línea"),
+    asignaciones: z.array(asignacionCreateSchema).optional(),
 });
 
 export type OrdenFormData = z.infer<typeof ordenSchema>;

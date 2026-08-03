@@ -146,7 +146,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         pendientes.forEach((p) => {
                             const syncId = `val_${p.id}`;
-                            if (!newProcessed.has(syncId)) {
+                            if (!newProcessed.has(syncId) && !newNotifications.some(n => n.id === syncId)) {
                                 const newNotif: NotificationItem = {
                                     id: syncId,
                                     titulo: "Revisión Pendiente",
@@ -162,11 +162,21 @@ export const useNotificationStore = create<NotificationState>()(
                                 newNotifications.push(newNotif);
                                 newProcessed.add(syncId);
                                 updated = true;
+                            } else if (!newProcessed.has(syncId)) {
+                                // If it already exists in notifications but not in processed, just mark it processed
+                                newProcessed.add(syncId);
                             }
                         });
 
                         const pendingIds = new Set(pendientes.map((p) => `val_${p.id}`));
+                        const seenIds = new Set();
                         const cleanedNotifications = newNotifications.filter((n) => {
+                            if (seenIds.has(n.id)) {
+                                updated = true;
+                                return false; // Eliminar duplicados exactos
+                            }
+                            seenIds.add(n.id);
+
                             if (n.titulo === "Revisión Pendiente" && n.tipo === "warning") {
                                 if (!pendingIds.has(n.id)) {
                                     updated = true;
@@ -194,7 +204,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         assignments.forEach((a) => {
                             const syncId = `asig_created_${a.id}`;
-                            if (!newProcessed.has(syncId)) {
+                            if (!newProcessed.has(syncId) && !newNotifications.some(n => n.id === syncId)) {
                                 const newNotif: NotificationItem = {
                                     id: syncId,
                                     titulo: "Nueva Tarea Asignada",
@@ -209,11 +219,22 @@ export const useNotificationStore = create<NotificationState>()(
                                 newNotifications.push(newNotif);
                                 newProcessed.add(syncId);
                                 updated = true;
+                            } else if (!newProcessed.has(syncId)) {
+                                newProcessed.add(syncId);
                             }
                         });
 
                         const activeIds = new Set(assignments.map((a) => `asig_created_${a.id}`));
+                        
+                        // Deduplicar notificaciones por ID para arreglar estados corruptos del localStorage
+                        const seenIds = new Set();
                         const cleanedNotifications = newNotifications.filter((n) => {
+                            if (seenIds.has(n.id)) {
+                                updated = true;
+                                return false; // Eliminar duplicados exactos
+                            }
+                            seenIds.add(n.id);
+
                             if (n.id.startsWith("asig_created_")) {
                                 if (!activeIds.has(n.id)) {
                                     updated = true;
@@ -237,8 +258,11 @@ export const useNotificationStore = create<NotificationState>()(
         }),
         {
             name: "meme-fabrica-notifications",
-            // Solo persistir la lista de notificaciones persistentes, no los toasts temporales
-            partialize: (state) => ({ notifications: state.notifications } as any),
+            // Persistir notificaciones y el historial de IDs procesados
+            partialize: (state) => ({ 
+                notifications: state.notifications,
+                processedSyncIds: state.processedSyncIds
+            } as any),
         }
     )
 );

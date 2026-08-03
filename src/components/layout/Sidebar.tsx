@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, ClipboardList, Users,
     Package, Brain, Settings, LogOut, Shield,
-    Factory, ScanLine, ClipboardCheck
+    Factory, ScanLine, ClipboardCheck, History
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -35,6 +35,7 @@ export const NAV: NavItem[] = [
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["administrador", "subjefe"] },
     { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["administrador", "subjefe"] },
     { href: "/mi-estacion", icon: <ScanLine className="w-5 h-5" />, label: "Mi Estación", desc: "Captura diaria", roles: ["operario"] },
+    { href: "/mi-historial", icon: <History className="w-5 h-5" />, label: "Mi Historial", desc: "Reportes y stats", roles: ["operario"] },
     { href: "/validacion", icon: <ClipboardCheck className="w-5 h-5" />, label: "Validación", desc: "Certificar producción", roles: ["subjefe", "administrador"] },
     { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["administrador", "subjefe"] },
     { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["administrador", "subjefe"] },
@@ -75,9 +76,9 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
                         boxShadow: `0 4px 15px ${C.orange}40`,
                         transform: isHovered ? 'scale(1.1) rotate(-5deg)' : 'scale(1) rotate(0deg)'
                     }}>
-                    <img 
-                        src="/icons/icon-192x192.png" 
-                        alt="Meme Fábrica Logo" 
+                    <img
+                        src="/icons/icon-192x192.png"
+                        alt="Meme Fábrica Logo"
                         className="w-full h-full object-cover"
                     />
                 </div>

@@ -110,6 +110,7 @@ export interface ReporteAveria {
   operario_nombre?: string;
   maquina_codigo?: string;
   maquina_nombre?: string;
+  maquina_tipo?: string;
 }
 
 export interface Insumo {
@@ -151,7 +152,8 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
-  cola: number
+
+  asignaciones?: any[];
 }
 
 // ─── Asignación de Órdenes a Operarios ────────────────────────
@@ -294,4 +296,5 @@ export interface PaginatedResponse<T> {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
+  refresh_token?: string;
 }

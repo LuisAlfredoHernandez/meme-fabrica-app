@@ -52,12 +52,14 @@ This project follows a **Feature-Driven Architecture**, strongly separating doma
 ### React 19 & React Compiler
 - The project uses `babel-plugin-react-compiler`. Manual memoization (`useMemo`, `useCallback`, `memo`) is generally unnecessary. Write idiomatic, clean React code and rely on the compiler for optimization unless profiling dictates otherwise.
 
-### Styling & UI Consistency (Tailwind v4)
+### Componentization & UI Best Practices (SRP & PRU)
+- **Component Length & Separation of Concerns:** Components must not be excessively long. They should be as long as architecturally acceptable. If a component grows too large, break it down into smaller, focused sub-components.
+- **Single Responsibility Principle (PRU - Principio de Responsabilidad Única):** Componentize following the best practices of uniqueness and single responsibility. Each component should do one thing and do it well.
 - **UI Consistency:** Rigorously follow the existing UI styles, color palettes, and spacing conventions of the application when generating new screens or features.
 - **Component Reusability:** Always prioritize reusing existing UI components (found in `src/components/` or feature-specific folders) before creating new ones to avoid duplication and maintain visual harmony.
+- **UI/UX & Usability Engineering:** All UI development MUST consider the best practices of UI/UX and usability engineering. Ensure interfaces are intuitive, provide clear visual feedback, use appropriate animations (e.g., tutorial-style pulses for first-time interactions), and guide the user imperatively when required to avoid confusion or errors.
 - Use Tailwind utility classes directly in `className`.
 - Do not create separate `.css` files unless absolutely necessary (e.g., `globals.css` base definitions).
-- When identified or needed create components.
 
 ### TypeScript Quality
 - Strive for 100% type safety.

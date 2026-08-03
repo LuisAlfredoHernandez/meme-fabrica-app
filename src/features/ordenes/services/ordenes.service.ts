@@ -1,4 +1,5 @@
 import { Orden, Temporada } from "@/types";
+import { apiClient } from "@/shared/apiClient";
 
 /**
  * Mappings for Temporada enum to reconcile frontend lowercase Spanish values with backend TitleCase/ASCII values.
@@ -35,8 +36,8 @@ export const mapApiToFrontend = (api: any): Orden => {
     fechaEntregaReal: api.fecha_entrega_real ? api.fecha_entrega_real.split("T")[0] : undefined,
     creadaPor: "", // The backend does not maintain a creada_por field on the Orden entity.
     notas: api.notas || "",
-    cola: api.cola || 0,
     lineas: (api.lineas || []).map((linea: any) => ({
+      id: linea.id,
       productoTipo: linea.producto_tipo || "otro",
       descripcion: linea.descripcion,
       cantidad: linea.cantidad,
@@ -48,6 +49,13 @@ export const mapApiToFrontend = (api: any): Orden => {
         cantidadRequerida: ins.cantidad_requerida,
         unidad: ins.unidad,
       })),
+    })),
+    asignaciones: (api.asignaciones || []).map((asig: any) => ({
+      id: asig.id,
+      operario_id: asig.operario_id,
+      tarea: asig.tarea,
+      piezas_requeridas: asig.piezas_requeridas,
+      notas: asig.notas || "",
     })),
   };
 };
@@ -91,6 +99,13 @@ export const mapFrontendToApi = (frontend: any): any => {
         })),
       };
     }),
+    asignaciones: (frontend.asignaciones || []).map((asig: any) => ({
+      id: asig.id,
+      operario_id: asig.operario_id,
+      tarea: asig.tarea,
+      piezas_requeridas: Number(asig.piezas_requeridas),
+      notas: asig.notas || "",
+    })),
   };
 };
 
@@ -112,7 +127,6 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
       : null;
   }
   if (data.notas !== undefined) payload.notas = data.notas;
-  if (data.cola !== undefined) payload.cola = data.cola;
   if (data.lineas !== undefined) {
     payload.lineas = data.lineas.map((linea: any) => {
       let prodTipo = linea.productoTipo || "otro";
@@ -127,6 +141,7 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
       }
 
       return {
+        id: linea.id,
         producto_tipo: prodTipo,
         descripcion: linea.descripcion,
         cantidad: Number(linea.cantidad),
@@ -141,18 +156,17 @@ export const mapFrontendUpdateToApi = (data: Partial<Orden>): any => {
       };
     });
   }
+  if (data.asignaciones !== undefined) {
+    payload.asignaciones = data.asignaciones.map((asig: any) => ({
+      id: asig.id,
+      operario_id: asig.operario_id,
+      tarea: asig.tarea,
+      piezas_requeridas: Number(asig.piezas_requeridas),
+      notas: asig.notas || "",
+    }));
+  }
 
   return payload;
-};
-
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
 };
 
 /**
@@ -164,11 +178,7 @@ export const ordenesService = {
    */
   getAll: async (token?: string): Promise<Orden[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/ordenes", { token });
 
       if (!response.ok) {
         throw new Error("No se pudo obtener la lista de órdenes.");
@@ -187,14 +197,9 @@ export const ordenesService = {
    */
   create: async (data: Omit<Orden, "id">, token?: string): Promise<Orden> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const mappedData = mapFrontendToApi(data);
 
-      const response = await fetch(`${API_URL}/ordenes`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(mappedData),
-      });
+      const response = await apiClient.post("/ordenes", mappedData, { token });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -215,19 +220,19 @@ export const ordenesService = {
    */
   update: async (id: string, data: Partial<Orden>, token?: string): Promise<Orden> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const mappedData = mapFrontendUpdateToApi(data);
 
-      const response = await fetch(`${API_URL}/ordenes/${id}`, {
-        method: "PATCH",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(mappedData),
-      });
+      const response = await apiClient.patch(`/ordenes/${id}`, mappedData, { token });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error response details:", errorText);
-        throw new Error(`No se pudo actualizar la orden con ID: ${id}`);
+        let detailMsg = `No se pudo actualizar la orden con ID: ${id}`;
+        try {
+            const parsed = JSON.parse(errorText);
+            if (parsed.detail) detailMsg = parsed.detail;
+        } catch (e) {}
+        throw new Error(detailMsg);
       }
 
       const updated: any = await response.json();
@@ -243,11 +248,7 @@ export const ordenesService = {
    */
   delete: async (id: string, token?: string): Promise<boolean> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.delete(`/ordenes/${id}`, { token });
 
       if (!response.ok) {
         const errorJson = await response.json().catch(() => ({}));
@@ -266,11 +267,7 @@ export const ordenesService = {
    */
   getById: async (id: string, token?: string): Promise<Orden | undefined> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes/${id}`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get(`/ordenes/${id}`, { token });
 
       if (!response.ok) {
         if (response.status === 404) return undefined;
@@ -290,11 +287,7 @@ export const ordenesService = {
    */
   getPrendas: async (token?: string): Promise<string[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/ordenes/prendas`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/ordenes/prendas", { token });
 
       if (!response.ok) {
         throw new Error("No se pudo obtener la lista de prendas.");
