@@ -1006,28 +1006,37 @@ export default function IAPage() {
                                 <h3 className="font-bold text-white text-sm">Proyección de Producción Diaria (RF13)</h3>
                             </div>
                             <div className="p-5">
-                                <ResponsiveContainer width="100%" height={260}>
-                                    <ComposedChart data={proyecciones} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
-                                        <defs>
-                                            <linearGradient id="gR2" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={AppColors.orange} stopOpacity={0.25} />
-                                                <stop offset="95%" stopColor={AppColors.orange} stopOpacity={0} />
-                                            </linearGradient>
-                                            <linearGradient id="gP2" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={AppColors.violet} stopOpacity={0.15} />
-                                                <stop offset="95%" stopColor={AppColors.violet} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={AppColors.border} vertical={false} />
-                                        <XAxis dataKey="d" tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
-                                        <Tooltip content={<TooltipIA />} />
-                                        <Line type="monotone" dataKey="meta" stroke="#334155" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
-                                        <Area type="monotone" dataKey="pred" stroke={AppColors.violet} strokeWidth={2} strokeDasharray="4 2" fill="url(#gP2)" dot={false} />
-                                        <Area type="monotone" dataKey="real" stroke={AppColors.orange} strokeWidth={2.5} fill="url(#gR2)"
-                                            dot={{ fill: AppColors.orange, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: AppColors.orange, stroke: "#fff", strokeWidth: 2 }} />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
+                                {proyecciones.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-[260px] text-center border-2 border-dashed rounded-xl" style={{ borderColor: AppColors.border }}>
+                                        <p className="text-sm font-bold text-slate-300">Esperando datos reales de producción</p>
+                                        <p className="text-xs text-slate-500 mt-2 max-w-[300px]">
+                                            La IA requiere que al menos un supervisor valide los reportes de avance de los operarios para poder proyectar la tendencia diaria.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <ResponsiveContainer width="100%" height={260}>
+                                        <ComposedChart data={proyecciones} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
+                                            <defs>
+                                                <linearGradient id="gR2" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor={AppColors.orange} stopOpacity={0.25} />
+                                                    <stop offset="95%" stopColor={AppColors.orange} stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="gP2" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor={AppColors.violet} stopOpacity={0.15} />
+                                                    <stop offset="95%" stopColor={AppColors.violet} stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={AppColors.border} vertical={false} />
+                                            <XAxis dataKey="d" tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fill: "#475569", fontSize: 10 }} axisLine={false} tickLine={false} />
+                                            <Tooltip content={<TooltipIA />} />
+                                            <Line type="monotone" dataKey="meta" stroke="#334155" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
+                                            <Area type="monotone" dataKey="pred" stroke={AppColors.violet} strokeWidth={2} strokeDasharray="4 2" fill="url(#gP2)" dot={false} />
+                                            <Area type="monotone" dataKey="real" stroke={AppColors.orange} strokeWidth={2.5} fill="url(#gR2)"
+                                                dot={{ fill: AppColors.orange, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: AppColors.orange, stroke: "#fff", strokeWidth: 2 }} />
+                                        </ComposedChart>
+                                    </ResponsiveContainer>
+                                )}
                             </div>
                             <div className="px-5 pb-4 flex gap-4 text-xs" style={{ color: "#475569" }}>
                                 <span className="flex items-center gap-1.5"><span className="w-4 h-0.5 inline-block" style={{ background: AppColors.orange }} /> Real</span>
@@ -1090,6 +1099,8 @@ export default function IAPage() {
 
                                 {simulando ? (
                                     <div className="text-xs text-slate-500 py-4 text-center italic">Calculando impacto en cola...</div>
+                                ) : simulacionMts.length === 0 && mtsCantidad > 0 ? (
+                                    <div className="text-xs text-slate-500 py-4 text-center">No hay órdenes MTO activas para simular un impacto.</div>
                                 ) : (
                                     <div className="space-y-3">
                                         {simulacionMts.map(r => (
@@ -1114,43 +1125,54 @@ export default function IAPage() {
                 {tabActiva === "cuellos" && (
                     <div className="space-y-3">
                         <p className="text-xs text-slate-400">RF15 — Detección en tiempo real de saturación en estaciones de trabajo</p>
-                        {cuellos.map(cuello => {
-                            const cfg = NIVEL_CFG[cuello.nivel] || NIVEL_CFG.info;
-                            const isExp = expCuello[cuello.maquina];
-                            return (
-                                <div key={cuello.maquina} className="rounded-xl overflow-hidden"
-                                    style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                                    <button onClick={() => setExp(p => ({ ...p, [cuello.maquina]: !p[cuello.maquina] }))}
-                                        className="w-full flex items-start gap-3 p-4 text-left cursor-pointer">
-                                        <span style={{ color: cfg.color }}>{cfg.icon}</span>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold uppercase" style={{ color: cfg.color }}>{cfg.label}</span>
-                                                <span className="text-xs text-slate-400">· {cuello.maquina}</span>
+                        
+                        {cuellos.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl" style={{ borderColor: AppColors.border }}>
+                                <CheckCircle2 className="w-10 h-10 mb-2" style={{ color: AppColors.emerald }} />
+                                <p className="text-sm font-bold text-white">Flujo Saludable / Sin Datos</p>
+                                <p className="text-xs text-slate-400 mt-1 max-w-[280px]">
+                                    Actualmente no hay máquinas registradas en el sistema o no se detectan cuellos de botella en la planta.
+                                </p>
+                            </div>
+                        ) : (
+                            cuellos.map(cuello => {
+                                const cfg = NIVEL_CFG[cuello.nivel] || NIVEL_CFG.info;
+                                const isExp = expCuello[cuello.maquina];
+                                return (
+                                    <div key={cuello.maquina} className="rounded-xl overflow-hidden"
+                                        style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
+                                        <button onClick={() => setExp(p => ({ ...p, [cuello.maquina]: !p[cuello.maquina] }))}
+                                            className="w-full flex items-start gap-3 p-4 text-left cursor-pointer">
+                                            <span style={{ color: cfg.color }}>{cfg.icon}</span>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold uppercase" style={{ color: cfg.color }}>{cfg.label}</span>
+                                                    <span className="text-xs text-slate-400">· {cuello.maquina}</span>
+                                                </div>
+                                                <p className="text-sm font-medium mt-1 text-[#cbd5e1]">{cuello.msg}</p>
                                             </div>
-                                            <p className="text-sm font-medium mt-1 text-[#cbd5e1]">{cuello.msg}</p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-1">
-                                            <span className="text-xl font-black font-mono" style={{ color: cfg.color }}>{cuello.sat}%</span>
-                                            <ChevronDown className="w-4 h-4 text-slate-400" style={{ transform: isExp ? "rotate(180deg)" : "none" }} />
-                                        </div>
-                                    </button>
-                                    {isExp && (
-                                        <div className="px-4 pb-4 pt-3 space-y-2 border-t" style={{ borderColor: AppColors.border }}>
-                                            <div className="h-2 rounded-full" style={{ background: "#1e293b" }}>
-                                                <div className="h-full rounded-full" style={{ width: `${cuello.sat}%`, background: cfg.color }} />
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className="text-xl font-black font-mono" style={{ color: cfg.color }}>{cuello.sat}%</span>
+                                                <ChevronDown className="w-4 h-4 text-slate-400" style={{ transform: isExp ? "rotate(180deg)" : "none" }} />
                                             </div>
-                                            <p className="text-xs flex items-center gap-2 text-[#94a3b8]">
-                                                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                                Retraso acumulado proyectado: <strong className="text-white">
-                                                    {cuello.impacto > 0 ? `${cuello.impacto} hrs` : "Sin impacto"}
-                                                </strong>
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                        </button>
+                                        {isExp && (
+                                            <div className="px-4 pb-4 pt-3 space-y-2 border-t" style={{ borderColor: AppColors.border }}>
+                                                <div className="h-2 rounded-full" style={{ background: "#1e293b" }}>
+                                                    <div className="h-full rounded-full" style={{ width: `${cuello.sat}%`, background: cfg.color }} />
+                                                </div>
+                                                <p className="text-xs flex items-center gap-2 text-[#94a3b8]">
+                                                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                                    Retraso acumulado proyectado: <strong className="text-white">
+                                                        {cuello.impacto > 0 ? `${cuello.impacto} hrs` : "Sin impacto"}
+                                                    </strong>
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        )}
                     </div>
                 )}
 
@@ -1158,7 +1180,17 @@ export default function IAPage() {
                 {tabActiva === "recomendaciones" && (
                     <div className="space-y-4">
                         <p className="text-xs text-slate-400">RF15 — Balanceo asistido redistribuyendo operarios calificados hacia estaciones Merrow/Cover</p>
-                        {recs.map(r => {
+                        
+                        {recs.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-xl" style={{ borderColor: AppColors.border }}>
+                                <CheckCircle2 className="w-10 h-10 mb-2" style={{ color: AppColors.emerald }} />
+                                <p className="text-sm font-bold text-white">Sin recomendaciones pendientes</p>
+                                <p className="text-xs text-slate-400 mt-1 max-w-[280px]">
+                                    No hay operarios calificados para balancear, o no se detectaron cuellos de botella que requieran asistencia de la IA.
+                                </p>
+                            </div>
+                        ) : (
+                            recs.map(r => {
                             if (r.aceptada !== undefined) return (
                                 <div key={r.id} className="rounded-xl border p-4 flex items-center gap-3 opacity-50"
                                     style={{ borderColor: AppColors.border }}>
@@ -1220,7 +1252,8 @@ export default function IAPage() {
                                     </div>
                                 </div>
                             );
-                        })}
+                        })
+                        )}
                     </div>
                 )}
 
