@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Database } from "lucide-react";
-import { AppColors } from "../IaShared";
+import { AppColors } from "./IaShared";
 import { MetricasModelo } from "./gestion/MetricasModelo";
 import { ImportacionHistorial } from "./gestion/ImportacionHistorial";
 import { ResultadosEntrenamiento } from "./gestion/ResultadosEntrenamiento";
