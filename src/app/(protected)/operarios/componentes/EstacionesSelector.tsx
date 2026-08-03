@@ -13,7 +13,7 @@ const MAQUINAS_OPTIONS: { id: TipoMaquina; label: string; color: string }[] = [
 ];
 
 export function EstacionesSelector() {
-    const { control, setValue } = useFormContext<OperarioFormData>();
+    const { control } = useFormContext<OperarioFormData>();
 
     const { field } = useController({
         name: "habilidades",
@@ -30,13 +30,6 @@ export function EstacionesSelector() {
             : [...habilidades, { maquina: maquinaId, nivel_eficiencia: 0 }];
 
         field.onChange(nuevasHabilidades);
-
-        // Sincronizar maquinaActual con la primera habilidad seleccionada
-        if (nuevasHabilidades.length > 0) {
-            setValue("maquinaActual", nuevasHabilidades[0].maquina, { shouldValidate: true });
-        } else {
-            setValue("maquinaActual", "" as any, { shouldValidate: true });
-        }
     };
 
     return (

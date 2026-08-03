@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, ClipboardList, Users,
     Package, Brain, Settings, LogOut, Shield,
-    Factory, ScanLine, ClipboardCheck
+    Factory, ScanLine, ClipboardCheck, History
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -18,9 +18,9 @@ const C = {
 };
 
 
-type Rol = "administrador" | "subjefe" | "operario";
+export type Rol = "administrador" | "subjefe" | "operario";
 
-interface NavItem {
+export interface NavItem {
     href: string;
     icon: React.ReactNode;
     label: string;
@@ -30,11 +30,12 @@ interface NavItem {
     badgeColor?: string;
 }
 
-const NAV: NavItem[] = [
+export const NAV: NavItem[] = [
     { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["administrador", "subjefe"] },
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Órdenes", desc: "Producción y cola", roles: ["administrador", "subjefe"] },
     { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["administrador", "subjefe"] },
     { href: "/mi-estacion", icon: <ScanLine className="w-5 h-5" />, label: "Mi Estación", desc: "Captura diaria", roles: ["operario"] },
+    { href: "/mi-historial", icon: <History className="w-5 h-5" />, label: "Mi Historial", desc: "Reportes y stats", roles: ["operario"] },
     { href: "/validacion", icon: <ClipboardCheck className="w-5 h-5" />, label: "Validación", desc: "Certificar producción", roles: ["subjefe", "administrador"] },
     { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["administrador", "subjefe"] },
     { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["administrador", "subjefe"] },
@@ -44,7 +45,7 @@ const NAV: NavItem[] = [
 const ROL_LABEL: Record<Rol, string> = {
     administrador: "Administrador", subjefe: "Jefe de Taller", operario: "Operario",
 };
-const ROL_COLOR: Record<Rol, string> = {
+export const ROL_COLOR: Record<Rol, string> = {
     administrador: "#f97316", subjefe: "#818cf8", operario: "#34d399",
 };
 
@@ -70,12 +71,17 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
 
             {/* Logo Section */}
             <div className="flex items-center gap-4 px-5 py-6 border-b" style={{ borderColor: C.border }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-lg font-black transition-transform duration-500"
+                <div className="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 transition-transform duration-500"
                     style={{
-                        background: C.orange,
                         boxShadow: `0 4px 15px ${C.orange}40`,
                         transform: isHovered ? 'scale(1.1) rotate(-5deg)' : 'scale(1) rotate(0deg)'
-                    }}>M</div>
+                    }}>
+                    <img
+                        src="/icons/icon-192x192.png"
+                        alt="Meme Fábrica Logo"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
                 <div className={`overflow-hidden transition-all duration-300 ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
                     <p className="text-sm font-black text-white leading-none whitespace-nowrap">Meme Fábricas</p>
                     <p className="text-[10px] mt-1 font-bold uppercase tracking-widest" style={{ color: C.slate }}>Control · IA</p>

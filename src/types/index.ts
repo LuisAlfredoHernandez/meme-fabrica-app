@@ -51,7 +51,7 @@ export type TipoProducto =
 export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"] as const;
 export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
-export const MAQUINAS_STATUS_LIST = ["operativa", "mantenimiento", "fuera_servicio"] as const;
+export const MAQUINAS_STATUS_LIST = ["operativa", "bajo_revision", "mantenimiento", "fuera_servicio"] as const;
 export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
 export const USUARIO_ROL = ["administrador", "subjefe", "operario"] as const;
@@ -68,15 +68,15 @@ export interface Usuario {
   rol: RolUsuario;
   estado: Status;
   password?: string;
-  ultimaConexion?: string;
 }
 
 export interface Operario extends Usuario {
   habilidades: HabilidadMaquinaria[];
-  maquinaActual: TipoMaquina;
+  maquina_actual_id?: string | null;
   orden_actual_id?: string;
   piezas_buenas?: number;
   piezas_defectuosas?: number;
+  sesion_activa_desde?: string | null;
 }
 
 export interface HabilidadMaquinaria {
@@ -95,6 +95,22 @@ export interface Maquina {
   capacidadPorHora: number; // piezas/hora estimadas
   operarioAsignado?: string; // Empleado.id
   estado: MaquinaStatus;
+}
+
+export interface ReporteAveria {
+  id: string;
+  maquina_id: string;
+  operario_id: string;
+  descripcion: string;
+  tipo_falla: string;
+  gravedad: string;
+  detiene_produccion?: boolean;
+  estado: "pendiente" | "aprobado" | "rechazado";
+  fecha_reporte: string;
+  operario_nombre?: string;
+  maquina_codigo?: string;
+  maquina_nombre?: string;
+  maquina_tipo?: string;
 }
 
 export interface Insumo {
@@ -136,7 +152,8 @@ export interface Orden {
   fechaEntregaReal?: string; // ISO 8601
   creadaPor: string; // Empleado.id
   notas?: string;
-  cola: number
+
+  asignaciones?: any[];
 }
 
 // ─── Asignación de Órdenes a Operarios ────────────────────────
@@ -157,18 +174,6 @@ export interface AsignacionOrden {
   };
 }
 
-// ─── Reporte de Averías de Máquinas ──────────────────────────
-export interface ReporteAveria {
-  id?: string;
-  maquina_id: string;
-  operario_id: string;
-  descripcion: string;
-  tipo_falla: string;
-  gravedad: string;
-  detiene_produccion: boolean;
-  fecha_reporte?: string;
-  estado?: string;
-}
 
 // ─── Registro de Producción ──────────────────────────────────
 
@@ -291,4 +296,5 @@ export interface PaginatedResponse<T> {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
+  refresh_token?: string;
 }

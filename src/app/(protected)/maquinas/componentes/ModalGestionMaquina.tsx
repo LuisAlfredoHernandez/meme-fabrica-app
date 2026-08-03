@@ -8,9 +8,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FieldErrors, useForm } from "react-hook-form";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
+
+import { generateNextCodigo } from "@/features/maquinas/utils/maquina.utils";
 
 export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, onClose: () => void }) {
-    const { actions, maquinaTypes } = useMaquinasStore();
+    const { maquinas, actions, maquinaTypes } = useMaquinasStore();
+    const { addToastOnly } = useNotificationActions();
 
     const isExisting = !!maquina;
     const [query, setQuery] = useState("");
@@ -31,7 +35,10 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
 
     useEffect(() => {
         actions.fetchAllMaquinaTypes();
-    }, [actions, actions.fetchAllMaquinaTypes]);
+        if (maquinas.length === 0) {
+            actions.fetchMaquinas();
+        }
+    }, [actions, actions.fetchAllMaquinaTypes, actions.fetchMaquinas, maquinas.length]);
 
 
     const filteredMaquinarias = maquinaTypes.filter(maquina =>
@@ -43,23 +50,46 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
     const estadoActual = watch("estado");
     const valorSelectorTipo = watch("tipo");
 
+    // Autogenerar el código de máquina según el tipo seleccionado cuando se crea una nueva
+    useEffect(() => {
+        if (!isExisting && valorSelectorTipo) {
+            const autoCodigo = generateNextCodigo(valorSelectorTipo, maquinas);
+            setValue("codigo", autoCodigo, { shouldValidate: true });
+        }
+    }, [valorSelectorTipo, isExisting, maquinas, setValue]);
+
     const onActualSubmit = async (data: MaquinaFormData) => {
-        console.log(data)
         try {
             if (isExisting && maquina.id) {
                 await actions.updateMaquina(maquina.id, data as Maquina);
+                addToastOnly("Máquina Actualizada", "La máquina fue modificada con éxito.", "success");
             } else {
                 const { id, ...dataToCreate } = data;
                 await actions.createMaquina(dataToCreate);
+                addToastOnly("Máquina Creada", "La máquina fue registrada con éxito.", "success");
             }
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error en la operación:", error);
+            addToastOnly("Error de Operación", error.message || "No se pudo guardar la máquina.", "error");
         }
     };
 
     const onInvalidSubmit = (errors: FieldErrors<MaquinaFormData>) => {
-        console.error("🚨 Error de Validación:", { errors, currentValues: getValues() });
+        console.error("🚨 Error de Validación en Formulario Maquinas:", { errors, currentValues: getValues() });
+
+        Object.entries(errors).forEach(([field, error]: [string, any]) => {
+            let mensaje = error.message;
+            if (!mensaje) {
+                mensaje = `El campo ${field} contiene un error.`;
+            }
+
+            addToastOnly(
+                "Error de Validación",
+                mensaje,
+                "warning"
+            );
+        });
     };
 
 
@@ -82,7 +112,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                         <div className="p-3 rounded-xl border flex items-center justify-between"
                             style={{ background: "rgba(249,115,22,0.05)", borderColor: "rgba(249,115,22,0.2)" }}>
                             <span className="text-[10px] font-bold text-slate-400 uppercase">Identificador</span>
-                            <span className="font-mono text-orange-500 font-bold">{maquina?.id ?? `MAC-AUTO`}</span>
+                            <span className="font-mono text-orange-500 font-bold text-[12px]">{maquina?.id ?? `MAC-AUTO`}</span>
                         </div>
 
                         {/* Nombre y Descripción */}
@@ -139,7 +169,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                         className="w-full h-11 px-3 rounded-xl text-sm text-white appearance-none focus:outline-none transition-all"
                                         style={{
                                             background: "#0d1018",
-                                            border: `1.5px solid ${valorSelectorTipo ? AppColors.orange : AppColors.border}`,
+                                            border: `1.5px solid ${errors.tipo ? AppColors.red : (valorSelectorTipo ? AppColors.orange : AppColors.border)}`,
                                         }}
                                     >
                                         <option value="">— Selecciona —</option>
@@ -153,6 +183,7 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                         <span className="text-[8px]">▼</span>
                                     </div>
                                 </div>
+                                {errors.tipo && <span className="text-[10px] text-red-400 block mt-1">{errors.tipo.message}</span>}
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-slate-400">Código</label>
@@ -161,9 +192,29 @@ export function ModalGestionMaquina({ maquina, onClose }: { maquina?: Maquina, o
                                     placeholder="Ej: M-001"
                                     className="w-full h-11 px-4 rounded-xl text-white text-sm bg-[#0d1018] transition-all focus:outline-none"
                                     style={{
-                                        border: `1.5px solid ${watch("codigo") ? AppColors.orange : AppColors.border}`,
+                                        border: `1.5px solid ${errors.codigo ? AppColors.red : (watch("codigo") ? AppColors.orange : AppColors.border)}`,
                                     }}
                                 />
+                                {errors.codigo && <span className="text-[10px] text-red-400 block mt-1">{errors.codigo.message}</span>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-400">Capacidad por Hora (Pzs)</label>
+                                <input
+                                    type="number"
+                                    {...register("capacidadPorHora", { valueAsNumber: true })}
+                                    placeholder="Ej: 50"
+                                    className="w-full h-11 px-4 rounded-xl text-white text-sm bg-[#0d1018] transition-all focus:outline-none"
+                                    style={{
+                                        border: `1.5px solid ${errors.capacidadPorHora ? AppColors.red : (watch("capacidadPorHora") ? AppColors.orange : AppColors.border)}`,
+                                    }}
+                                />
+                                {errors.capacidadPorHora && <span className="text-[10px] text-red-400 block mt-1">{errors.capacidadPorHora.message}</span>}
+                            </div>
+                            <div className="space-y-1.5 flex flex-col justify-end">
+                                {/* Espacio para futuros campos */}
                             </div>
                         </div>
                     </div>

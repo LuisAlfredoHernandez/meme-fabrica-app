@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm, } from "react-hook-form";
-import { Search, RefreshCcw, User, Mail } from "lucide-react";
+import { Search, RefreshCcw, User, Mail, Trash2 } from "lucide-react";
 import { useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { Operario } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,8 +11,9 @@ import { StatusSelector } from "./StatusSelector";
 import { EstacionesSelector } from "./EstacionesSelector";
 import { normalizeText } from "@/utils/formatters";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
-
-
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
+import { useMaquinasStore } from "@/features/maquinas/store/useMaquinasStore";
+import { Wrench } from "lucide-react";
 export function ModalGestionOperario({ onClose, operarios }: { onClose: () => void, operarios: Operario[] }) {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +21,7 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const { createOperario, updateOperario, deleteOperario } = useOperarioActions();
+    const { addToastOnly } = useNotificationActions();
 
     const methods = useForm<OperarioFormData>({
         resolver: zodResolver(operarioSchema),
@@ -30,13 +32,24 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
             estado: "inactivo",
             rol: "operario",
             password: "",
-            maquinaActual: "" as any,
             habilidades: []
         }
     });
 
-    const { register, handleSubmit, setValue, reset, getValues } = methods
+    const { register, handleSubmit, setValue, reset, getValues, formState: { errors } } = methods
+    const { maquinas } = useMaquinasStore();
+    
+    const currentHabilidades = methods.watch("habilidades") || [];
+    const currentMaquinaId = methods.watch("maquina_actual_id");
 
+    const maquinasDisponibles = useMemo(() => {
+        const tiposHabilidades = currentHabilidades.map(h => h.maquina);
+        return maquinas.filter(m => {
+            if (m.estado !== "operativa") return false;
+            if (!tiposHabilidades.includes(m.tipo)) return false;
+            return !m.operarioAsignado || m.id === currentMaquinaId;
+        });
+    }, [maquinas, currentHabilidades, currentMaquinaId]);
     const filteredOperarios = useMemo(() => {
         return operarios
             .filter(op => op.estado !== "terminado")
@@ -51,15 +64,24 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
     const onActualSubmit = async (data: OperarioFormData) => {
         try {
             if (isExisting && data.id) {
-                await updateOperario(data.id, data as Operario);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { id, rol, password, ...updateData } = data;
+                const payload: any = { ...updateData };
+                if (password && password.trim() !== "") {
+                    payload.password = password;
+                }
+                await updateOperario(data.id, payload as Operario);
+                addToastOnly("Operario Actualizado", `Datos de ${data.nombre} actualizados con éxito.`, "success");
             } else {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { id, ...dataToCreate } = data;
                 await createOperario(dataToCreate as Omit<Operario, "id">);
+                addToastOnly("Operario Creado", `Operario ${data.nombre} registrado con éxito.`, "success");
             }
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error en la operación:", error);
+            addToastOnly("Error de Operario", error.message || "No se pudo procesar la operación.", "error");
         }
     };
 
@@ -68,18 +90,35 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         if (operarioId) {
             try {
                 await deleteOperario(operarioId);
+                addToastOnly("Operario Eliminado", "Operario eliminado exitosamente del sistema.", "success");
                 onClose();
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error al eliminar operario:", error);
+                addToastOnly("Error al Eliminar", error.message || "No se pudo eliminar al operario.", "error");
             }
         }
     };
 
-    const onInvalidSubmit = (errors: unknown) => {
+    const onInvalidSubmit = (errors: any) => {
         console.error("🚨 Error de Validación en Formulario Operarios:", {
             timestamp: new Date().toISOString(),
-            errors, // Aquí verás qué campo falló y por qué (Zod error messages)
+            errors,
             currentValues: getValues()
+        });
+
+        // Mostrar toasts para cada error de validación
+        Object.entries(errors).forEach(([field, error]: [string, any]) => {
+            let mensaje = error.message;
+
+            if (!mensaje) {
+                mensaje = `El campo ${field} contiene un error.`;
+            }
+
+            addToastOnly(
+                "Error de Validación",
+                mensaje,
+                "warning"
+            );
         });
     };
 
@@ -127,26 +166,38 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     </div>
                                 )}
                             </div>
-                            <div className="relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                <input
-                                    value={query}
-                                    onChange={e => {
-                                        setQuery(e.target.value);
-                                        setIsOpen(true);
-                                        if (!isExisting) {
-                                            const partes = e.target.value.trim().split(" ");
-                                            setValue("nombre", partes[0] || "");
-                                            setValue("apellido", partes.slice(1).join(" ") || "");
-                                            setValue("habilidades", []);
-                                            setValue("correo", "");
-                                        }
-                                        if (isExisting) setIsExisting(false);
-                                    }}
-                                    onFocus={() => setIsOpen(true)}
-                                    placeholder="Escribe el nombre completo..."
-                                    className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border border-[#1e2130] bg-[#0d1018] focus:border-orange-500/50 transition-all"
-                                />
+                            <div className="flex items-center gap-2">
+                                <div className="relative group flex-1">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                    <input
+                                        value={query}
+                                        onChange={e => {
+                                            setQuery(e.target.value);
+                                            setIsOpen(true);
+                                            if (!isExisting) {
+                                                const partes = e.target.value.trim().split(" ");
+                                                setValue("nombre", partes[0] || "");
+                                                setValue("apellido", partes.slice(1).join(" ") || "");
+                                                setValue("habilidades", []);
+                                                setValue("correo", "");
+                                            }
+                                            if (isExisting) setIsExisting(false);
+                                        }}
+                                        onFocus={() => setIsOpen(true)}
+                                        placeholder="Escribe el nombre completo..."
+                                        className="w-full h-11 pl-11 pr-10 rounded-xl text-white text-sm focus:outline-none border border-[#1e2130] bg-[#0d1018] focus:border-orange-500/50 transition-all"
+                                    />
+                                </div>
+                                {isExisting && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(true)}
+                                        className="h-11 w-11 shrink-0 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center justify-center"
+                                        title="Eliminar Operario"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                )}
                             </div>
 
                             {isOpen && filteredOperarios.length > 0 && (
@@ -180,6 +231,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     {...register("nombre")}
                                     className="w-full bg-transparent text-sm font-bold text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                                 />
+                                {errors.nombre && (
+                                    <p className="text-[10px] text-red-400 mt-1">{errors.nombre.message}</p>
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Apellido</label>
@@ -187,6 +241,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     {...register("apellido")}
                                     className="w-full bg-transparent text-sm font-bold text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                                 />
+                                {errors.apellido && (
+                                    <p className="text-[10px] text-red-400 mt-1">{errors.apellido.message}</p>
+                                )}
                             </div>
                         </div>
 
@@ -200,6 +257,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                 {...register("correo")}
                                 className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                             />
+                            {errors.correo && (
+                                <p className="text-[10px] text-red-400 mt-1">{errors.correo.message}</p>
+                            )}
                         </div>
 
                         {!isExisting && (
@@ -214,6 +274,9 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                                     {...register("password")}
                                     className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
                                 />
+                                {errors.password && (
+                                    <p className="text-[10px] text-red-400 mt-1">{errors.password.message}</p>
+                                )}
                             </div>
                         )}
 
@@ -222,6 +285,36 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
 
                         {/* Selector de estaciones del operador */}
                         <EstacionesSelector />
+                        {errors.habilidades && (
+                            <p className="text-[10px] text-red-400 mt-1 px-1">{errors.habilidades.message}</p>
+                        )}
+                        
+                        {/* Selector de Máquina Asignada (Solo si existe el operario) */}
+                        {isExisting && (
+                            <div className="space-y-2 pt-4 border-t border-white/5">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                                    <Wrench className="w-3 h-3" /> Máquina Asignada
+                                </label>
+                                <select
+                                    {...register("maquina_actual_id")}
+                                    className="w-full bg-[#0d1018] border border-[#1e2130] rounded-xl px-4 h-11 text-xs font-medium text-white focus:outline-none focus:border-orange-500/50 transition-all cursor-pointer"
+                                >
+                                    <option value="">-- Sin máquina asignada --</option>
+                                    {maquinasDisponibles.map(m => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.codigo} - {m.nombre} ({m.tipo}) {m.id === currentMaquinaId ? " (Actual)" : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-[9px] text-slate-500">
+                                    Solo se muestran máquinas operativas, libres, y acordes a las habilidades seleccionadas.
+                                </p>
+                            </div>
+                        )}
+                        
+                        {errors.maquina_actual_id && (
+                            <p className="text-[10px] text-red-400 mt-1 px-1">{errors.maquina_actual_id.message}</p>
+                        )}
                     </div>
 
                     {/* Footer */}

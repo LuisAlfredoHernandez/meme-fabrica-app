@@ -41,7 +41,7 @@ const MAQUINAS_USO = [
 const OPERARIOS_RENDIMIENTO = [
     { nombre: "Carmen M.", eficiencia: 88, piezasHoy: 42, estado: "activo" },
     { nombre: "María S.", eficiencia: 91, piezasHoy: 55, estado: "activo" },
-    { nombre: "Luis AppColors.", eficiencia: 95, piezasHoy: 48, estado: "activo" },
+    { nombre: "Ramon P.", eficiencia: 95, piezasHoy: 48, estado: "activo" },
     { nombre: "Rafael N.", eficiencia: 82, piezasHoy: 35, estado: "activo" },
     { nombre: "Josué R.", eficiencia: 74, piezasHoy: 28, estado: "activo" },
     { nombre: "Paola H.", eficiencia: 0, piezasHoy: 0, estado: "ausente" },
@@ -76,7 +76,7 @@ export default function DashboardPage() {
     const maqsActivas = MAQUINAS_USO.filter(m => m.estado === "operativa").length;
 
     return (
-        <div className="flex-1 overflow-auto" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
             {/* Header de página */}
             <div className="px-6 py-5 border-b flex items-center justify-between"

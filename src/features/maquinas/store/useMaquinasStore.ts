@@ -5,30 +5,36 @@ import {
     fetchAllMaquinaTypesAction, 
     createMaquinaAction, 
     updateMaquinaAction,
-    reportarAveriaAction
+    reportarAveriaAction,
+    fetchReportesAveriaPendientesAction,
+    procesarReporteAveriaAction
 } from "@/features/maquinas/actions/maquinas.actions";
 import { Maquina, TipoMaquina, ReporteAveria } from "@/types";
 
 interface MaquinasState {
     maquinas: Maquina[];
     maquinaTypes: TipoMaquina[];
+    reportesAveriaPendientes: ReporteAveria[];
     isLoading: boolean;
     error: string | null;
     actions: {
         fetchMaquinas: () => Promise<void>;
         fetchAllMaquinaTypes: () => Promise<void>;
+        fetchReportesAveriaPendientes: () => Promise<void>;
         createMaquina: (data: Omit<Maquina, "id">) => Promise<boolean>;
         updateMaquina: (id: string, data: Partial<Maquina>) => Promise<boolean>;
         reportarAveria: (data: Omit<ReporteAveria, "id" | "fecha_reporte" | "estado">) => Promise<boolean>;
+        procesarReporteAveria: (id: string, aprobado: boolean, notas?: string, nuevaMaquinaId?: string) => Promise<boolean>;
         reset: () => void;
     };
 }
 
 export const useMaquinasStore = create<MaquinasState>()(
     devtools(
-        (set) => ({
+        (set, get) => ({
             maquinas: [],
             maquinaTypes: [],
+            reportesAveriaPendientes: [],
             isLoading: false,
             error: null,
 
@@ -53,6 +59,16 @@ export const useMaquinasStore = create<MaquinasState>()(
                     }
                 },
 
+                fetchReportesAveriaPendientes: async () => {
+                    try {
+                        const data = await fetchReportesAveriaPendientesAction();
+                        set({ reportesAveriaPendientes: data || [] }, false, "maquinas/fetch_averias_success");
+                    } catch (e) {
+                        console.error("Error al cargar reportes de avería pendientes:", e);
+                        set({ reportesAveriaPendientes: [] }, false, "maquinas/fetch_averias_error");
+                    }
+                },
+
                 createMaquina: async (data) => {
                     set({ isLoading: true }, false, "maquinas/create_start");
                     try {
@@ -64,8 +80,9 @@ export const useMaquinasStore = create<MaquinasState>()(
                         );
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "Error al crear máquina" }, false, "maquinas/create_error");
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al crear máquina";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/create_error");
+                        throw e;
                     }
                 },
 
@@ -83,19 +100,23 @@ export const useMaquinasStore = create<MaquinasState>()(
                         );
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "Error al actualizar" }, false, "maquinas/update_error");
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/update_error");
+                        throw e;
                     }
                 },
 
                 reportarAveria: async (data) => {
                     set({ isLoading: true }, false, "maquinas/reportar_averia_start");
                     try {
-                        await reportarAveriaAction(data);
+                        const nuevaAveria = await reportarAveriaAction(data);
                         set(
                             (state) => ({
+                                reportesAveriaPendientes: nuevaAveria 
+                                    ? [...state.reportesAveriaPendientes.filter(r => r.id !== nuevaAveria.id), nuevaAveria]
+                                    : state.reportesAveriaPendientes,
                                 maquinas: state.maquinas.map((m) =>
-                                    m.id === data.maquina_id ? { ...m, estado: "mantenimiento" as any } : m
+                                    (m.id === data.maquina_id || m.tipo === data.maquina_id) ? { ...m, estado: "bajo_revision" as any } : m
                                 ),
                                 isLoading: false
                             }),
@@ -104,12 +125,38 @@ export const useMaquinasStore = create<MaquinasState>()(
                         );
                         return true;
                     } catch (e) {
-                        set({ isLoading: false, error: "Error al reportar avería" }, false, "maquinas/reportar_averia_error");
-                        return false;
+                        const errorMessage = e instanceof Error ? e.message : "Error al reportar avería";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/reportar_averia_error");
+                        throw e;
                     }
                 },
 
-                reset: () => set({ maquinas: [], isLoading: false, error: null }, false, "maquinas/reset"),
+                procesarReporteAveria: async (id, aprobado, notas, nuevaMaquinaId) => {
+                    set({ isLoading: true }, false, "maquinas/procesar_averia_start");
+                    try {
+                        const res = await procesarReporteAveriaAction(id, aprobado, notas, nuevaMaquinaId);
+                        const nuevoEstado: any = aprobado ? "fuera_servicio" : "operativa";
+
+                        set(
+                            (state) => ({
+                                reportesAveriaPendientes: state.reportesAveriaPendientes.filter((r) => r.id !== id),
+                                maquinas: state.maquinas.map((m) =>
+                                    m.id === res.maquina_id ? { ...m, estado: nuevoEstado } : m
+                                ),
+                                isLoading: false
+                            }),
+                            false,
+                            "maquinas/procesar_averia_success"
+                        );
+                        return true;
+                    } catch (e) {
+                        const errorMessage = e instanceof Error ? e.message : "Error al procesar avería";
+                        set({ isLoading: false, error: errorMessage }, false, "maquinas/procesar_averia_error");
+                        throw e;
+                    }
+                },
+
+                reset: () => set({ maquinas: [], reportesAveriaPendientes: [], isLoading: false, error: null }, false, "maquinas/reset"),
             },
         }),
         { name: "MaquinasStore" }
@@ -117,4 +164,4 @@ export const useMaquinasStore = create<MaquinasState>()(
 );
 
 // Hook helper para extraer acciones
-export const useMaquinasActions = () => useMaquinasStore((state) => state.actions);
+export const useMaquinasActions = () => useMaquinasStore((state) => state.actions);// trigger reload

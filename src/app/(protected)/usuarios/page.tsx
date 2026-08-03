@@ -35,7 +35,7 @@ export default function UsuariosPage() {
     };
 
     return (
-        <div className="flex-1 overflow-auto bg-[#080b10]">
+        <div className="flex-1 overflow-y-auto bg-[#080b10] custom-scrollbar">
             {/* Reutilizamos tu Modal de Gestión adaptado */}
             {modalAbierto && (
                 <ModalGestionOperario
@@ -45,20 +45,20 @@ export default function UsuariosPage() {
             )}
 
             {/* Header Principal */}
-            <div className="px-6 py-5 border-b flex items-center justify-between bg-[#13161e]" style={{ borderColor: AppColors.border }}>
+            <div className="px-6 py-5 border-b flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-[#13161e]" style={{ borderColor: AppColors.border }}>
                 <div>
                     <h1 className="text-lg font-black text-white uppercase tracking-tighter">Gestión de Usuarios</h1>
                     <p className="text-xs mt-0.5 text-slate-500 font-medium">Control de accesos y permisos de plataforma</p>
                 </div>
                 <button
                     onClick={() => handleOpenGestion()}
-                    className="flex items-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-all shadow-lg shadow-orange-500/20"
+                    className="flex items-center justify-center gap-2 h-10 px-5 rounded-xl text-white text-sm font-bold bg-orange-500 hover:scale-105 transition-all shadow-lg shadow-orange-500/20 w-full sm:w-auto shrink-0 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" /> Crear Usuario
                 </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-6">
                 {/* Stats de Seguridad */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
@@ -88,14 +88,14 @@ export default function UsuariosPage() {
                 </div>
 
                 {/* Tabla de Usuarios */}
-                <div className="rounded-2xl border bg-[#13161e] overflow-hidden" style={{ borderColor: AppColors.border }}>
+                <div className="rounded-2xl border bg-[#13161e] overflow-auto max-h-[550px] custom-scrollbar" style={{ borderColor: AppColors.border }}>
                     <table className="w-full text-left border-collapse">
-                        <thead>
+                        <thead className="sticky top-0 z-10" style={{ background: AppColors.surface }}>
                             <tr className="border-b" style={{ borderColor: AppColors.border, background: "rgba(255,255,255,0.02)" }}>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Usuario</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rol / Permisos</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Estado</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Acciones</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ background: AppColors.surface }}>Usuario</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ background: AppColors.surface }}>Rol / Permisos</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest" style={{ background: AppColors.surface }}>Estado</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right" style={{ background: AppColors.surface }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#1e2130]">

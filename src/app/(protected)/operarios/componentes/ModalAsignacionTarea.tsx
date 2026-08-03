@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, Hash, CheckCircle2, AlertCircle, Plus, ClipboardList, PenTool } from "lucide-react";
+import { X, Hash, CheckCircle2, AlertCircle, Plus, ClipboardList, PenTool, Settings } from "lucide-react";
 import { Operario } from "@/types";
 import { AppColors } from "@/shared/constants";
 import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
+import { useMaquinasStore } from "@/features/maquinas/store/useMaquinasStore";
+import { useOperarioStore } from "@/features/operarios/store/useOperarioStore";
 
 const TAREAS_COMUNES = [
     "Cortes correspondientes",
@@ -15,18 +17,32 @@ const TAREAS_COMUNES = [
     "Empaque y etiqueta"
 ];
 
+const TAREAS_POR_MAQUINA: Record<string, string[]> = {
+    "corte": ["Cortes correspondientes"],
+    "merrow": ["Sobrehilado (overlook)", "Confección general"],
+    "plana": ["Confección general", "Acabado / Costura fina"],
+    "cover": ["Confección general", "Acabado / Costura fina"],
+    "plancha_dtf": ["Estampado", "Planchado"],
+    "peso": ["Empaque y etiqueta"],
+    "otro": ["Empaque y etiqueta", "Otras tareas"]
+};
+
 interface Props {
     operario: Operario;
     onClose: () => void;
-    onConfirm: (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string) => void;
+    onConfirm: (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string, maquinaId?: string) => void;
 }
 
 export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
     const { ordenes, isLoading } = useOrdenStore();
     const { fetchOrdenes } = useOrdenActions();
 
+    const { maquinas, actions: maquinasActions } = useMaquinasStore();
+    const { operarios } = useOperarioStore();
+
     const [selectedOrd, setSelectedOrd] = useState("");
-    const [selectedTareaPreset, setSelectedTareaPreset] = useState(TAREAS_COMUNES[0]);
+    const [selectedMaquina, setSelectedMaquina] = useState("");
+    const [selectedTareaPreset, setSelectedTareaPreset] = useState("");
     const [customTarea, setCustomTarea] = useState("");
     const [isCustomTarea, setIsCustomTarea] = useState(false);
     const [piezasRequeridas, setPiezasRequeridas] = useState<number>(0);
@@ -35,7 +51,10 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
     // Cargar órdenes en el montaje
     useEffect(() => {
         fetchOrdenes();
-    }, [fetchOrdenes]);
+        if (maquinas.length === 0) {
+            maquinasActions.fetchMaquinas();
+        }
+    }, [fetchOrdenes, maquinasActions, maquinas.length]);
 
     // Filtrar órdenes que no estén completadas o canceladas
     const ordenesActivas = ordenes.filter(o => o.estado !== "completada" && o.estado !== "cancelada");
@@ -53,12 +72,24 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
         }
     }, [selectedOrd, ordenes]);
 
+    const tareasDisponibles = operario.habilidades.length > 0 
+        ? Array.from(new Set(operario.habilidades.flatMap(h => TAREAS_POR_MAQUINA[h.maquina] || [])))
+        : TAREAS_COMUNES;
+
+    const finalTareas = tareasDisponibles.length > 0 ? tareasDisponibles : TAREAS_COMUNES;
+
+    useEffect(() => {
+        if (finalTareas.length > 0 && !finalTareas.includes(selectedTareaPreset)) {
+            setSelectedTareaPreset(finalTareas[0]);
+        }
+    }, [finalTareas, selectedTareaPreset]);
+
     const handleConfirmar = () => {
         if (!selectedOrd) return;
         const tareaFinal = isCustomTarea ? customTarea.trim() : selectedTareaPreset;
         if (!tareaFinal) return;
         
-        onConfirm(selectedOrd, tareaFinal, piezasRequeridas, notas);
+        onConfirm(selectedOrd, tareaFinal, piezasRequeridas, notas, selectedMaquina || undefined);
         onClose();
     };
 
@@ -113,6 +144,39 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                         {isLoading && <p className="text-[10px] text-slate-500 animate-pulse">Cargando órdenes...</p>}
                     </div>
 
+                    {/* Selección de Máquina Física */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                            <Settings className="w-3.5 h-3.5 text-orange-500" /> Máquina Física a Utilizar
+                        </label>
+                        <div className="relative">
+                            <select
+                                value={selectedMaquina}
+                                onChange={(e) => setSelectedMaquina(e.target.value)}
+                                className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#0d1018] border border-[#1e2130] text-sm text-white focus:outline-none focus:border-orange-500/50 appearance-none font-medium"
+                            >
+                                <option value="">Seleccionar máquina física...</option>
+                                {maquinas.filter(m => 
+                                    (m.estado === 'operativa' || m.estado === 'bajo_revision') &&
+                                    operario.habilidades.some(h => h.maquina === m.tipo)
+                                ).map(maq => {
+                                    // Check if machine is in use by another active operario
+                                    const operarioEnUso = operarios.find(op => op.maquina_actual_id === maq.id && op.id !== operario.id && op.estado === 'activo');
+                                    const inUseText = operarioEnUso ? ` (En uso por ${operarioEnUso.nombre})` : '';
+
+                                    return (
+                                        <option key={maq.id} value={maq.id} disabled={!!operarioEnUso}>
+                                            {maq.nombre} ({maq.codigo}){inUseText}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <Plus className="w-4 h-4 text-slate-500 rotate-45" />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Tarea Asignada */}
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
@@ -143,7 +207,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                     onChange={(e) => setSelectedTareaPreset(e.target.value)}
                                     className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#0d1018] border border-[#1e2130] text-sm text-white focus:outline-none focus:border-orange-500/50 appearance-none font-medium"
                                 >
-                                    {TAREAS_COMUNES.map(t => (
+                                    {finalTareas.map(t => (
                                         <option key={t} value={t}>{t}</option>
                                     ))}
                                 </select>
@@ -196,7 +260,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                 <div className="px-6 py-5 bg-black/20 border-t border-[#1e2130]">
                     <button
                         onClick={handleConfirmar}
-                        disabled={!selectedOrd || (isCustomTarea && !customTarea.trim()) || piezasRequeridas <= 0}
+                        disabled={!selectedOrd || !selectedMaquina || (isCustomTarea && !customTarea.trim()) || piezasRequeridas <= 0}
                         className="w-full h-12 rounded-2xl text-white text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
                         style={{ background: AppColors.orange }}
                     >

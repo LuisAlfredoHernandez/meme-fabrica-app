@@ -5,6 +5,7 @@ import {
   createOperarioAction,
   updateOperarioAction,
   deleteOperarioAction,
+  iniciarSesionOperarioAction,
 } from "@/features/operarios/actions/operarios.actions";
 import type { Operario } from "@/types";
 
@@ -17,6 +18,7 @@ interface OperarioState {
     createOperario: (operario: Omit<Operario, "id">) => Promise<boolean>;
     updateOperario: (id: string, data: Partial<Operario>) => Promise<boolean>;
     deleteOperario: (id: string) => Promise<boolean>;
+    iniciarSesion: () => Promise<boolean>;
     reset: () => void;
   };
 }
@@ -59,7 +61,7 @@ export const useOperarioStore = create<OperarioState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al crear";
             set({ isLoading: false, error: errorMessage }, false, "operarios/create_error");
-            return false;
+            throw e;
           }
         },
 
@@ -81,7 +83,7 @@ export const useOperarioStore = create<OperarioState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
             set({ isLoading: false, error: errorMessage }, false, "operarios/update_error");
-            return false;
+            throw e;
           }
         },
 
@@ -93,8 +95,31 @@ export const useOperarioStore = create<OperarioState>()(
               operarios: state.operarios.filter(i => i.id !== id),
               isLoading: false
             }), false, "operarios/delete_success");
+            return true;
           } catch (e) {
-            set({ isLoading: false, error: "operarios/delete_error" });
+            const errorMessage = e instanceof Error ? e.message : "Error al eliminar";
+            set({ isLoading: false, error: errorMessage }, false, "operarios/delete_error");
+            throw e;
+          }
+        },
+
+        iniciarSesion: async () => {
+          set({ isLoading: true, error: null }, false, "operarios/iniciar_sesion_start");
+          try {
+            const updatedOperario = await iniciarSesionOperarioAction();
+            set(
+              (state) => ({
+                operarios: state.operarios.map((i) => (i.id === updatedOperario.id ? updatedOperario : i)),
+                isLoading: false,
+              }),
+              false,
+              "operarios/iniciar_sesion_success"
+            );
+            return true;
+          } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : "Error al iniciar sesión";
+            set({ isLoading: false, error: errorMessage }, false, "operarios/iniciar_sesion_error");
+            throw e;
           }
         },
 

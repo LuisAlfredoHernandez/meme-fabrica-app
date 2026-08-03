@@ -29,8 +29,7 @@ export async function deleteAsignacionAction(id: string): Promise<boolean> {
   return asignacionesService.delete(id, token);
 }
 
-export async function reportarAvanceAction(data: { asignacion_id: string; piezas_reportadas: number; maquina_id?: string; notas?: string }): Promise<any> {
+export async function reportarAvanceAction(data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string; fecha_fin?: string }): Promise<any> {
   const token = await getToken();
   return asignacionesService.reportarAvance(data, token);
 }
-

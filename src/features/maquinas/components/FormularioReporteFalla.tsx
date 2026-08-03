@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Maquina } from "@/types";
-import { CheckCircle2, AlertTriangle, Wrench } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Wrench, Clock } from "lucide-react";
+import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
 interface FormularioReporteFallaProps {
     miMaquina: Maquina | null;
@@ -27,6 +28,7 @@ export function FormularioReporteFalla({
     const [gravedad, setGravedad] = useState("moderada");
     const [detieneProduccion, setDetieneProduccion] = useState(false);
     const [showFallaForm, setShowFallaForm] = useState(false);
+    const { addToastOnly } = useNotificationActions();
 
     const handleReportarFalla = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,14 +44,22 @@ export function FormularioReporteFalla({
         });
 
         if (success) {
-            alert(`Avería reportada exitosamente en ${miMaquina.nombre}. La máquina está ahora en mantenimiento.`);
+            addToastOnly(
+                "Avería Reportada",
+                `Avería reportada exitosamente en ${miMaquina.nombre}. La máquina ha pasado a estado de Revisión.`,
+                "warning"
+            );
             setMotivoFalla("");
             setTipoFalla("mecanica");
             setGravedad("moderada");
             setDetieneProduccion(false);
             setShowFallaForm(false);
         } else {
-            alert("Error al enviar el reporte de avería.");
+            addToastOnly(
+                "Error de Avería",
+                "Error al enviar el reporte de avería.",
+                "error"
+            );
         }
     };
 
@@ -61,17 +71,36 @@ export function FormularioReporteFalla({
         );
     }
 
+    const isOperativa = miMaquina.estado === "operativa";
+    const isBajoRevision = miMaquina.estado === "bajo_revision";
+    const isFueraServicio = miMaquina.estado === "fuera_servicio";
+    const isMantenimiento = miMaquina.estado === "mantenimiento";
+
+    const getHeaderBadgeStyle = () => {
+        if (isOperativa) return "bg-[#34d399]/10 text-[#34d399]";
+        if (isBajoRevision || isMantenimiento) return "bg-amber-500/10 text-amber-400";
+        return "bg-red-500/10 text-red-500";
+    };
+
     return (
         <div className="bg-[#13161e] border border-[#1e2130] p-5 rounded-3xl hover:border-slate-800 transition-colors shadow-lg shadow-black/50 flex flex-col">
             <div className="flex items-center gap-3 mb-4 shrink-0">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner transition-colors ${miMaquina.estado === "operativa" ? "bg-[#34d399]/10 text-[#34d399]" : "bg-red-500/10 text-red-500"}`}>
-                    {miMaquina.estado === "operativa" ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner transition-colors ${getHeaderBadgeStyle()}`}>
+                    {isOperativa ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                    ) : isBajoRevision ? (
+                        <Clock className="w-5 h-5" />
+                    ) : isMantenimiento ? (
+                        <Wrench className="w-5 h-5" />
+                    ) : (
+                        <AlertTriangle className="w-5 h-5" />
+                    )}
                 </div>
                 <h2 className="text-xl font-bold text-white">Estado de la Máquina</h2>
             </div>
 
             <div className="flex-1">
-                {miMaquina.estado === "operativa" ? (
+                {isOperativa ? (
                     <div className="flex flex-col h-full justify-center">
                         {!showFallaForm ? (
                             <div className="text-center py-2 animate-in fade-in duration-500">
@@ -79,19 +108,19 @@ export function FormularioReporteFalla({
                                     <CheckCircle2 className="w-8 h-8 text-[#34d399]" />
                                 </div>
                                 <h3 className="text-white font-bold text-lg mb-1.5">Máquina Operativa</h3>
-                                <p className="text-slate-400 mb-6 font-medium px-4 text-xs">Si experimentas problemas técnicos, cambia el estado de tu máquina a inactiva.</p>
+                                <p className="text-slate-400 mb-6 font-medium px-4 text-xs">Si experimentas problemas técnicos, puedes reportar una avería para que la máquina pase a revisión.</p>
                                 <button
                                     onClick={() => setShowFallaForm(true)}
-                                    className="group flex items-center justify-center gap-2.5 w-full px-5 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#1e2130] to-[#13161e] border border-[#1e2130] hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 active:scale-95 cursor-pointer text-sm"
+                                    className="group flex items-center justify-center gap-2.5 w-full px-5 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#1e2130] to-[#13161e] border border-[#1e2130] hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all duration-300 active:scale-95 cursor-pointer text-sm"
                                 >
-                                    <Wrench className="w-4.5 h-4.5 text-slate-500 group-hover:text-red-400 transition-colors" />
-                                    <span className="group-hover:text-red-400 transition-colors">Reportar Avería</span>
+                                    <Wrench className="w-4.5 h-4.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
+                                    <span className="group-hover:text-amber-400 transition-colors">Reportar Avería</span>
                                 </button>
                             </div>
                         ) : (
                             <form onSubmit={handleReportarFalla} className="space-y-3 animate-in slide-in-from-bottom-4 fade-in duration-300">
-                                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-1">
-                                    <p className="text-xs font-medium text-red-400">Registrando reporte de avería. Por favor ingresa los detalles.</p>
+                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-1">
+                                    <p className="text-xs font-medium text-amber-400">Registrando reporte de avería. Al enviar, la máquina pasará a estado de Revisión.</p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
@@ -100,7 +129,7 @@ export function FormularioReporteFalla({
                                         <select
                                             value={tipoFalla}
                                             onChange={(e) => setTipoFalla(e.target.value)}
-                                            className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 transition-all hover:border-slate-700 text-sm"
+                                            className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-all hover:border-slate-700 text-sm"
                                         >
                                             <option value="mecanica">Mecánico</option>
                                             <option value="electrica">Eléctrico</option>
@@ -113,7 +142,7 @@ export function FormularioReporteFalla({
                                         <select
                                             value={gravedad}
                                             onChange={(e) => setGravedad(e.target.value)}
-                                            className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 transition-all hover:border-slate-700 text-sm"
+                                            className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-all hover:border-slate-700 text-sm"
                                         >
                                             <option value="leve">Leve (Operativa)</option>
                                             <option value="moderada">Moderada (Rendimiento bajo)</option>
@@ -128,7 +157,7 @@ export function FormularioReporteFalla({
                                         id="detiene_produccion"
                                         checked={detieneProduccion}
                                         onChange={(e) => setDetieneProduccion(e.target.checked)}
-                                        className="w-4 h-4 rounded border-slate-700 text-red-500 focus:ring-red-500 focus:ring-opacity-25 cursor-pointer"
+                                        className="w-4 h-4 rounded border-slate-700 text-amber-500 focus:ring-amber-500 focus:ring-opacity-25 cursor-pointer"
                                     />
                                     <label htmlFor="detiene_produccion" className="text-xs font-bold text-slate-300 cursor-pointer select-none">
                                         ¿Detiene completamente la producción?
@@ -142,7 +171,7 @@ export function FormularioReporteFalla({
                                         value={motivoFalla}
                                         onChange={(e) => setMotivoFalla(e.target.value)}
                                         rows={2}
-                                        className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/50 transition-all hover:border-slate-700 resize-none shadow-inner text-sm"
+                                        className="w-full bg-[#080b10] border border-[#1e2130] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all hover:border-slate-700 resize-none shadow-inner text-sm"
                                         placeholder="Describe el problema técnico (ej. aguja rota)..."
                                     />
                                 </div>
@@ -163,7 +192,7 @@ export function FormularioReporteFalla({
                                     </button>
                                     <button
                                         type="submit"
-                                        className="flex-1 py-2.5 rounded-xl font-black text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 transition-all shadow-lg shadow-red-500/25 active:scale-95 cursor-pointer text-sm"
+                                        className="flex-1 py-2.5 rounded-xl font-black text-white bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 transition-all shadow-lg shadow-amber-500/25 active:scale-95 cursor-pointer text-sm"
                                     >
                                         Confirmar Falla
                                     </button>
@@ -171,14 +200,31 @@ export function FormularioReporteFalla({
                             </form>
                         )}
                     </div>
-                ) : (
+                ) : isBajoRevision ? (
                     <div className="flex flex-col h-full justify-center text-center py-4 animate-in fade-in duration-500">
-                        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)] relative animate-pulse">
+                        <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.15)] relative">
+                            <Clock className="w-8 h-8 text-amber-400 animate-pulse" />
+                            <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-amber-400 rounded-full animate-ping"></span>
+                        </div>
+                        <h3 className="text-white font-bold text-lg mb-1.5">Máquina en Revisión</h3>
+                        <p className="text-slate-400 font-medium px-4 text-xs">Tu reporte de avería ha sido registrado. El supervisor está revisando la máquina para su aprobación.</p>
+                    </div>
+                ) : isFueraServicio ? (
+                    <div className="flex flex-col h-full justify-center text-center py-4 animate-in fade-in duration-500">
+                        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 border border-red-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)] relative">
                             <AlertTriangle className="w-8 h-8 text-red-500" />
                             <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full animate-ping"></span>
                         </div>
                         <h3 className="text-white font-bold text-lg mb-1.5">Máquina Fuera de Servicio</h3>
-                        <p className="text-slate-400 font-medium px-4 text-xs">El reporte ha sido enviado. Un técnico o supervisor revisará la máquina pronto.</p>
+                        <p className="text-slate-400 font-medium px-4 text-xs">La avería fue aprobada por el supervisor y la máquina ha sido declarada Fuera de Servicio.</p>
+                    </div>
+                ) : (
+                    <div className="flex flex-col h-full justify-center text-center py-4 animate-in fade-in duration-500">
+                        <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.15)]">
+                            <Wrench className="w-8 h-8 text-amber-500" />
+                        </div>
+                        <h3 className="text-white font-bold text-lg mb-1.5">Máquina en Mantenimiento</h3>
+                        <p className="text-slate-400 font-medium px-4 text-xs">La máquina se encuentra actualmente en mantenimiento.</p>
                     </div>
                 )}
             </div>

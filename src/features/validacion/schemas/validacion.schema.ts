@@ -11,6 +11,9 @@ export const ValidacionSchema = z.object({
     piezasValidadasBuenas: z.number().min(0).optional(),
     piezasValidadasDefectuosas: z.number().min(0).optional(),
     estado: z.enum(["pendiente", "validado", "rechazado"]),
+    fechaInicio: z.string().optional().nullable(),
+    fechaFin: z.string().optional().nullable(),
+    notas: z.string().optional().nullable(),
 });
 
 export type ValidacionReporte = z.infer<typeof ValidacionSchema>;

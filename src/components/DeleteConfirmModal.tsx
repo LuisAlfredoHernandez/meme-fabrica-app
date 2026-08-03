@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 interface DeleteConfirmModalProps {
     title: string;
@@ -7,6 +7,8 @@ interface DeleteConfirmModalProps {
     onConfirm: () => void;
     confirmText?: string;
     cancelText?: string;
+    variant?: "danger" | "warning" | "success" | "info";
+    icon?: React.ReactNode;
 }
 
 export function DeleteConfirmModal({
@@ -15,13 +17,45 @@ export function DeleteConfirmModal({
     onCancel,
     onConfirm,
     confirmText = "Sí, Eliminar",
-    cancelText = "Cancelar"
+    cancelText = "Cancelar",
+    variant = "danger",
+    icon
 }: DeleteConfirmModalProps) {
+    
+    // Configuración según el variant
+    let borderClass = "border-red-500/30";
+    let iconBgClass = "bg-red-500/20";
+    let iconTextClass = "text-red-400";
+    let confirmBtnClass = "bg-red-500 hover:bg-red-600";
+    let defaultIcon = <Trash2 className="w-6 h-6" />;
+
+    if (variant === "success") {
+        borderClass = "border-emerald-500/30";
+        iconBgClass = "bg-emerald-500/20";
+        iconTextClass = "text-emerald-400";
+        confirmBtnClass = "bg-emerald-500 hover:bg-emerald-600";
+        defaultIcon = <CheckCircle2 className="w-6 h-6" />;
+    } else if (variant === "warning") {
+        borderClass = "border-amber-500/30";
+        iconBgClass = "bg-amber-500/20";
+        iconTextClass = "text-amber-400";
+        confirmBtnClass = "bg-amber-500 hover:bg-amber-600";
+        defaultIcon = <AlertTriangle className="w-6 h-6" />;
+    } else if (variant === "info") {
+        borderClass = "border-blue-500/30";
+        iconBgClass = "bg-blue-500/20";
+        iconTextClass = "text-blue-400";
+        confirmBtnClass = "bg-blue-500 hover:bg-blue-600";
+        defaultIcon = <Info className="w-6 h-6" />;
+    }
+
+    const finalIcon = icon ? icon : defaultIcon;
+
     return (
         <div className="absolute inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-md">
-            <div className="bg-[#1a1f2e] border border-red-500/30 p-6 rounded-2xl max-w-xs text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Trash2 className="text-red-400 w-6 h-6" />
+            <div className={`bg-[#1a1f2e] border ${borderClass} p-6 rounded-2xl max-w-xs text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200`}>
+                <div className={`w-12 h-12 ${iconBgClass} ${iconTextClass} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                    {finalIcon}
                 </div>
 
                 <h4 className="text-white font-bold">{title}</h4>
@@ -41,7 +75,7 @@ export function DeleteConfirmModal({
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 py-2 text-xs bg-red-500 text-white font-bold rounded-lg shadow-lg hover:bg-red-600 transition-colors"
+                        className={`flex-1 py-2 text-xs ${confirmBtnClass} text-white font-bold rounded-lg shadow-lg transition-colors`}
                     >
                         {confirmText}
                     </button>

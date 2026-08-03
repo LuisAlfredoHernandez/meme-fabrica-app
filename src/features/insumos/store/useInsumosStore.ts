@@ -60,7 +60,7 @@ export const useInsumosStore = create<InsumosState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al crear";
             set({ isLoading: false, error: errorMessage }, false, "insumos/create_error");
-            return false;
+            throw e;
           }
         },
 
@@ -82,7 +82,7 @@ export const useInsumosStore = create<InsumosState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al actualizar";
             set({ isLoading: false, error: errorMessage }, false, "insumos/update_error");
-            return false;
+            throw e;
           }
         },
 
@@ -94,8 +94,11 @@ export const useInsumosStore = create<InsumosState>()(
               insumos: state.insumos.filter(i => i.id !== id),
               isLoading: false
             }), false, "insumos/delete_success");
+            return true;
           } catch (e) {
-            set({ isLoading: false, error: "insumos/delete_error" });
+            const errorMessage = e instanceof Error ? e.message : "Error al eliminar";
+            set({ isLoading: false, error: errorMessage }, false, "insumos/delete_error");
+            throw e;
           }
         },
 

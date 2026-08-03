@@ -1,17 +1,5 @@
 import type { Operario } from "@/types";
-
-/**
- * Helper interno para obtener headers con autenticación de manera agnóstica.
- */
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
+import { apiClient } from "@/shared/apiClient";
 
 /**
  * Servicio para la gestión de operarios.
@@ -19,11 +7,7 @@ const getAuthHeaders = (token?: string) => {
 export const operariosService = {
   getAll: async (token?: string): Promise<Operario[]> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/operarios`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get("/operarios", { token });
 
       if (!response.ok) throw new Error("No se pudo obtener la lista de operarios.");
       return await response.json();
@@ -35,14 +19,12 @@ export const operariosService = {
 
   create: async (data: Omit<Operario, "id">, token?: string): Promise<Operario> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/operarios`, {
-        method: "POST",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.post("/operarios", data, { token });
 
-      if (!response.ok) throw new Error("No se pudo crear el operario.");
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || "No se pudo crear el operario.");
+      }
       return await response.json();
     } catch (error: any) {
       console.error("Error en operariosService.create:", error);
@@ -52,14 +34,12 @@ export const operariosService = {
 
   update: async (id: string, data: Partial<Operario>, token?: string): Promise<Operario> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/operarios/${id}`, {
-        method: "PUT",
-        headers: getAuthHeaders(token),
-        body: JSON.stringify(data),
-      });
+      const response = await apiClient.patch(`/operarios/${id}`, data, { token });
 
-      if (!response.ok) throw new Error(`No se pudo actualizar el operario con ID: ${id}`);
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `No se pudo actualizar el operario con ID: ${id}`);
+      }
       return await response.json();
     } catch (error: any) {
       console.error("Error en operariosService.update:", error);
@@ -69,13 +49,12 @@ export const operariosService = {
 
   delete: async (id: string, token?: string): Promise<boolean> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/operarios/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.delete(`/operarios/${id}`, { token });
 
-      if (!response.ok) throw new Error(`Error al eliminar el operario con ID: ${id}`);
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `Error al eliminar el operario con ID: ${id}`);
+      }
       return true;
     } catch (error: any) {
       console.error("Error en operariosService.delete:", error);
@@ -85,11 +64,7 @@ export const operariosService = {
 
   getById: async (id: string, token?: string): Promise<Operario | undefined> => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/operarios/${id}`, {
-        method: "GET",
-        headers: getAuthHeaders(token),
-      });
+      const response = await apiClient.get(`/operarios/${id}`, { token });
 
       if (!response.ok) {
         if (response.status === 404) return undefined;
@@ -99,6 +74,21 @@ export const operariosService = {
     } catch (error: any) {
       console.error("Error en operariosService.getById:", error);
       throw new Error(error.message || "Error al conectar con el servidor.");
+    }
+  },
+
+  iniciarSesion: async (token?: string): Promise<Operario> => {
+    try {
+      const response = await apiClient.post("/operarios/me/iniciar-sesion", undefined, { token });
+
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || "Error al iniciar sesión de trabajo.");
+      }
+      return await response.json();
+    } catch (error: any) {
+      console.error("Error en operariosService.iniciarSesion:", error);
+      throw new Error(error.message || "Error de red al iniciar sesión.");
     }
   },
 };

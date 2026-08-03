@@ -1,23 +1,10 @@
 import { ValidacionReporte } from "../schemas/validacion.schema";
-
-const getAuthHeaders = (token?: string) => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return headers;
-};
+import { apiClient } from "@/shared/apiClient";
 
 export const validacionService = {
     async getPendientes(token?: string): Promise<ValidacionReporte[]> {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${API_URL}/reportes-avance/pendientes`, {
-                method: "GET",
-                headers: getAuthHeaders(token),
-            });
+            const response = await apiClient.get("/reportes-avance/pendientes", { token });
 
             if (!response.ok) {
                 const errText = await response.text();
@@ -36,6 +23,9 @@ export const validacionService = {
                 piezasValidadasBuenas: item.piezas_buenas,
                 piezasValidadasDefectuosas: item.piezas_defectuosas,
                 estado: item.estado,
+                fechaInicio: item.fecha_inicio,
+                fechaFin: item.fecha_fin,
+                notas: item.notas,
             }));
         } catch (error) {
             console.error("Error en validacionService.getPendientes:", error);
@@ -43,18 +33,17 @@ export const validacionService = {
         }
     },
 
-    async validarReporte(id: string, buenas: number, defectuosas: number, token?: string): Promise<boolean> {
+    async validarReporte(id: string, buenas: number, defectuosas: number, fechaInicio?: string | null, fechaFin?: string | null, token?: string): Promise<boolean> {
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${API_URL}/reportes-avance/${id}/validar`, {
-                method: "POST",
-                headers: getAuthHeaders(token),
-                body: JSON.stringify({
-                    piezas_buenas: buenas,
-                    piezas_defectuosas: defectuosas,
-                    estado: "validado"
-                }),
-            });
+            const payload: any = {
+                piezas_buenas: buenas,
+                piezas_defectuosas: defectuosas,
+                estado: "validado"
+            };
+            if (fechaInicio) payload.fecha_inicio = fechaInicio;
+            if (fechaFin) payload.fecha_fin = fechaFin;
+            
+            const response = await apiClient.post(`/reportes-avance/${id}/validar`, payload, { token });
 
             if (!response.ok) throw new Error(`No se pudo validar el reporte con ID: ${id}`);
             return true;

@@ -30,6 +30,7 @@ import type {
     Maquina,
     NivelAlerta,
 } from "@/types";
+import { formatLocalDate } from "@/utils/formatters";
 
 // ─── Helpers de UI ────────────────────────────────────────────
 
@@ -477,7 +478,7 @@ export function PanelRecomendaciones({
                         </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                        {new Date(prediccion.fechaFinalizacionEstimada).toLocaleDateString("es-DO", {
+                        {formatLocalDate(prediccion.fechaFinalizacionEstimada, "es-DO", {
                             day: "2-digit",
                             month: "short",
                         })}

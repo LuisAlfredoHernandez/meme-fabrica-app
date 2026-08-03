@@ -8,12 +8,13 @@ import { useAsignacionStore, useAsignacionActions } from "@/features/operarios/s
 import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { StatCard } from "@/components/StatCard";
-
+import { useWorkSessionStore } from "@/features/operarios/store/useWorkSessionStore";
 import { TareaAsignadaCard } from "@/features/operarios/components/TareaAsignadaCard";
 import { FormularioReporteAvance } from "@/features/operarios/components/FormularioReporteAvance";
 import { FormularioReporteFalla } from "@/features/maquinas/components/FormularioReporteFalla";
 import { AppColors } from "@/shared/constants";
-import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
+import { Factory, Zap, ClipboardList, CheckCircle2, AlertTriangle, AlertCircle, Clock, Wrench } from "lucide-react";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function MiEstacionPage() {
     const { user } = useAuthStore();
@@ -21,8 +22,8 @@ export default function MiEstacionPage() {
     const { operarios, isLoading: loadingOperarios } = useOperarioStore();
     const { fetchOperarios } = useOperarioActions();
 
-    const { maquinas, isLoading: loadingMaquinas } = useMaquinasStore();
-    const { fetchMaquinas, reportarAveria } = useMaquinasActions();
+    const { maquinas, reportesAveriaPendientes, isLoading: loadingMaquinas } = useMaquinasStore();
+    const { fetchMaquinas, fetchReportesAveriaPendientes, reportarAveria } = useMaquinasActions();
 
     const { asignaciones } = useAsignacionStore();
     const { fetchAsignaciones, reportarAvance } = useAsignacionActions();
@@ -30,8 +31,7 @@ export default function MiEstacionPage() {
     const { ordenes } = useOrdenStore();
     const { fetchOrdenes } = useOrdenActions();
     const { addNotification } = useNotificationActions();
-
-
+    const { activeTaskId } = useWorkSessionStore();
 
     // Referencia para rastrear los estados anteriores de las órdenes asignadas
     const prevOrdersRef = useRef<{ [key: string]: { estado: string; prioridad: string } } | null>(null);
@@ -41,8 +41,22 @@ export default function MiEstacionPage() {
         ? operarios.find(o => o.correo === user.correo || o.nombre === user.nombre) || null
         : null;
 
-    const miMaquina = miOperario?.maquinaActual && maquinas.length > 0
-        ? maquinas.find(m => m.tipo === miOperario.maquinaActual) || null
+    // Buscar la máquina física que el operario tiene asignada actualmente
+    const miMaquinaRaw = miOperario && miOperario.maquina_actual_id && maquinas.length > 0
+        ? maquinas.find(m => m.id === miOperario.maquina_actual_id) || null
+        : null;
+
+    const hasPendingAveria = miMaquinaRaw && reportesAveriaPendientes.length > 0
+        ? reportesAveriaPendientes.some(
+            r => (r.maquina_id === miMaquinaRaw.id || r.maquina_codigo === miMaquinaRaw.codigo || (miOperario && r.operario_id === miOperario.id)) && r.estado === "pendiente"
+        )
+        : false;
+
+    const miMaquina = miMaquinaRaw
+        ? {
+            ...miMaquinaRaw,
+            estado: hasPendingAveria ? ("bajo_revision" as const) : miMaquinaRaw.estado
+        }
         : null;
 
     const PRIORIDAD_VALORES: Record<string, number> = {
@@ -52,7 +66,7 @@ export default function MiEstacionPage() {
         baja: 1
     };
 
-    const misAsignaciones = miOperario
+    const misAsignacionesTodas = miOperario
         ? [...asignaciones]
             .filter(a => a.operario_id === miOperario.id)
             .sort((a, b) => {
@@ -74,6 +88,20 @@ export default function MiEstacionPage() {
             })
         : [];
 
+    const misAsignacionesActivas = misAsignacionesTodas.filter(a => {
+        const ord = ordenes.find(o => o.id === a.orden_id);
+        const isOrderCompleted = ord?.estado === "completada";
+        const isTaskCompleted = a.piezas_completadas >= a.piezas_requeridas;
+        return !isOrderCompleted && !isTaskCompleted;
+    });
+
+    const misAsignacionesCompletadas = misAsignacionesTodas.filter(a => {
+        const ord = ordenes.find(o => o.id === a.orden_id);
+        const isOrderCompleted = ord?.estado === "completada";
+        const isTaskCompleted = a.piezas_completadas >= a.piezas_requeridas;
+        return isOrderCompleted || isTaskCompleted;
+    });
+
     const ORDEN_ESTADO_STYLE: Record<string, { label: string; bg: string; text: string }> = {
         pendiente: { label: "Pendiente", bg: "bg-slate-500/10", text: "text-slate-400" },
         en_proceso: { label: "En proceso", bg: "bg-orange-500/10", text: "text-orange-400" },
@@ -93,19 +121,20 @@ export default function MiEstacionPage() {
         // Carga inicial
         fetchOperarios();
         fetchMaquinas();
+        fetchReportesAveriaPendientes();
         fetchAsignaciones();
         fetchOrdenes();
-    }, [fetchOperarios, fetchMaquinas, fetchAsignaciones, fetchOrdenes]);
+    }, [fetchOperarios, fetchMaquinas, fetchReportesAveriaPendientes, fetchAsignaciones, fetchOrdenes]);
 
     // Detección de cambios en tiempo real en las órdenes del operario
     useEffect(() => {
-        if (misAsignaciones.length === 0 || ordenes.length === 0) {
+        if (misAsignacionesTodas.length === 0 || ordenes.length === 0) {
             return;
         }
 
         const currentStates: { [key: string]: { numero: string; estado: string; prioridad: string } } = {};
-        
-        misAsignaciones.forEach(asig => {
+
+        misAsignacionesTodas.forEach(asig => {
             const ord = ordenes.find(o => o.id === asig.orden_id);
             if (ord) {
                 currentStates[ord.id] = {
@@ -142,13 +171,13 @@ export default function MiEstacionPage() {
                         tipo
                     );
                 }
- 
+
                 // Validar cambios de prioridad
                 if (curr.prioridad !== prev.prioridad) {
                     let tipo: "info" | "warning" | "error" = "info";
                     if (curr.prioridad === "urgente") tipo = "error";
                     else if (curr.prioridad === "alta") tipo = "warning";
- 
+
                     addNotification(
                         `Prioridad Modificada — ${curr.numero}`,
                         `La prioridad cambió de "${prev.prioridad.toUpperCase()}" a "${curr.prioridad.toUpperCase()}".`,
@@ -159,14 +188,10 @@ export default function MiEstacionPage() {
         });
 
         prevOrdersRef.current = currentStates;
-    }, [ordenes, misAsignaciones]);
+    }, [ordenes, misAsignacionesTodas]);
 
     if (loadingOperarios || loadingMaquinas) {
-        return (
-            <div className="p-8 flex items-center justify-center min-h-screen text-slate-400">
-                <Zap className="animate-spin w-8 h-8 text-orange-500 mr-4" /> Cargando mi estación...
-            </div>
-        );
+        return <LoadingScreen message="Preparando tu estación..." />;
     }
 
     if (!miOperario) {
@@ -178,48 +203,97 @@ export default function MiEstacionPage() {
         );
     }
 
-    // Calcular eficiencia
-    const habilidadEnMaquina = miOperario.habilidades.find(h => h.maquina === miOperario.maquinaActual);
+    // Calcular eficiencia basada en el tipo de la máquina asignada
+    const habilidadEnMaquina = miMaquina && miOperario.habilidades.find(h => h.maquina === miMaquina.tipo);
     const eficiencia = habilidadEnMaquina && habilidadEnMaquina.nivel_eficiencia !== undefined
         ? `${habilidadEnMaquina.nivel_eficiencia}%`
         : "N/A";
+
+    const estadoCfg = (() => {
+        switch (miMaquina?.estado) {
+            case "operativa":
+                return { label: "OPERATIVA", color: "#34d399", icon: CheckCircle2 };
+            case "bajo_revision":
+                return { label: "REVISIÓN", color: "#fbbf24", icon: Clock };
+            case "mantenimiento":
+                return { label: "MANTENIMIENTO", color: "#f59e0b", icon: Wrench };
+            case "fuera_servicio":
+                return { label: "FUERA DE SERVICIO", color: "#f43f5e", icon: AlertTriangle };
+            default:
+                return { label: "DESCONOCIDO", color: "#94a3b8", icon: AlertTriangle };
+        }
+    })();
+
     return (
         <div className="w-full h-full overflow-y-auto custom-scrollbar p-6">
             <div className="mb-6">
-                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Mi Estación de Trabajo</h1>
+                <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Estación de Trabajo</h1>
                 <p className="text-slate-400 font-medium">Bienvenido <span className="text-white">{miOperario.nombre}</span>.</p>
             </div>
 
             {/* Listado de Tareas Asignadas */}
             <div className="mb-6 space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignaciones.length})
+                    <ClipboardList className="w-4 h-4 text-orange-500" /> Mis Órdenes y Tareas Asignadas ({misAsignacionesActivas.length})
                 </h2>
 
-                {misAsignaciones.length > 0 ? (
+                {!activeTaskId && misAsignacionesActivas.length > 0 && (
+                    <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-start gap-3 shadow-lg shadow-amber-500/5 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <Clock className="w-5 h-5 text-amber-500 animate-pulse" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-amber-500 mb-1">¡No olvides registrar tu tiempo!</h3>
+                            <p className="text-xs text-amber-400/80 leading-relaxed">No tienes ninguna tarea activa en este momento. Haz clic en el botón <strong className="text-amber-500 font-black">"Empezar"</strong> de la tarea que vayas a trabajar para que el sistema pueda contabilizar tu tiempo correctamente.</p>
+                        </div>
+                    </div>
+                )}
+                {misAsignacionesActivas.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {misAsignaciones.map(asig => (
-                            <TareaAsignadaCard
-                                key={asig.id}
-                                asig={asig}
-                                ordenCompleta={ordenes.find(o => o.id === asig.orden_id)}
-                                prioridadStyle={ORDEN_PRIO_STYLE}
-                                estadoStyle={ORDEN_ESTADO_STYLE}
-                            />
-                        ))}
+                        {misAsignacionesActivas.map(asig => {
+                            // Calculate WIP limit for this card
+                            const pipeline = asignaciones
+                                .filter(a => a.orden_id === asig.orden_id)
+                                .sort((a, b) => new Date(a.fecha_asignacion).getTime() - new Date(b.fecha_asignacion).getTime());
+                            
+                            const idx = pipeline.findIndex(a => a.id === asig.id);
+                            let maxPermitidas = asig.piezas_requeridas - asig.piezas_completadas;
+                            let tareaAnterior = null;
+
+                            if (idx > 0) {
+                                const prevAsig = pipeline[idx - 1];
+                                const maxCalc = prevAsig.piezas_completadas - asig.piezas_completadas;
+                                maxPermitidas = maxCalc > 0 ? maxCalc : 0;
+                                tareaAnterior = prevAsig.tarea;
+                            }
+
+                            return (
+                                <TareaAsignadaCard
+                                    key={asig.id}
+                                    asig={asig}
+                                    ordenCompleta={ordenes.find(o => o.id === asig.orden_id)}
+                                    prioridadStyle={ORDEN_PRIO_STYLE}
+                                    estadoStyle={ORDEN_ESTADO_STYLE}
+                                    maxPiezasPermitidas={maxPermitidas}
+                                    tareaAnterior={tareaAnterior}
+                                />
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="p-6 text-center rounded-3xl bg-[#13161e] border border-white/5 text-slate-500 font-semibold italic text-sm">
-                        No tienes tareas asignadas por el supervisor en este momento.
+                        No tienes tareas pendientes asignadas por el supervisor en este momento.
                     </div>
                 )}
             </div>
 
-            {/* Kpis / Stats */}
+            {/* Spacer */}
+            <div className="h-4"></div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <StatCard
                     label="Máquina Actual"
-                    valor={miOperario.maquinaActual ? miOperario.maquinaActual.toUpperCase() : "Ninguna"}
+                    valor={miMaquina ? `${miMaquina.nombre} (${miMaquina.codigo})` : "Ninguna"}
                     icon={Factory}
                     color={AppColors.orange}
                 />
@@ -232,10 +306,10 @@ export default function MiEstacionPage() {
                 />
                 <StatCard
                     label="Estado de Máquina"
-                    valor={miMaquina?.estado ? miMaquina.estado.toUpperCase() : "Desconocido"}
-                    icon={miMaquina?.estado === "operativa" ? CheckCircle2 : AlertTriangle}
-                    color={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
-                    labelColor={miMaquina?.estado === "operativa" ? "#34d399" : "#f43f5e"}
+                    valor={estadoCfg.label}
+                    icon={estadoCfg.icon}
+                    color={estadoCfg.color}
+                    labelColor={estadoCfg.color}
                 />
                 <StatCard
                     label="Unidades Buenas"
@@ -256,10 +330,11 @@ export default function MiEstacionPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Formulario de Producción */}
                 <FormularioReporteAvance
-                    misAsignaciones={misAsignaciones}
+                    miOperario={miOperario}
+                    misAsignaciones={misAsignacionesActivas}
                     ordenes={ordenes}
                     maquinaEstado={miMaquina?.estado}
-                    maquinaActual={miOperario.maquinaActual}
+                    maquinaActual={miMaquina?.tipo}
                     reportarAvance={reportarAvance}
                 />
 

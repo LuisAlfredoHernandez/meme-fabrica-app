@@ -13,6 +13,7 @@ import { ModalAsignacionTarea } from "./componentes/ModalAsignacionTarea";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 const MAQUINAS_CFG: Record<TipoMaquina, { label: string; color: string; codigos: string[] }> = {
     merrow: { label: "Merrow", color: "#f97316", codigos: ["MERROW-01", "MERROW-02", "MERROW-03"] },
@@ -33,6 +34,7 @@ const ESTADO_CFG = {
 export default function OperariosPage() {
     const [busqueda, setBusq] = useState("");
     const [asignando, setAsig] = useState<Operario | null>(null);
+    const [asignacionParaQuitar, setAsignacionParaQuitar] = useState<{ id: string; tarea: string; operarioNombre: string } | null>(null);
 
     const { operarios } = useOperarioStore();
     const { fetchOperarios, updateOperario } = useOperarioActions();
@@ -55,9 +57,9 @@ export default function OperariosPage() {
 
     const [modalAbierto, setModalAbierto] = useState(false);
 
-    const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string) => {
+    const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string, maquinaId?: string) => {
         if (!asignando || !asignando.id) return;
-        
+
         const success = await createAsignacion({
             orden_id: ordenId,
             operario_id: asignando.id,
@@ -72,14 +74,15 @@ export default function OperariosPage() {
             // Opcionalmente actualizar el estado del operario y vincular a la orden más reciente
             await updateOperario(asignando.id, {
                 orden_actual_id: ordenId,
-                estado: "activo"
+                estado: "activo",
+                maquina_actual_id: maquinaId || null
             });
         }
         setAsig(null); // Cerramos modal
     };
 
     return (
-        <div className="min-h-screen p-8 text-white">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar">
             {modalAbierto && (
                 <ModalGestionOperario
                     onClose={() => setModalAbierto(false)}
@@ -100,7 +103,7 @@ export default function OperariosPage() {
             <Header title={"Operarios & Rendimiento"} subtitle="Gestión de recursos humanos en planta" buttonLabel={"Gestionar operarios"} onButtonClick={() => setModalAbierto(true)} />
 
             {/* Card de status de operarios */}
-            <div className="p-6 space-y-6">
+            <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                         { label: "Total Plantilla", valor: total, icon: Users, color: "#fff" },
@@ -125,7 +128,7 @@ export default function OperariosPage() {
                     {filtrados.map(o => {
                         const est = ESTADO_CFG[o.estado] || ESTADO_CFG.pendiente;
                         const oAsignaciones = asignaciones.filter(a => a.operario_id === o.id);
-                        
+
                         return (
                             <div key={o.id} className="rounded-2xl border bg-[#13161e] overflow-hidden flex flex-col hover:border-white/10 transition-colors" style={{ borderColor: AppColors.border }}>
                                 <div className="p-4 border-b flex items-center gap-4" style={{ borderColor: AppColors.border }}>
@@ -152,7 +155,7 @@ export default function OperariosPage() {
                                             const nivel = hab.nivel_eficiencia ?? 0;
                                             const colorBarra = nivel >= 85 ? AppColors.emerald : nivel >= 70 ? AppColors.amber : AppColors.red;
                                             return (
-                                                <div key={hab.maquina}>
+                                                <div key={hab.maquina + (hab.nivel_eficiencia ?? 0)}>
                                                     <div className="flex justify-between items-center mb-1">
                                                         <span className="text-xs font-bold capitalize flex items-center gap-2" style={{ color: cfg.color }}>
                                                             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.color }} />
@@ -174,7 +177,7 @@ export default function OperariosPage() {
                                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                                             <ClipboardList className="w-3.5 h-3.5 text-orange-500" /> Órdenes Asignadas ({oAsignaciones.length})
                                         </p>
-                                        
+
                                         {oAsignaciones.length > 0 ? (
                                             <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                                                 {oAsignaciones.map(asig => {
@@ -189,11 +192,7 @@ export default function OperariosPage() {
                                                                     <p className="text-xs font-bold text-white truncate">{asig.tarea}</p>
                                                                 </div>
                                                                 <button
-                                                                    onClick={async () => {
-                                                                        if (confirm(`¿Estás seguro de quitar la tarea "${asig.tarea}" asignada a ${o.nombre}?`)) {
-                                                                            await deleteAsignacion(asig.id);
-                                                                        }
-                                                                    }}
+                                                                    onClick={() => setAsignacionParaQuitar({ id: asig.id, tarea: asig.tarea, operarioNombre: o.nombre })}
                                                                     className="text-red-400 hover:text-red-300 text-[10px] font-bold px-2 py-1 rounded bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 transition-all shrink-0"
                                                                 >
                                                                     Quitar
@@ -229,6 +228,23 @@ export default function OperariosPage() {
                     })}
                 </div>
             </div>
+            {asignacionParaQuitar && (
+                <DeleteConfirmModal
+                    title="¿Quitar Tarea Asignada?"
+                    description={
+                        <>
+                            ¿Estás seguro de quitar la tarea <strong className="text-white">"{asignacionParaQuitar.tarea}"</strong> asignada a <strong className="text-white">{asignacionParaQuitar.operarioNombre}</strong>?
+                        </>
+                    }
+                    onCancel={() => setAsignacionParaQuitar(null)}
+                    onConfirm={async () => {
+                        const id = asignacionParaQuitar.id;
+                        setAsignacionParaQuitar(null);
+                        await deleteAsignacion(id);
+                    }}
+                    confirmText="Sí, Quitar"
+                />
+            )}
         </div>
     );
 }

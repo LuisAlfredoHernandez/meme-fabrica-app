@@ -28,10 +28,13 @@ export interface ToastItem {
 }
 
 interface NotificationState {
+    currentUserId: string | null;
     notifications: NotificationItem[];
+    processedSyncIds: string[];
     toasts: ToastItem[];
     selectedNotification: NotificationItem | null;
     actions: {
+        syncUser: (userId: string) => void;
         addNotification: (
             titulo: string,
             mensaje: string,
@@ -48,16 +51,32 @@ interface NotificationState {
         clearAll: () => void;
         removeToast: (id: string) => void;
         setSelectedNotification: (notif: NotificationItem | null) => void;
+        syncPendingValidations: (pendientes: { id: string; operarioNombre: string; fechaReporte: string; piezasReportadas: number }[]) => void;
+        syncOperatorAssignments: (assignments: { id: string; ordenNumero: string; fechaAsignacion: string }[]) => void;
     };
 }
 
 export const useNotificationStore = create<NotificationState>()(
     persist(
         (set) => ({
+            currentUserId: null,
             notifications: [],
+            processedSyncIds: [],
             toasts: [],
             selectedNotification: null,
             actions: {
+                syncUser: (userId) => {
+                    set((state) => {
+                        if (state.currentUserId !== userId) {
+                            return {
+                                currentUserId: userId,
+                                notifications: [],
+                                processedSyncIds: [],
+                            };
+                        }
+                        return state;
+                    });
+                },
                 addNotification: (titulo, mensaje, tipo, detalles) => {
                     const id = Math.random().toString(36).substring(2, 9);
                     const now = new Date().toISOString();
@@ -119,12 +138,131 @@ export const useNotificationStore = create<NotificationState>()(
                 setSelectedNotification: (notif) => {
                     set({ selectedNotification: notif });
                 },
+                syncPendingValidations: (pendientes) => {
+                    set((state) => {
+                        const newNotifications = [...state.notifications];
+                        let updated = false;
+                        const newProcessed = new Set(state.processedSyncIds || []);
+
+                        pendientes.forEach((p) => {
+                            const syncId = `val_${p.id}`;
+                            if (!newProcessed.has(syncId) && !newNotifications.some(n => n.id === syncId)) {
+                                const newNotif: NotificationItem = {
+                                    id: syncId,
+                                    titulo: "Revisión Pendiente",
+                                    mensaje: `El operario ${p.operarioNombre} ha reportado avance de producción. Pendiente de validación.`,
+                                    tipo: "warning",
+                                    fecha: p.fechaReporte,
+                                    leido: false,
+                                    detalles: {
+                                        piezas_reportadas: p.piezasReportadas,
+                                        action: "created"
+                                    }
+                                };
+                                newNotifications.push(newNotif);
+                                newProcessed.add(syncId);
+                                updated = true;
+                            } else if (!newProcessed.has(syncId)) {
+                                // If it already exists in notifications but not in processed, just mark it processed
+                                newProcessed.add(syncId);
+                            }
+                        });
+
+                        const pendingIds = new Set(pendientes.map((p) => `val_${p.id}`));
+                        const seenIds = new Set();
+                        const cleanedNotifications = newNotifications.filter((n) => {
+                            if (seenIds.has(n.id)) {
+                                updated = true;
+                                return false; // Eliminar duplicados exactos
+                            }
+                            seenIds.add(n.id);
+
+                            if (n.titulo === "Revisión Pendiente" && n.tipo === "warning") {
+                                if (!pendingIds.has(n.id)) {
+                                    updated = true;
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+
+                        if (!updated) return state;
+
+                        cleanedNotifications.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+                        return {
+                            notifications: cleanedNotifications.slice(0, 50),
+                            processedSyncIds: Array.from(newProcessed).slice(-200)
+                        };
+                    });
+                },
+                syncOperatorAssignments: (assignments) => {
+                    set((state) => {
+                        const newNotifications = [...state.notifications];
+                        let updated = false;
+                        const newProcessed = new Set(state.processedSyncIds || []);
+
+                        assignments.forEach((a) => {
+                            const syncId = `asig_created_${a.id}`;
+                            if (!newProcessed.has(syncId) && !newNotifications.some(n => n.id === syncId)) {
+                                const newNotif: NotificationItem = {
+                                    id: syncId,
+                                    titulo: "Nueva Tarea Asignada",
+                                    mensaje: `El supervisor te ha asignado una nueva tarea de producción para la orden ${a.ordenNumero}.`,
+                                    tipo: "warning",
+                                    fecha: a.fechaAsignacion || new Date().toISOString(),
+                                    leido: false,
+                                    detalles: {
+                                        action: "created"
+                                    }
+                                };
+                                newNotifications.push(newNotif);
+                                newProcessed.add(syncId);
+                                updated = true;
+                            } else if (!newProcessed.has(syncId)) {
+                                newProcessed.add(syncId);
+                            }
+                        });
+
+                        const activeIds = new Set(assignments.map((a) => `asig_created_${a.id}`));
+                        
+                        // Deduplicar notificaciones por ID para arreglar estados corruptos del localStorage
+                        const seenIds = new Set();
+                        const cleanedNotifications = newNotifications.filter((n) => {
+                            if (seenIds.has(n.id)) {
+                                updated = true;
+                                return false; // Eliminar duplicados exactos
+                            }
+                            seenIds.add(n.id);
+
+                            if (n.id.startsWith("asig_created_")) {
+                                if (!activeIds.has(n.id)) {
+                                    updated = true;
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+
+                        if (!updated) return state;
+
+                        cleanedNotifications.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+                        return {
+                            notifications: cleanedNotifications.slice(0, 50),
+                            processedSyncIds: Array.from(newProcessed).slice(-200)
+                        };
+                    });
+                },
             },
         }),
         {
             name: "meme-fabrica-notifications",
-            // Solo persistir la lista de notificaciones persistentes, no los toasts temporales
-            partialize: (state) => ({ notifications: state.notifications } as any),
+            // Persistir notificaciones y el historial de IDs procesados
+            partialize: (state) => ({ 
+                notifications: state.notifications,
+                processedSyncIds: state.processedSyncIds
+            } as any),
         }
     )
 );

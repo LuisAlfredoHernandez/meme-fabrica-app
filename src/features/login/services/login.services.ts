@@ -15,8 +15,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
         nombre: "Juan",
         apellido: "Perez",
         rol: "administrador",
-        estado: "activo",
-        ultimaConexion: "Ahora mismo"
+        estado: "activo"
     },
     {
         id: "u2",
@@ -25,8 +24,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
         nombre: "Carmen",
         apellido: "Méndez",
         rol: "subjefe",
-        estado: "activo",
-        ultimaConexion: "Hace 2 horas"
+        estado: "activo"
     },
     {
         id: "u3",
@@ -35,15 +33,14 @@ const MOCK_CREDENTIALS: Usuario[] = [
         nombre: "Ramon",
         apellido: "Perez",
         rol: "operario",
-        estado: "activo",
-        ultimaConexion: "Hace 1 horas"
+        estado: "activo"
     },
 ];
 
 const API_LATENCY = 500;
 
 export const authService = {
-    login: async (email: string, pass: string): Promise<{ token: string; user: Usuario | Operario }> => {
+    login: async (email: string, pass: string): Promise<{ token: string; refreshToken?: string; user: Usuario | Operario }> => {
         console.log(`Intentando login para: ${email}...`);
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -76,7 +73,7 @@ export const authService = {
             // Obtener el usuario actual con el token recibido
             const user = await authService.getCurrentUser(data.access_token);
 
-            return { token: data.access_token, user };
+            return { token: data.access_token, refreshToken: data.refresh_token, user };
         } catch (error: any) {
             console.error("Error en login:", error);
             throw new Error(error.message || "Error al conectar con el servidor.");
@@ -161,15 +158,14 @@ export const authService = {
     /**
      * Crea una nueva cuenta de acceso.
      */
-    registerUser: (data: Omit<Usuario, "id" | "ultimaConexion"> & { pass: string }): Promise<Usuario> => {
+    registerUser: (data: Omit<Usuario, "id"> & { pass: string }): Promise<Usuario> => {
         console.log("Registrando nuevo acceso al sistema...", data.correo);
 
         return new Promise((resolve) => {
             setTimeout(() => {
                 const newUser: Usuario = {
                     ...data,
-                    id: `u${Math.random().toString(36).substr(2, 5)}`,
-                    ultimaConexion: "Nunca"
+                    id: `u${Math.random().toString(36).substr(2, 5)}`
                 };
 
                 MOCK_CREDENTIALS.push(newUser);

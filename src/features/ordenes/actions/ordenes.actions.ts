@@ -36,3 +36,8 @@ export async function getOrdenByIdAction(id: string): Promise<Orden | undefined>
   const token = await getToken();
   return ordenesService.getById(id, token);
 }
+
+export async function getPrendasAction(): Promise<string[]> {
+  const token = await getToken();
+  return ordenesService.getPrendas(token);
+}

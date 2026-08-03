@@ -18,7 +18,7 @@ interface AsignacionState {
     createAsignacion: (data: Omit<AsignacionOrden, "id" | "fecha_asignacion">) => Promise<boolean>;
     updateAsignacion: (id: string, data: Partial<AsignacionOrden>) => Promise<boolean>;
     deleteAsignacion: (id: string) => Promise<boolean>;
-    reportarAvance: (data: { asignacion_id: string; piezas_reportadas: number; maquina_id?: string; notas?: string }) => Promise<boolean>;
+    reportarAvance: (data: { asignacion_id: string; piezas_reportadas: number; piezas_buenas?: number; piezas_defectuosas?: number; maquina_id?: string; notas?: string; fecha_inicio?: string }) => Promise<boolean>;
     reset: () => void;
   };
 }
