@@ -229,6 +229,7 @@ function PanelGestionModelo({ status, onSuccess }: PanelProps) {
                                             <th className="p-2 whitespace-nowrap">Cliente</th>
                                             <th className="p-2 whitespace-nowrap">Tipo</th>
                                             <th className="p-2 whitespace-nowrap">Prioridad</th>
+                                            <th className="p-2 whitespace-nowrap">Tarea</th>
                                             <th className="p-2 whitespace-nowrap">Operario</th>
                                             <th className="p-2 whitespace-nowrap">Máquina</th>
                                             <th className="p-2 whitespace-nowrap">Prenda</th>
@@ -246,7 +247,24 @@ function PanelGestionModelo({ status, onSuccess }: PanelProps) {
                                             <td className="p-2 whitespace-nowrap">Nike Inc</td>
                                             <td className="p-2 whitespace-nowrap">MTO</td>
                                             <td className="p-2 whitespace-nowrap">alta</td>
+                                            <td className="p-2 whitespace-nowrap">Corte principal</td>
                                             <td className="p-2 whitespace-nowrap">Juan Pérez</td>
+                                            <td className="p-2 whitespace-nowrap">CORTE-01</td>
+                                            <td className="p-2 whitespace-nowrap">camiseta</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">500</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">500</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">0</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">4.0</td>
+                                            <td className="p-2 whitespace-nowrap text-emerald-400 font-bold">validado</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="p-2 whitespace-nowrap">2026-03-15</td>
+                                            <td className="p-2 whitespace-nowrap font-mono">ORD-2026-001</td>
+                                            <td className="p-2 whitespace-nowrap">Nike Inc</td>
+                                            <td className="p-2 whitespace-nowrap">MTO</td>
+                                            <td className="p-2 whitespace-nowrap">alta</td>
+                                            <td className="p-2 whitespace-nowrap">Costura lateral</td>
+                                            <td className="p-2 whitespace-nowrap">Ana Gómez</td>
                                             <td className="p-2 whitespace-nowrap">MERROW-01</td>
                                             <td className="p-2 whitespace-nowrap">camiseta</td>
                                             <td className="p-2 whitespace-nowrap font-mono">500</td>
@@ -259,7 +277,7 @@ function PanelGestionModelo({ status, onSuccess }: PanelProps) {
                                 </table>
                             </div>
                             <p className="text-[10px] text-slate-500 mt-2">
-                                * Nota: Asegúrate de que no haya espacios al final de los nombres de las columnas. Se requiere al menos 1 día de registros validados y 2 órdenes.
+                                * Nota: Puedes usar el mismo Número de Orden en múltiples filas si la orden se dividió en diferentes tareas. Se requiere al menos 1 día de registros validados y 2 órdenes.
                             </p>
                         </div>
                     )}
