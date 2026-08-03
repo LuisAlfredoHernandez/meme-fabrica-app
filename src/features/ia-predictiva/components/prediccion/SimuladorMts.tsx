@@ -16,7 +16,7 @@ export function SimuladorMts() {
         setSimulando(true);
         try {
             const result = await simulateMtsAction(cant);
-            setSimulacionMts(result.impactos);
+            setSimulacionMts(result);
         } catch (e) {
             console.error("Error simulando:", e);
         } finally {
