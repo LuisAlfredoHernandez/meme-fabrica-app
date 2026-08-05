@@ -4,16 +4,15 @@ import { AppColors } from "../IaShared";
 import { predictDeliveryTimeAction, predictOrderItemsAction, getUniqueGarmentsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
 export function CalculadoraTiempos() {
-    const [calcPiezas, setCalcPiezas] = useState<number>(300);
+    const [calcPiezas, setCalcPiezas] = useState<number>(10);
     const [calcLineas, setCalcLineas] = useState<number>(1);
-    const [calcPrioridad, setCalcPrioridad] = useState<boolean>(false);
     const [calcPrenda, setCalcPrenda] = useState<string>("camiseta");
     const [calcResultado, setCalcResultado] = useState<any>(null);
     const [calcErrorMsg, setCalcErrorMsg] = useState<string | null>(null);
     const [calculando, setCalculando] = useState<boolean>(false);
-    
+
     const [prendasDB, setPrendasDB] = useState<string[]>([]);
-    
+
     useEffect(() => {
         getUniqueGarmentsAction()
             .then(res => {
@@ -57,10 +56,10 @@ export function CalculadoraTiempos() {
                 if (itemsMultilinea.length === 0) {
                     throw new Error("Debe agregar al menos una prenda a la lista de la orden.");
                 }
-                const data = await predictOrderItemsAction(itemsMultilinea, calcPrioridad, calcLineas);
+                const data = await predictOrderItemsAction(itemsMultilinea, false, calcLineas);
                 setCalcResultado(data);
             } else {
-                const data = await predictDeliveryTimeAction(calcPiezas, calcPrioridad, calcLineas, calcPrenda);
+                const data = await predictDeliveryTimeAction(calcPiezas, false, calcLineas, calcPrenda);
                 setCalcResultado(data);
             }
         } catch (e: any) {
@@ -214,7 +213,7 @@ export function CalculadoraTiempos() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Líneas de producción</label>
                         <input
@@ -223,18 +222,6 @@ export function CalculadoraTiempos() {
                             onChange={(e) => setCalcLineas(Number(e.target.value))}
                             className="w-full h-10 px-3 rounded-lg text-xs font-mono bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50"
                         />
-                    </div>
-                    <div className="flex items-center h-full pt-4">
-                        <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={calcPrioridad}
-                                onChange={(e) => setCalcPrioridad(e.target.checked)}
-                                className="w-4 h-4 rounded bg-[#0d1018] border-white/5 focus:ring-0 cursor-pointer"
-                                style={{ color: AppColors.orange }}
-                            />
-                            <span>Prioridad Alta / Urgente</span>
-                        </label>
                     </div>
                 </div>
 
@@ -283,7 +270,7 @@ export function CalculadoraTiempos() {
                         </div>
                     </div>
                 )}
-                
+
                 {/* Advertencia de Extrapolación Individual */}
                 {!isMultilinea && calcResultado && !calcResultado.prenda_nueva && calcResultado.fuera_de_rango && (
                     <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mt-2"
@@ -297,7 +284,7 @@ export function CalculadoraTiempos() {
                         </div>
                     </div>
                 )}
-                
+
                 {/* Advertencia de Extrapolación Multilínea */}
                 {isMultilinea && calcResultado && !calcResultado.prenda_nueva_global && calcResultado.detalles?.some((d: any) => d.fuera_de_rango) && (
                     <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mt-2"
