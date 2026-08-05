@@ -283,6 +283,34 @@ export function CalculadoraTiempos() {
                         </div>
                     </div>
                 )}
+                
+                {/* Advertencia de Extrapolación Individual */}
+                {!isMultilinea && calcResultado && !calcResultado.prenda_nueva && calcResultado.fuera_de_rango && (
+                    <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mt-2"
+                        style={{ background: `${AppColors.orange}10`, border: `1px solid ${AppColors.orange}25`, color: AppColors.orange }}>
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold">Datos Fuera de Rango (Extrapolación)</p>
+                            <p className="mt-0.5 leading-relaxed text-slate-300">
+                                La cantidad de piezas solicitada excede significativamente el historial de entrenamiento para esta prenda. La estimación es una extrapolación matemática y podría perder precisión.
+                            </p>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Advertencia de Extrapolación Multilínea */}
+                {isMultilinea && calcResultado && !calcResultado.prenda_nueva_global && calcResultado.detalles?.some((d: any) => d.fuera_de_rango) && (
+                    <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mt-2"
+                        style={{ background: `${AppColors.orange}10`, border: `1px solid ${AppColors.orange}25`, color: AppColors.orange }}>
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold">Datos Fuera de Rango (Extrapolación)</p>
+                            <p className="mt-0.5 leading-relaxed text-slate-300">
+                                Uno o más ítems en esta orden superan el máximo histórico entrenado. Sus estimaciones son extrapolaciones matemáticas y podrían ser inexactas.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Resultados */}
                 {!isMultilinea && calcResultado && !calcResultado.prenda_nueva && calcResultado.tiempo_estimado_horas !== null && (
@@ -348,7 +376,10 @@ export function CalculadoraTiempos() {
                                                 </span>
                                             ) : (
                                                 <div>
-                                                    <p className="font-bold text-white font-mono">{det.tiempo_estimado_horas} hrs</p>
+                                                    <p className="font-bold text-white font-mono flex items-center gap-1 justify-end">
+                                                        {det.fuera_de_rango && <AlertTriangle className="w-3 h-3 text-orange-400" title="Extrapolación" />}
+                                                        {det.tiempo_estimado_horas} hrs
+                                                    </p>
                                                     <p className="text-[9px] text-slate-400 font-mono">± {det.margen_error_horas} hrs</p>
                                                 </div>
                                             )}

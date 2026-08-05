@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { GitCompare, ArrowRight } from "lucide-react";
+import { GitCompare, ArrowRight, AlertTriangle } from "lucide-react";
 import { AppColors } from "../IaShared";
 import { simulateMtsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
 export function SimuladorMts() {
-    const [mtsCantidad, setMtsCantidad] = useState(150);
+    const [mtsCantidad, setMtsCantidad] = useState(20);
     const [simulacionMts, setSimulacionMts] = useState<any[]>([]);
     const [simulando, setSimulando] = useState(false);
 
@@ -59,6 +59,18 @@ export function SimuladorMts() {
                     <div className="text-xs text-slate-500 py-4 text-center">No hay órdenes MTO activas para simular un impacto.</div>
                 ) : (
                     <div className="space-y-3">
+                        {simulacionMts[0]?.fuera_de_rango && (
+                            <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mb-2"
+                                style={{ background: `${AppColors.orange}10`, border: `1px solid ${AppColors.orange}25`, color: AppColors.orange }}>
+                                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold">Datos Fuera de Rango (Extrapolación)</p>
+                                    <p className="mt-0.5 leading-relaxed text-slate-300">
+                                        La cantidad de stock {mtsCantidad} piezas excede significativamente el récord histórico de producción de la planta. El impacto calculado es una extrapolación y podría perder precisión matemática.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         {simulacionMts.map(r => (
                             <div key={r.orden} className="flex items-center gap-3 px-4 py-3 rounded-xl"
                                 style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
