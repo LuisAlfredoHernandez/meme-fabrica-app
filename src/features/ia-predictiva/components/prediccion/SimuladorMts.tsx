@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { GitCompare, ArrowRight, AlertTriangle } from "lucide-react";
+import { GitCompare, ArrowRight, AlertTriangle, Info } from "lucide-react";
 import { AppColors } from "../IaShared";
 import { simulateMtsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
@@ -82,6 +82,15 @@ export function SimuladorMts() {
                                     style={{ background: `${r.color}10`, color: r.color }}>{r.impacto}</span>
                             </div>
                         ))}
+                        {simulacionMts.some(r => r.impacto === "Protegido (Prioridad Alta)") && (
+                            <div className="flex items-center gap-2 p-3 mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400">
+                                <Info className="w-5 h-5 shrink-0" />
+                                <div className="text-sm">
+                                    <span className="font-bold">Prioridad Protegida: </span>
+                                    Los pedidos MTO urgentes/altos no se retrasan por producción de stock (MTS).
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
