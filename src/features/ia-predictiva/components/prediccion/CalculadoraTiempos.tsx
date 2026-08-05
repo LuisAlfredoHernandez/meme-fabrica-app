@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Brain, Zap, Package, RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, Trash2 } from "lucide-react";
 import { AppColors } from "../IaShared";
-import { predictDeliveryTimeAction, predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.actions";
+import { predictDeliveryTimeAction, predictOrderItemsAction, getUniqueGarmentsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
 export function CalculadoraTiempos() {
     const [calcPiezas, setCalcPiezas] = useState<number>(300);
@@ -11,6 +11,20 @@ export function CalculadoraTiempos() {
     const [calcResultado, setCalcResultado] = useState<any>(null);
     const [calcErrorMsg, setCalcErrorMsg] = useState<string | null>(null);
     const [calculando, setCalculando] = useState<boolean>(false);
+    
+    const [prendasDB, setPrendasDB] = useState<string[]>([]);
+    
+    useEffect(() => {
+        getUniqueGarmentsAction()
+            .then(res => {
+                if (res && res.prendas && res.prendas.length > 0) {
+                    setPrendasDB(res.prendas);
+                    setCalcPrenda(res.prendas[0]);
+                    setPrendaAgregada(res.prendas[0]);
+                }
+            })
+            .catch(err => console.error("Error cargando prendas", err));
+    }, []);
 
     const [isMultilinea, setIsMultilinea] = useState<boolean>(false);
     const [itemsMultilinea, setItemsMultilinea] = useState<{ tipo_prenda: string; cantidad_piezas: number }[]>([]);
@@ -105,13 +119,13 @@ export function CalculadoraTiempos() {
                                 onChange={(e) => setCalcPrenda(e.target.value)}
                                 className="w-full h-10 px-3 rounded-lg text-xs bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50 cursor-pointer"
                             >
-                                <option value="camiseta">Camiseta</option>
-                                <option value="pantalon">Pantalón</option>
-                                <option value="jogger">Jogger</option>
-                                <option value="sudadera">Sudadera</option>
-                                <option value="chaqueta">Chaqueta</option>
-                                <option value="vestido">Vestido</option>
-                                <option value="corbata">Corbata</option>
+                                {prendasDB.length > 0 ? (
+                                    prendasDB.map((p) => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))
+                                ) : (
+                                    <option value="Cargando...">Cargando...</option>
+                                )}
                             </select>
                         </div>
                         <div>
@@ -134,13 +148,13 @@ export function CalculadoraTiempos() {
                                     onChange={(e) => setPrendaAgregada(e.target.value)}
                                     className="w-full h-10 px-3 rounded-lg text-xs bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50 cursor-pointer"
                                 >
-                                    <option value="camiseta">Camiseta</option>
-                                    <option value="pantalon">Pantalón</option>
-                                    <option value="jogger">Jogger</option>
-                                    <option value="sudadera">Sudadera</option>
-                                    <option value="chaqueta">Chaqueta</option>
-                                    <option value="vestido">Vestido</option>
-                                    <option value="corbata">Corbata</option>
+                                    {prendasDB.length > 0 ? (
+                                        prendasDB.map((p) => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))
+                                    ) : (
+                                        <option value="Cargando...">Cargando...</option>
+                                    )}
                                 </select>
                             </div>
                             <div>

@@ -128,10 +128,18 @@ export const iaService = {
   },
 
   exportHistory: async (token?: string): Promise<Response> => {
-    const response = await apiClient.get("/ia/export-history", { token });
+    const response = await apiClient.get("/ia/export-history", { token, isDownload: true });
     if (!response.ok) {
-      throw new Error("No se pudo exportar el historial a Excel.");
+      throw new Error("No se pudo exportar el historial.");
     }
     return response;
   },
+
+  getUniqueGarments: async (token?: string): Promise<{ prendas: string[] }> => {
+    const response = await apiClient.get("/ia/prendas-unicas", { token });
+    if (!response.ok) {
+      throw new Error("No se pudieron obtener las prendas únicas.");
+    }
+    return response.json();
+  }
 };
