@@ -4,7 +4,7 @@ import { AppColors } from "../IaShared";
 import { simulateMtsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
 export function SimuladorMts() {
-    const [mtsCantidad, setMtsCantidad] = useState(20);
+    const [mtsCantidad, setMtsCantidad] = useState(0);
     const [simulacionMts, setSimulacionMts] = useState<any[]>([]);
     const [simulando, setSimulando] = useState(false);
 

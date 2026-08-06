@@ -4,7 +4,7 @@ import { AppColors } from "../IaShared";
 import { predictDeliveryTimeAction, predictOrderItemsAction, getUniqueGarmentsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
 export function CalculadoraTiempos() {
-    const [calcPiezas, setCalcPiezas] = useState<number>(10);
+    const [calcPiezas, setCalcPiezas] = useState<number>(0);
     const [calcLineas, setCalcLineas] = useState<number>(1);
     const [calcPrenda, setCalcPrenda] = useState<string>("camiseta");
     const [calcResultado, setCalcResultado] = useState<any>(null);
