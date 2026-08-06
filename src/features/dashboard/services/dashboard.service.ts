@@ -14,13 +14,13 @@ export interface DashboardMachineStat {
     tipo: string;
     uso: number;
     estado: string;
-    piezasHoy: number;
+    piezasSemana: number;
 }
 
 export interface DashboardOperatorStat {
     nombre: string;
     eficiencia: number;
-    piezasHoy: number;
+    piezasSemana: number;
     estado: string;
 }
 
@@ -38,8 +38,9 @@ export interface DashboardStatsResponse {
 }
 
 export const dashboardService = {
-    getStats: async (token?: string): Promise<DashboardStatsResponse> => {
-        const response = await apiClient.get("/dashboard/stats", { token });
+    getStats: async (token?: string, periodo?: string): Promise<DashboardStatsResponse> => {
+        const query = periodo ? `?periodo=${periodo}` : "";
+        const response = await apiClient.get(`/dashboard/stats${query}`, { token });
         if (!response.ok) {
             throw new Error("No se pudieron obtener las estadísticas del dashboard.");
         }

@@ -8,7 +8,7 @@ async function getToken() {
     return cookieStore.get("access_token")?.value;
 }
 
-export async function getDashboardStatsAction(): Promise<DashboardStatsResponse> {
+export async function getDashboardStatsAction(periodo?: string): Promise<DashboardStatsResponse> {
     const token = await getToken();
-    return dashboardService.getStats(token);
+    return dashboardService.getStats(token, periodo);
 }

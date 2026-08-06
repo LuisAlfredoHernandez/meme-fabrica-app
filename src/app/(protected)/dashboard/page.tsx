@@ -44,18 +44,24 @@ export default function DashboardPage() {
     const [distribucionMaquinas, setDistribucionMaquinas] = useState<DashboardDistribucion[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        getDashboardStatsAction().then(data => {
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const data = await getDashboardStatsAction(periodoTab);
             setDatosSemana(data.datos_semana);
             setMaquinasUso(data.maquinas_uso);
             setOperariosRendimiento(data.operarios_rendimiento);
             setDistribucionMaquinas(data.distribucion_maquinas);
+        } catch (error) {
+            console.error("Error cargando dashboard:", error);
+        } finally {
             setLoading(false);
-        }).catch(err => {
-            console.error("Error cargando dashboard:", err);
-            setLoading(false);
-        });
-    }, []);
+        }
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, [periodoTab]);
 
     const fecha = new Date().toLocaleDateString("es-DO", { weekday: "long", day: "2-digit", month: "long" });
     const hora = new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" });
@@ -95,8 +101,8 @@ export default function DashboardPage() {
                 {/* RF8: KPIs globales */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { label: "Piezas última jornada", valor: totalHoy, unidad: "de " + metaHoy + " meta", icon: <Package className="w-5 h-5" />, color: AppColors.orange, trend: "Último registro activo" },
-                        { label: "Eficiencia global", valor: `${efGlobal}%`, unidad: "esta semana", icon: <Zap className="w-5 h-5" />, color: AppColors.emerald, trend: "↑ mejorando" },
+                        { label: `Piezas últim${periodoTab === 'semana' ? 'a semana' : 'o mes'}`, valor: totalHoy, unidad: "de " + metaHoy + " meta", icon: <Package className="w-5 h-5" />, color: AppColors.orange, trend: "Último registro activo" },
+                        { label: "Eficiencia global", valor: `${efGlobal}%`, unidad: `est${periodoTab === 'semana' ? 'a semana' : 'e mes'}`, icon: <Zap className="w-5 h-5" />, color: AppColors.emerald, trend: "↑ mejorando" },
                         { label: "Operarios activos", valor: operariosRendimiento.filter(o => o.estado === "activo").length, unidad: `de ${operariosRendimiento.length} total`, icon: <Users className="w-5 h-5" />, color: AppColors.sky, trend: "1 ausente" },
                         { label: "Máquinas en uso", valor: maqsActivas, unidad: "1 en mantenimiento", icon: <Activity className="w-5 h-5" />, color: AppColors.amber, trend: "CORTE-02 offline" },
                     ].map(k => (
@@ -193,6 +199,9 @@ export default function DashboardPage() {
                                             <div className="w-10 text-right">
                                                 <span className="text-sm font-black font-mono" style={{ color }}>{m.estado === "mantenimiento" ? "—" : `${m.uso}%`}</span>
                                             </div>
+                                            <div className="w-16 text-right">
+                                                <span className="text-xs font-mono" style={{ color: AppColors.slate }}>{m.piezasSemana > 0 ? `${m.piezasSemana} pzs` : "—"}</span>
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -277,6 +286,7 @@ export default function DashboardPage() {
                                                     )}
                                             </div>
                                             <span className="w-10 text-right text-sm font-black font-mono" style={{ color }}>{o.estado === "ausente" ? "—" : `${o.eficiencia}%`}</span>
+                                            <span className="w-16 text-right text-xs font-mono" style={{ color: AppColors.slate }}>{o.piezasSemana > 0 ? `${o.piezasSemana} pzs` : "—"}</span>
                                         </div>
                                     );
                                 })}
