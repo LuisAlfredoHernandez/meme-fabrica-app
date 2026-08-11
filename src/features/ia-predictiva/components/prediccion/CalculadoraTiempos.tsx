@@ -1,16 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Brain, Zap, Package, RefreshCw, CheckCircle2, AlertTriangle, AlertCircle, Trash2 } from "lucide-react";
 import { AppColors } from "../IaShared";
-import { predictDeliveryTimeAction, predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.actions";
+import { predictDeliveryTimeAction, predictOrderItemsAction, getUniqueGarmentsAction } from "@/features/ia-predictiva/actions/ia.actions";
 
 export function CalculadoraTiempos() {
-    const [calcPiezas, setCalcPiezas] = useState<number>(300);
+    const [calcPiezas, setCalcPiezas] = useState<number>(0);
     const [calcLineas, setCalcLineas] = useState<number>(1);
-    const [calcPrioridad, setCalcPrioridad] = useState<boolean>(false);
     const [calcPrenda, setCalcPrenda] = useState<string>("camiseta");
     const [calcResultado, setCalcResultado] = useState<any>(null);
     const [calcErrorMsg, setCalcErrorMsg] = useState<string | null>(null);
     const [calculando, setCalculando] = useState<boolean>(false);
+
+    const [prendasDB, setPrendasDB] = useState<string[]>([]);
+
+    useEffect(() => {
+        getUniqueGarmentsAction()
+            .then(res => {
+                if (res && res.prendas && res.prendas.length > 0) {
+                    setPrendasDB(res.prendas);
+                    setCalcPrenda(res.prendas[0]);
+                    setPrendaAgregada(res.prendas[0]);
+                }
+            })
+            .catch(err => console.error("Error cargando prendas", err));
+    }, []);
 
     const [isMultilinea, setIsMultilinea] = useState<boolean>(false);
     const [itemsMultilinea, setItemsMultilinea] = useState<{ tipo_prenda: string; cantidad_piezas: number }[]>([]);
@@ -43,10 +56,10 @@ export function CalculadoraTiempos() {
                 if (itemsMultilinea.length === 0) {
                     throw new Error("Debe agregar al menos una prenda a la lista de la orden.");
                 }
-                const data = await predictOrderItemsAction(itemsMultilinea, calcPrioridad, calcLineas);
+                const data = await predictOrderItemsAction(itemsMultilinea, false, calcLineas);
                 setCalcResultado(data);
             } else {
-                const data = await predictDeliveryTimeAction(calcPiezas, calcPrioridad, calcLineas, calcPrenda);
+                const data = await predictDeliveryTimeAction(calcPiezas, false, calcLineas, calcPrenda);
                 setCalcResultado(data);
             }
         } catch (e: any) {
@@ -105,13 +118,13 @@ export function CalculadoraTiempos() {
                                 onChange={(e) => setCalcPrenda(e.target.value)}
                                 className="w-full h-10 px-3 rounded-lg text-xs bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50 cursor-pointer"
                             >
-                                <option value="camiseta">Camiseta</option>
-                                <option value="pantalon">Pantalón</option>
-                                <option value="jogger">Jogger</option>
-                                <option value="sudadera">Sudadera</option>
-                                <option value="chaqueta">Chaqueta</option>
-                                <option value="vestido">Vestido</option>
-                                <option value="corbata">Corbata</option>
+                                {prendasDB.length > 0 ? (
+                                    prendasDB.map((p) => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))
+                                ) : (
+                                    <option value="Cargando...">Cargando...</option>
+                                )}
                             </select>
                         </div>
                         <div>
@@ -134,13 +147,13 @@ export function CalculadoraTiempos() {
                                     onChange={(e) => setPrendaAgregada(e.target.value)}
                                     className="w-full h-10 px-3 rounded-lg text-xs bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50 cursor-pointer"
                                 >
-                                    <option value="camiseta">Camiseta</option>
-                                    <option value="pantalon">Pantalón</option>
-                                    <option value="jogger">Jogger</option>
-                                    <option value="sudadera">Sudadera</option>
-                                    <option value="chaqueta">Chaqueta</option>
-                                    <option value="vestido">Vestido</option>
-                                    <option value="corbata">Corbata</option>
+                                    {prendasDB.length > 0 ? (
+                                        prendasDB.map((p) => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))
+                                    ) : (
+                                        <option value="Cargando...">Cargando...</option>
+                                    )}
                                 </select>
                             </div>
                             <div>
@@ -200,7 +213,7 @@ export function CalculadoraTiempos() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     <div>
                         <label className="text-[10px] text-slate-400 font-bold uppercase block mb-1">Líneas de producción</label>
                         <input
@@ -209,18 +222,6 @@ export function CalculadoraTiempos() {
                             onChange={(e) => setCalcLineas(Number(e.target.value))}
                             className="w-full h-10 px-3 rounded-lg text-xs font-mono bg-[#0d1018] border text-white border-white/5 outline-none focus:border-indigo-500/50"
                         />
-                    </div>
-                    <div className="flex items-center h-full pt-4">
-                        <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={calcPrioridad}
-                                onChange={(e) => setCalcPrioridad(e.target.checked)}
-                                className="w-4 h-4 rounded bg-[#0d1018] border-white/5 focus:ring-0 cursor-pointer"
-                                style={{ color: AppColors.orange }}
-                            />
-                            <span>Prioridad Alta / Urgente</span>
-                        </label>
                     </div>
                 </div>
 
@@ -265,6 +266,34 @@ export function CalculadoraTiempos() {
                             <p className="font-bold">Estimación Global Bloqueada (Prenda Nueva Detectada)</p>
                             <p className="mt-0.5 leading-relaxed text-slate-300">
                                 Uno o más tipos de prenda en la orden no cuentan con historial previo.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Advertencia de Extrapolación Individual */}
+                {!isMultilinea && calcResultado && !calcResultado.prenda_nueva && calcResultado.fuera_de_rango && (
+                    <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mt-2"
+                        style={{ background: `${AppColors.orange}10`, border: `1px solid ${AppColors.orange}25`, color: AppColors.orange }}>
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold">Datos Fuera de Rango (Extrapolación)</p>
+                            <p className="mt-0.5 leading-relaxed text-slate-300">
+                                La cantidad de piezas solicitada excede significativamente el historial de entrenamiento para esta prenda. La estimación es una extrapolación matemática y podría perder precisión.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Advertencia de Extrapolación Multilínea */}
+                {isMultilinea && calcResultado && !calcResultado.prenda_nueva_global && calcResultado.detalles?.some((d: any) => d.fuera_de_rango) && (
+                    <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5 animate-in slide-in-from-top-1 duration-200 mt-2"
+                        style={{ background: `${AppColors.orange}10`, border: `1px solid ${AppColors.orange}25`, color: AppColors.orange }}>
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold">Datos Fuera de Rango (Extrapolación)</p>
+                            <p className="mt-0.5 leading-relaxed text-slate-300">
+                                Uno o más ítems en esta orden superan el máximo histórico entrenado. Sus estimaciones son extrapolaciones matemáticas y podrían ser inexactas.
                             </p>
                         </div>
                     </div>
@@ -334,7 +363,10 @@ export function CalculadoraTiempos() {
                                                 </span>
                                             ) : (
                                                 <div>
-                                                    <p className="font-bold text-white font-mono">{det.tiempo_estimado_horas} hrs</p>
+                                                    <p className="font-bold text-white font-mono flex items-center gap-1 justify-end">
+                                                        {det.fuera_de_rango && <span title="Extrapolación"><AlertTriangle className="w-3 h-3 text-orange-400" /></span>}
+                                                        {det.tiempo_estimado_horas} hrs
+                                                    </p>
                                                     <p className="text-[9px] text-slate-400 font-mono">± {det.margen_error_horas} hrs</p>
                                                 </div>
                                             )}

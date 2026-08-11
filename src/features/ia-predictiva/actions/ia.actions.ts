@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { cookies } from "next/headers";
 import { iaService } from "../services/ia.service";
@@ -78,4 +78,7 @@ export async function exportHistoryAction(): Promise<string> {
   return Buffer.from(buffer).toString("base64");
 }
 
-
+export async function getUniqueGarmentsAction(): Promise<{ prendas: string[] }> {
+  const token = await getToken();
+  return iaService.getUniqueGarments(token);
+}

@@ -61,7 +61,7 @@ export default function OrdenesPage() {
                     {[
                         { label: "Total activas", valor: ordenes.filter(o => o.estado === "en_proceso").length, color: AppColors.orange },
                         { label: "MTO pendientes", valor: ordenes.filter(o => o.tipo === "MTO" && o.estado !== "completada").length, color: "#818cf8" },
-                        { label: "Completadas hoy", valor: ordenes.filter(o => o.estado === "completada").length, color: AppColors.emerald },
+                        { label: "Total Completadas", valor: ordenes.filter(o => o.estado === "completada").length, color: AppColors.emerald },
                         { label: "En pausa", valor: ordenes.filter(o => o.estado === "pausada").length, color: AppColors.amber },
                     ].map((s, key) => (
                         <StatCard key={key} label={s.label} valor={s.valor} labelColor={s.color} />
