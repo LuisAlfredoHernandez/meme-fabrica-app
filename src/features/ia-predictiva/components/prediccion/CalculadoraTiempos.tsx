@@ -364,7 +364,7 @@ export function CalculadoraTiempos() {
                                             ) : (
                                                 <div>
                                                     <p className="font-bold text-white font-mono flex items-center gap-1 justify-end">
-                                                        {det.fuera_de_rango && <AlertTriangle className="w-3 h-3 text-orange-400" title="Extrapolación" />}
+                                                        {det.fuera_de_rango && <span title="Extrapolación"><AlertTriangle className="w-3 h-3 text-orange-400" /></span>}
                                                         {det.tiempo_estimado_horas} hrs
                                                     </p>
                                                     <p className="text-[9px] text-slate-400 font-mono">± {det.margen_error_horas} hrs</p>
