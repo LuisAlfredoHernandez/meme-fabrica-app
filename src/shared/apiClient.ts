@@ -37,6 +37,7 @@ async function request(path: string, options: RequestOptions = {}) {
     let response = await fetch(url, {
         ...restOptions,
         headers,
+        cache: "no-store",
     });
 
     // 2. Si responde 401 y no es skipAuth, intentar refrescar
@@ -53,6 +54,7 @@ async function request(path: string, options: RequestOptions = {}) {
                 response = await fetch(url, {
                     ...restOptions,
                     headers,
+                    cache: "no-store",
                 });
                 refreshSuccess = true;
             } else {
