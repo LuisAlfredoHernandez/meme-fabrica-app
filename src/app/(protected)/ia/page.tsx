@@ -85,13 +85,20 @@ export default function IAPage() {
                         </div>
                     </div>
                     {modelStatus?.modelo_cargado ? (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                            style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
-                            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: AppColors.emerald }} />
-                            <span className="text-xs font-semibold text-white">Modelo Calibrado</span>
-                            <span className="text-xs font-mono text-slate-400">
-                                {modelStatus.mae != null ? `${modelStatus.mae.toFixed(3)}h MAE` : "91.2% MAE Confianza"}
-                            </span>
+                        <div className="flex flex-col items-end gap-1.5 mt-1">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                                style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>
+                                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: AppColors.emerald }} />
+                                <span className="text-xs font-semibold text-white">Modelo Calibrado</span>
+                                <span className="text-xs font-mono text-slate-400">
+                                    {modelStatus.mae != null ? `${modelStatus.mae.toFixed(3)}h MAE` : "91.2% MAE Confianza"}
+                                </span>
+                            </div>
+                            {modelStatus.mae != null && (
+                                <span className="text-[10px] text-slate-400 font-medium mr-1">
+                                    Margen de error prom.: ± {Math.floor(modelStatus.mae)}h {Math.round((modelStatus.mae % 1) * 60)}m
+                                </span>
+                            )}
                         </div>
                     ) : (
                         <div className="flex items-center gap-2 px-3 py-2 rounded-xl"

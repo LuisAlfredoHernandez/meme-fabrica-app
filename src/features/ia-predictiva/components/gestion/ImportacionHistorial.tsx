@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileSpreadsheet, HelpCircle, Upload, AlertTriangle } from "lucide-react";
+import { FileSpreadsheet, HelpCircle, Upload, AlertTriangle, Brain } from "lucide-react";
 import { AppColors } from "../IaShared";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { uploadTrainDataAction } from "@/features/ia-predictiva/actions/ia.actions";
@@ -208,6 +208,43 @@ export function ImportacionHistorial({ onSuccess, onError, onUploadStart, onUplo
                             >
                                 Sí, Entrenar IA
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ANIMACIÓN DE ENTRENAMIENTO (OVERLAY) */}
+            {uploading && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#05070a]/90 backdrop-blur-md p-4 animate-in fade-in zoom-in-95 duration-300">
+                    <style>{`
+                        @keyframes scanline {
+                            0% { transform: translateX(-100%); }
+                            100% { transform: translateX(200%); }
+                        }
+                    `}</style>
+                    <div className="flex flex-col items-center justify-center max-w-sm w-full space-y-8">
+                        <div className="relative flex items-center justify-center w-36 h-36">
+                            {/* Anillos giratorios */}
+                            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-indigo-500 border-r-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.5)] animate-spin"></div>
+                            <div className="absolute inset-3 rounded-full border-4 border-transparent border-b-fuchsia-500 border-l-fuchsia-500/50 shadow-[0_0_15px_rgba(217,70,239,0.5)] animate-[spin_2s_linear_reverse]"></div>
+                            
+                            {/* Fondo pulsante */}
+                            <div className="absolute inset-6 rounded-full bg-indigo-500/10 flex items-center justify-center animate-pulse shadow-[inset_0_0_20px_rgba(99,102,241,0.2)]">
+                                <Brain className="w-12 h-12 text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                            </div>
+                        </div>
+                        
+                        <div className="text-center space-y-2">
+                            <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-indigo-400 animate-pulse tracking-wider uppercase">
+                                Calibrando IA
+                            </h2>
+                            <p className="text-sm text-indigo-300/70 font-medium">
+                                Procesando histórico y optimizando pesos neuronales...
+                            </p>
+                        </div>
+                        
+                        {/* Barra de progreso animada */}
+                        <div className="w-full h-1.5 bg-[#0d1018] border border-white/5 rounded-full overflow-hidden relative shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+                            <div className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" style={{ animation: 'scanline 1.5s infinite linear' }}></div>
                         </div>
                     </div>
                 </div>
