@@ -73,7 +73,7 @@ export function CalculadoraTiempos() {
         <div className="rounded-2xl overflow-hidden animate-in fade-in duration-300 border" style={{ background: AppColors.surface, borderColor: AppColors.border }}>
             <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
                 <Brain className="w-5 h-5" style={{ color: AppColors.violet }} />
-                <h3 className="font-bold text-white text-sm">Calculadora de Tiempos de Entrega (RF12)</h3>
+                <h3 className="font-bold text-white text-sm">Calculadora de Tiempos de Entrega</h3>
             </div>
             <div className="p-5 space-y-4">
                 <div className="flex gap-2 p-1 rounded-xl bg-[#0d1018] border" style={{ borderColor: AppColors.border }}>

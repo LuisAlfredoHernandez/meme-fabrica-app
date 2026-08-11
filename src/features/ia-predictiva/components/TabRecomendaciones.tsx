@@ -17,7 +17,7 @@ export function TabRecomendaciones({ recs, setRecs }: TabRecomendacionesProps) {
 
     return (
         <div className="space-y-4">
-            <p className="text-xs text-slate-400">RF15 — Balanceo asistido redistribuyendo operarios calificados hacia estaciones Merrow/Cover</p>
+            <p className="text-xs text-slate-400">Balanceo asistido redistribuyendo operarios calificados hacia estaciones Merrow/Cover</p>
             
             {recs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-xl" style={{ borderColor: AppColors.border }}>

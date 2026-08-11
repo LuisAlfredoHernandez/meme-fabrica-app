@@ -11,7 +11,7 @@ export function TabCuellos({ cuellos }: TabCuellosProps) {
 
     return (
         <div className="space-y-3">
-            <p className="text-xs text-slate-400">RF15 — Detección en tiempo real de saturación en estaciones de trabajo</p>
+            <p className="text-xs text-slate-400">Detección en tiempo real de saturación en estaciones de trabajo</p>
             
             {cuellos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl" style={{ borderColor: AppColors.border }}>

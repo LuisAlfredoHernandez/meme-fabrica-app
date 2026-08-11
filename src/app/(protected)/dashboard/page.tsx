@@ -126,7 +126,7 @@ export default function DashboardPage() {
                     <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
                         <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
                             <BarChart3 className="w-5 h-5" style={{ color: AppColors.orange }} />
-                            <h3 className="font-bold text-white text-sm">Producción Real vs Meta — RF9</h3>
+                            <h3 className="font-bold text-white text-sm">Producción Real vs Meta</h3>
                         </div>
                         <div className="p-5">
                             <ResponsiveContainer width="100%" height={200}>
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                     <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
                         <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
                             <TrendingUp className="w-5 h-5" style={{ color: AppColors.violet }} />
-                            <h3 className="font-bold text-white text-sm">Comparativa MTO vs MTS — RF10</h3>
+                            <h3 className="font-bold text-white text-sm">Comparativa MTO vs MTS</h3>
                         </div>
                         <div className="p-5">
                             <ResponsiveContainer width="100%" height={200}>

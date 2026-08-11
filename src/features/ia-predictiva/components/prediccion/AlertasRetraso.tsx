@@ -10,7 +10,7 @@ export function AlertasRetraso({ activeDelays }: AlertasRetrasoProps) {
         <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
             <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
                 <AlertTriangle className="w-5 h-5" style={{ color: AppColors.amber }} />
-                <h3 className="font-bold text-white text-sm">Detección Temprana de Retrasos en Cola Activa (RF14)</h3>
+                <h3 className="font-bold text-white text-sm">Detección Temprana de Retrasos en Cola Activa</h3>
             </div>
             <div className="p-5 space-y-3">
                 {activeDelays.length === 0 ? (
