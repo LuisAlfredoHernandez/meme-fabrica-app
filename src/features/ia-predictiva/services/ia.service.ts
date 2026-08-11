@@ -128,7 +128,7 @@ export const iaService = {
   },
 
   exportHistory: async (token?: string): Promise<Response> => {
-    const response = await apiClient.get("/ia/export-history", { token, isDownload: true });
+    const response = await apiClient.get("/ia/export-history", { token });
     if (!response.ok) {
       throw new Error("No se pudo exportar el historial.");
     }
