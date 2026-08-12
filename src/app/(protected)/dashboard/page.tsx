@@ -103,8 +103,22 @@ export default function DashboardPage() {
                     {[
                         { label: `Piezas últim${periodoTab === 'semana' ? 'a semana' : 'o mes'}`, valor: totalHoy, unidad: "de " + metaHoy + " meta", icon: <Package className="w-5 h-5" />, color: AppColors.orange, trend: "Último registro activo" },
                         { label: "Eficiencia global", valor: `${efGlobal}%`, unidad: `est${periodoTab === 'semana' ? 'a semana' : 'e mes'}`, icon: <Zap className="w-5 h-5" />, color: AppColors.emerald, trend: "↑ mejorando" },
-                        { label: "Operarios activos", valor: operariosRendimiento.filter(o => o.estado === "activo").length, unidad: `de ${operariosRendimiento.length} total`, icon: <Users className="w-5 h-5" />, color: AppColors.sky, trend: "1 ausente" },
-                        { label: "Máquinas en uso", valor: maqsActivas, unidad: "1 en mantenimiento", icon: <Activity className="w-5 h-5" />, color: AppColors.amber, trend: "CORTE-02 offline" },
+                        { 
+                            label: "Operarios activos", 
+                            valor: operariosRendimiento.filter(o => o.estado === "activo").length, 
+                            unidad: `de ${operariosRendimiento.length} total`, 
+                            icon: <Users className="w-5 h-5" />, 
+                            color: AppColors.sky, 
+                            trend: operariosRendimiento.filter(o => o.estado !== "activo").length > 0 ? `${operariosRendimiento.filter(o => o.estado !== "activo").length} ausente(s)` : "Todos activos" 
+                        },
+                        { 
+                            label: "Máquinas en uso", 
+                            valor: maqsActivas, 
+                            unidad: maquinasUso.filter(m => m.estado !== "operativa").length > 0 ? `${maquinasUso.filter(m => m.estado !== "operativa").length} inactiva(s)` : "Todas operativas", 
+                            icon: <Activity className="w-5 h-5" />, 
+                            color: AppColors.amber, 
+                            trend: maquinasUso.filter(m => m.estado !== "operativa").length > 0 ? "Revisar estado" : "100% online" 
+                        },
                     ].map(k => (
                         <div key={k.label} className="rounded-2xl px-5 py-4 space-y-2"
                             style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>

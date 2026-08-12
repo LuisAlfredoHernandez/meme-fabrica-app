@@ -334,7 +334,7 @@ export default function MiEstacionPage() {
                     misAsignaciones={misAsignacionesActivas}
                     ordenes={ordenes}
                     maquinaEstado={miMaquina?.estado}
-                    maquinaActual={miMaquina?.tipo}
+                    maquinaActual={miMaquina?.id}
                     reportarAvance={reportarAvance}
                 />
 
