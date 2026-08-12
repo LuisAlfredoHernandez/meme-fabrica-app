@@ -34,13 +34,12 @@ const ESTADO_CFG = {
 export default function OperariosPage() {
     const [busqueda, setBusq] = useState("");
     const [asignando, setAsig] = useState<Operario | null>(null);
-    const [asignacionParaQuitar, setAsignacionParaQuitar] = useState<{ id: string; tarea: string; operarioNombre: string } | null>(null);
 
     const { operarios } = useOperarioStore();
     const { fetchOperarios, updateOperario } = useOperarioActions();
 
     const { asignaciones } = useAsignacionStore();
-    const { fetchAsignaciones, createAsignacion, deleteAsignacion } = useAsignacionActions();
+    const { fetchAsignaciones, createAsignacion } = useAsignacionActions();
 
     useEffect(() => {
         fetchOperarios();
@@ -191,12 +190,6 @@ export default function OperariosPage() {
                                                                     </p>
                                                                     <p className="text-xs font-bold text-white truncate">{asig.tarea}</p>
                                                                 </div>
-                                                                <button
-                                                                    onClick={() => setAsignacionParaQuitar({ id: asig.id, tarea: asig.tarea, operarioNombre: o.nombre })}
-                                                                    className="text-red-400 hover:text-red-300 text-[10px] font-bold px-2 py-1 rounded bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 transition-all shrink-0"
-                                                                >
-                                                                    Quitar
-                                                                </button>
                                                             </div>
                                                             <div className="flex justify-between items-center text-[10px] text-slate-500 font-medium">
                                                                 <span>Progreso: {asig.piezas_completadas}/{asig.piezas_requeridas} uds.</span>
@@ -228,23 +221,6 @@ export default function OperariosPage() {
                     })}
                 </div>
             </div>
-            {asignacionParaQuitar && (
-                <DeleteConfirmModal
-                    title="¿Quitar Tarea Asignada?"
-                    description={
-                        <>
-                            ¿Estás seguro de quitar la tarea <strong className="text-white">"{asignacionParaQuitar.tarea}"</strong> asignada a <strong className="text-white">{asignacionParaQuitar.operarioNombre}</strong>?
-                        </>
-                    }
-                    onCancel={() => setAsignacionParaQuitar(null)}
-                    onConfirm={async () => {
-                        const id = asignacionParaQuitar.id;
-                        setAsignacionParaQuitar(null);
-                        await deleteAsignacion(id);
-                    }}
-                    confirmText="Sí, Quitar"
-                />
-            )}
         </div>
     );
 }

@@ -70,3 +70,8 @@ This project follows a **Feature-Driven Architecture**, strongly separating doma
 - **Secrets:** Never log, print, or commit `.env` values or credentials.
 - **Code Consistency:** Prioritize the existing established patterns in a file before introducing new libraries or architectures.
 - **Verification:** Always verify UI changes and assure form handling logic includes proper error state visualizations based on Zod validation errors.
+
+## 5. Reglas Estrictas de Edición de Código (Prevención de Errores)
+- **Contexto Amplio Obligatorio:** Al usar herramientas de reemplazo de código (como `replace_file_content`), DEBES incluir al menos de 3 a 5 líneas intactas de contexto ANTES y DESPUÉS del bloque a modificar. Nunca hagas reemplazos al ras de las llaves `}` o paréntesis `)`, ya que esto causa errores de sintaxis por cierres faltantes.
+- **Auto-Verificación Inmediata:** NUNCA asumas que un reemplazo de código fue exitoso. Inmediatamente después de modificar un archivo en frontend, DEBES verificar el estado de la terminal donde corre Next.js (`pnpm run dev`) para asegurarte de que no introdujiste un error de compilación. Si introdujiste un error, resuélvelo antes de responder.
+- **Modificaciones Atómicas:** Si un archivo es muy grande o complejo (como modales con mucha anidación), prefiere hacer pequeñas ediciones incrementales en lugar de reemplazar fragmentos gigantescos.

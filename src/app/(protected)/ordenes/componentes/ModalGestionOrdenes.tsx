@@ -14,7 +14,7 @@ import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore";
 import { CardLineaOrden } from "./CardLineaOrden";
-
+import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
 export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onClose: () => void; orden?: Orden; readOnly?: boolean; }) {
 
@@ -40,6 +40,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
     const { fetchOperarios } = useOperarioActions();
     const isEdit = !!orden;
     const [listaPrendas, setListaPrendas] = useState<string[]>([]);
+    const [asignacionParaEliminar, setAsignacionParaEliminar] = useState<number | null>(null);
 
     const [estimandoIA, setEstimandoIA] = useState(false);
     const { addToastOnly } = useNotificationActions();
@@ -298,7 +299,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                                             {index + 1}
                                         </div>
                                         {!readOnly && (
-                                            <button type="button" onClick={() => removeAsig(index)} className="absolute top-2 right-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 p-1 rounded-md transition-colors">
+                                            <button type="button" onClick={() => setAsignacionParaEliminar(index)} className="absolute top-2 right-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 p-1 rounded-md transition-colors">
                                                 <X className="w-4 h-4" />
                                             </button>
                                         )}
@@ -431,6 +432,19 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                     )}
                 </div>
             </form>
+
+            {asignacionParaEliminar !== null && (
+                <DeleteConfirmModal
+                    title="¿Remover Operario?"
+                    description="¿Estás seguro de que deseas remover a este operario de la orden de producción? Esta acción eliminará su asignación actual."
+                    onCancel={() => setAsignacionParaEliminar(null)}
+                    onConfirm={() => {
+                        removeAsig(asignacionParaEliminar);
+                        setAsignacionParaEliminar(null);
+                    }}
+                    confirmText="Sí, Remover"
+                />
+            )}
         </div>
     );
 }

@@ -72,15 +72,16 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
         }
     }, [selectedOrd, ordenes]);
 
-    const tareasDisponibles = operario.habilidades.length > 0 
-        ? Array.from(new Set(operario.habilidades.flatMap(h => TAREAS_POR_MAQUINA[h.maquina] || [])))
-        : TAREAS_COMUNES;
-
-    const finalTareas = tareasDisponibles.length > 0 ? tareasDisponibles : TAREAS_COMUNES;
+    const maquinaFisica = maquinas.find(m => m.id === selectedMaquina);
+    const finalTareas = maquinaFisica 
+        ? (TAREAS_POR_MAQUINA[maquinaFisica.tipo] || TAREAS_COMUNES)
+        : [];
 
     useEffect(() => {
         if (finalTareas.length > 0 && !finalTareas.includes(selectedTareaPreset)) {
             setSelectedTareaPreset(finalTareas[0]);
+        } else if (finalTareas.length === 0) {
+            setSelectedTareaPreset("");
         }
     }, [finalTareas, selectedTareaPreset]);
 
@@ -205,8 +206,10 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                 <select
                                     value={selectedTareaPreset}
                                     onChange={(e) => setSelectedTareaPreset(e.target.value)}
-                                    className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#0d1018] border border-[#1e2130] text-sm text-white focus:outline-none focus:border-orange-500/50 appearance-none font-medium"
+                                    disabled={!selectedMaquina}
+                                    className="w-full h-12 pl-4 pr-10 rounded-2xl bg-[#0d1018] border border-[#1e2130] text-sm text-white focus:outline-none focus:border-orange-500/50 appearance-none font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
+                                    {!selectedMaquina && <option value="">Seleccione una máquina primero...</option>}
                                     {finalTareas.map(t => (
                                         <option key={t} value={t}>{t}</option>
                                     ))}
