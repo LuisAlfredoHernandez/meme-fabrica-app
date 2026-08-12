@@ -2,15 +2,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Usuario } from '@/types';
-import { loginAction, logoutAction, registerUserAction, toggleUserStatusAction, updatePasswordAction } from '@/features/login/actions/auth.actions';
+import { loginAction, logoutAction, registerUserAction, toggleUserStatusAction, updatePasswordAction, changePasswordAction } from '@/features/login/actions/auth.actions';
 
 interface AuthState {
     user: Usuario | null;
     isAuthenticated: boolean;
-    login: (email: string, pass: string) => Promise<boolean>;
+    login: (email: string, pass: string) => Promise<{ success: boolean, requiresPasswordChange?: boolean }>;
     logout: () => void;
     updateMyPassword: (newPass: string) => Promise<void>;
-    registerUser: (data: Omit<Usuario, "id" | "ultimaConexion"> & { pass: string }) => Promise<boolean>;
+    forceChangePassword: (currentPass: string, newPass: string) => Promise<boolean>;
+    registerUser: (data: Omit<Usuario, "id" | "ultimaConexion">) => Promise<boolean>;
     toggleUserStatus: (userId: string) => Promise<boolean>;
 }
 
@@ -27,9 +28,14 @@ export const useAuthStore = create<AuthState>()(
                         user: result.user as Usuario,
                         isAuthenticated: true
                     });
-                    return true;
+                    return { success: true, requiresPasswordChange: result.requiresPasswordChange };
                 }
-                return false;
+                return { success: false };
+            },
+
+            forceChangePassword: async (currentPass, newPass) => {
+                const result = await changePasswordAction(currentPass, newPass);
+                return result.success;
             },
 
             logout: async () => {

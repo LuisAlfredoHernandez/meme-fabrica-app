@@ -8,7 +8,6 @@ export const usuarioSchema = z.object({
     correo: z.email("Correo electrónico inválido"),
     rol: z.enum(USUARIO_ROL),
     estado: z.enum(USUARIO_STATUS),
-    password: z.string().optional(), // Opcional para ediciones
 });
 
 export const habilidadMaquinariaSchema = z.object({
