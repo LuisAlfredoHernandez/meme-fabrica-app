@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, Hash, CheckCircle2, AlertCircle, Settings, Play } from "lucide-react";
-import { Operario } from "@/types";
+import { X, Hash, AlertCircle, Settings } from "lucide-react";
+import { Operario, TAREAS_POR_MAQUINA } from "@/types";
 import { AppColors } from "@/shared/constants";
 import { useOrdenStore, useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { useMaquinasStore } from "@/features/maquinas/store/useMaquinasStore";
@@ -37,19 +37,52 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
     }, [fetchOrdenes, maquinasActions, maquinas.length, asignaciones.length, asignacionActions]);
 
     // Filtrar tareas (asignaciones) pendientes para ESTE operario
-    const asignacionesPendientes = asignaciones.filter(a => 
-        a.operario_id === operario.id && 
+    const asignacionesPendientes = asignaciones.filter(a =>
+        a.operario_id === operario.id &&
         (a.estado === "pendiente" || a.estado === "en_proceso")
     );
+
+    // Auto-seleccionar si solo hay una tarea pendiente
+    useEffect(() => {
+        if (asignacionesPendientes.length === 1 && !selectedAsignacion) {
+            setSelectedAsignacion(asignacionesPendientes[0].id);
+        }
+    }, [asignacionesPendientes, selectedAsignacion]);
+
+    // Auto-seleccionar la máquina que el operario ya está usando (si aplica)
+    useEffect(() => {
+        if (!selectedMaquina && operario.maquina_actual_id) {
+            setSelectedMaquina(operario.maquina_actual_id);
+        }
+    }, [operario.maquina_actual_id, selectedMaquina]);
 
     const handleConfirmar = () => {
         if (!selectedAsignacion || !selectedMaquina) return;
         const asig = asignacionesPendientes.find(a => a.id === selectedAsignacion);
         if (!asig) return;
-        
+
         onConfirm(selectedAsignacion, asig.orden_id, selectedMaquina);
         onClose();
     };
+
+    // Lógica dinámica del botón de confirmación
+    const asigSeleccionada = asignacionesPendientes.find(a => a.id === selectedAsignacion);
+    const isMismaTarea = asigSeleccionada?.estado === 'en_proceso';
+    const isMismaMaquina = operario.maquina_actual_id === selectedMaquina;
+
+    let btnText = "Iniciar Trabajo";
+    let isRedundante = false;
+
+    if (isMismaTarea && isMismaMaquina) {
+        btnText = "Ya está trabajando en esto";
+        isRedundante = true;
+    } else if (isMismaTarea && !isMismaMaquina) {
+        btnText = "Mover de Máquina";
+    } else if (!isMismaTarea && isMismaMaquina && operario.estado === 'activo') {
+        btnText = "Cambiar de Tarea";
+    }
+
+    const isBtnDisabled = !selectedAsignacion || !selectedMaquina || isRedundante;
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -96,7 +129,8 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                     {asignacionesPendientes.map(asig => {
                                         const ord = ordenes.find(o => o.id === asig.orden_id);
                                         const ordText = ord ? `${ord.numero}` : "Orden Desconocida";
-                                        const label = `${ordText} - ${asig.tarea} (${asig.piezas_requeridas} uds)`;
+                                        const statusFlag = asig.estado === 'en_proceso' ? ' [EN PROCESO]' : '';
+                                        const label = `${ordText} - ${asig.tarea} (${asig.piezas_requeridas} uds)${statusFlag}`;
                                         return (
                                             <option key={asig.id} value={asig.id}>
                                                 {label}
@@ -121,13 +155,32 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                                 disabled={asignacionesPendientes.length === 0}
                             >
                                 <option value="">Seleccionar máquina física...</option>
-                                {maquinas.filter(m => 
-                                    (m.estado === 'operativa' || m.estado === 'bajo_revision') &&
-                                    operario.habilidades.some(h => h.maquina === m.tipo)
-                                ).map(maq => {
-                                    // Check if machine is in use by another active operario
+                                {maquinas.filter(m => {
+                                    const asig = asignacionesPendientes.find(a => a.id === selectedAsignacion);
+                                    let maquinaValidaParaTarea = true;
+
+                                    if (asig && asig.tarea) {
+                                        const tiposPermitidos = Object.entries(TAREAS_POR_MAQUINA)
+                                            .filter(([_, tareas]) => tareas.includes(asig.tarea))
+                                            .map(([tipo]) => tipo);
+
+                                        if (tiposPermitidos.length > 0) {
+                                            maquinaValidaParaTarea = tiposPermitidos.includes(m.tipo);
+                                        }
+                                    }
+
+                                    return maquinaValidaParaTarea &&
+                                        m.estado === 'operativa' &&
+                                        operario.habilidades.some(h => h.maquina === m.tipo);
+                                }).map(maq => {
+                                    // Comprobar si la máquina está en uso por OTRO operario
                                     const operarioEnUso = operarios.find(op => op.maquina_actual_id === maq.id && op.id !== operario.id && op.estado === 'activo');
-                                    const inUseText = operarioEnUso ? ` (En uso por ${operarioEnUso.nombre})` : '';
+                                    // Comprobar si es la máquina que ESTE operario ya está usando
+                                    const esSuMaquina = operario.maquina_actual_id === maq.id;
+
+                                    let inUseText = '';
+                                    if (operarioEnUso) inUseText = ` (En uso por ${operarioEnUso.nombre})`;
+                                    else if (esSuMaquina) inUseText = ` (Máquina actual)`;
 
                                     return (
                                         <option key={maq.id} value={maq.id} disabled={!!operarioEnUso}>
@@ -145,12 +198,11 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                 <div className="px-6 py-5 bg-black/20 border-t border-[#1e2130]">
                     <button
                         onClick={handleConfirmar}
-                        disabled={!selectedAsignacion || !selectedMaquina}
+                        disabled={isBtnDisabled}
                         className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl text-white text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
-                        style={{ background: AppColors.orange }}
+                        style={{ background: isRedundante ? AppColors.surface : AppColors.orange }}
                     >
-                        <Play className="w-4 h-4 fill-white" />
-                        Iniciar Trabajo
+                        {btnText}
                     </button>
                 </div>
             </div>

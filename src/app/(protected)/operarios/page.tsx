@@ -207,7 +207,7 @@ export default function OperariosPage() {
                                 <div className="px-4 pb-4 mt-auto">
                                     <button onClick={() => setAsig(o)}
                                         className="w-full h-10 rounded-xl border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-all">
-                                        Asignar Tarea / Orden
+                                        Despachar a Máquina
                                     </button>
                                 </div>
                             </div>
