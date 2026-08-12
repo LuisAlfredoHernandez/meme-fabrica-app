@@ -4,7 +4,7 @@ import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.s
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { getPrendasAction } from "@/features/ordenes/actions/ordenes.actions";
 import { AppColors } from "@/shared/constants";
-import { Orden, MAQUINAS_LIST } from "@/types";
+import { Orden, MAQUINAS_LIST, TAREAS_COMUNES } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -308,8 +308,8 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                                             <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Nombre de Tarea</label>
                                             <select {...register(`asignaciones.${index}.tarea`)} disabled={readOnly} className="w-full text-sm bg-black/20 rounded-md px-2 py-1.5 border border-white/5 text-white focus:outline-none focus:border-indigo-500 transition-colors capitalize">
                                                 <option value="">Seleccionar tarea...</option>
-                                                {MAQUINAS_LIST.map(maq => (
-                                                    <option key={maq} value={maq}>{maq.replace("_", " ")}</option>
+                                                {TAREAS_COMUNES.map(t => (
+                                                    <option key={t} value={t}>{t}</option>
                                                 ))}
                                             </select>
                                             {errors.asignaciones?.[index]?.tarea && <p className="text-[9px] text-red-400">{errors.asignaciones[index]?.tarea?.message}</p>}

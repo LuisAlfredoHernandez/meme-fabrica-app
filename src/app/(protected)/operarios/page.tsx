@@ -39,7 +39,7 @@ export default function OperariosPage() {
     const { fetchOperarios, updateOperario } = useOperarioActions();
 
     const { asignaciones } = useAsignacionStore();
-    const { fetchAsignaciones, createAsignacion } = useAsignacionActions();
+    const { fetchAsignaciones, updateAsignacion } = useAsignacionActions();
 
     useEffect(() => {
         fetchOperarios();
@@ -56,21 +56,15 @@ export default function OperariosPage() {
 
     const [modalAbierto, setModalAbierto] = useState(false);
 
-    const handleConfirmarAsignacion = async (ordenId: string, tarea: string, piezasRequeridas: number, notas?: string, maquinaId?: string) => {
+    const handleConfirmarAsignacion = async (asignacionId: string, ordenId: string, maquinaId: string) => {
         if (!asignando || !asignando.id) return;
 
-        const success = await createAsignacion({
-            orden_id: ordenId,
-            operario_id: asignando.id,
-            tarea,
-            piezas_requeridas: piezasRequeridas,
-            piezas_completadas: 0,
-            estado: "pendiente",
-            notas
+        const success = await updateAsignacion(asignacionId, {
+            estado: "en_proceso",
         });
 
         if (success) {
-            // Opcionalmente actualizar el estado del operario y vincular a la orden más reciente
+            // Actualizar el estado del operario y vincular a la orden más reciente
             await updateOperario(asignando.id, {
                 orden_actual_id: ordenId,
                 estado: "activo",
