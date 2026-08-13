@@ -23,8 +23,12 @@ export const asignacionCreateSchema = z.object({
     id: z.string().optional(),
     operario_id: z.string().uuid("ID de operario inválido"),
     tarea: z.string().min(2, "La tarea debe tener al menos 2 caracteres"),
+    secuencia: z.number().optional(),
     piezas_requeridas: z.number().int().positive("La cantidad debe ser mayor a 0"),
-    notas: z.string().optional(),
+    piezas_habilitadas: z.number().optional(),
+    piezas_completadas: z.number().optional(),
+    estado: z.string().optional(),
+    notas: z.string().optional()
 });
 
 export const ordenSchema = z.object({

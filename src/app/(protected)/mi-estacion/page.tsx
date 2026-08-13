@@ -251,20 +251,18 @@ export default function MiEstacionPage() {
                 {misAsignacionesActivas.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {misAsignacionesActivas.map(asig => {
-                            // Calculate WIP limit for this card
                             const pipeline = asignaciones
                                 .filter(a => a.orden_id === asig.orden_id)
-                                .sort((a, b) => new Date(a.fecha_asignacion).getTime() - new Date(b.fecha_asignacion).getTime());
+                                .sort((a, b) => (a.secuencia || 0) - (b.secuencia || 0));
                             
-                            const idx = pipeline.findIndex(a => a.id === asig.id);
-                            let maxPermitidas = asig.piezas_requeridas - asig.piezas_completadas;
+                            const maxPermitidas = (asig.piezas_habilitadas || 0) - (asig.piezas_completadas || 0);
                             let tareaAnterior = null;
 
-                            if (idx > 0) {
-                                const prevAsig = pipeline[idx - 1];
-                                const maxCalc = prevAsig.piezas_completadas - asig.piezas_completadas;
-                                maxPermitidas = maxCalc > 0 ? maxCalc : 0;
-                                tareaAnterior = prevAsig.tarea;
+                            if ((asig.secuencia || 1) > 1) {
+                                const idx = pipeline.findIndex(a => a.id === asig.id);
+                                if (idx > 0) {
+                                    tareaAnterior = pipeline[idx - 1].tarea;
+                                }
                             }
 
                             return (

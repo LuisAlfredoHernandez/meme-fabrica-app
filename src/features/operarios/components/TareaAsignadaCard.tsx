@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AsignacionOrden, Orden } from "@/types";
-import { AlertTriangle, Play, Pause, Clock } from "lucide-react";
+import { AlertTriangle, Play, Pause, Clock, Lock } from "lucide-react";
 import { useWorkSessionStore, useWorkSessionActions } from "../store/useWorkSessionStore";
 
 interface TareaAsignadaCardProps {
@@ -149,12 +149,13 @@ export function TareaAsignadaCard({
                     )}
                 </div>
                 <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-bold text-white leading-tight mt-1">{asig.tarea}</h3>
                         {isBlocked && (
-                            <span title={`Esperando piezas de ${tareaAnterior}`} className="text-indigo-400 mt-1">
-                                🔒
-                            </span>
+                            <div className="flex items-center gap-1 bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-md mt-1 border border-indigo-500/30">
+                                <Lock className="w-3 h-3" />
+                                <span className="text-[9px] font-bold uppercase tracking-wider">Bloqueada ({tareaAnterior})</span>
+                            </div>
                         )}
                     </div>
                     <p className="text-[11px] text-slate-500 font-medium mt-1">Cliente: {asig.orden?.cliente || ordenCompleta?.cliente || 'N/A'}</p>

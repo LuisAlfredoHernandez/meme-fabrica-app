@@ -182,7 +182,9 @@ export interface AsignacionOrden {
   orden_id: string;
   operario_id: string;
   tarea: string;
+  secuencia: number;
   piezas_requeridas: number;
+  piezas_habilitadas: number;
   piezas_completadas: number;
   estado: "pendiente" | "en_proceso" | "completada";
   fecha_asignacion: string;
