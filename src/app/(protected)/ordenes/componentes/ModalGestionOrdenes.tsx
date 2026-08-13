@@ -4,7 +4,7 @@ import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.s
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
 import { getPrendasAction } from "@/features/ordenes/actions/ordenes.actions";
 import { AppColors } from "@/shared/constants";
-import { Orden, MAQUINAS_LIST, TAREAS_COMUNES } from "@/types";
+import { Orden, MAQUINAS_LIST, TAREAS_COMUNES, TAREAS_POR_MAQUINA } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Calendar } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -323,7 +323,12 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                                                     if (op.estado !== 'activo') return false;
                                                     const selectedTarea = vAsignaciones?.[index]?.tarea;
                                                     if (!selectedTarea) return true;
-                                                    return op.habilidades?.some(h => h.maquina === selectedTarea);
+                                                    
+                                                    const tiposPermitidos = Object.entries(TAREAS_POR_MAQUINA)
+                                                        .filter(([_, tareas]) => tareas.includes(selectedTarea))
+                                                        .map(([tipo]) => tipo);
+                                                        
+                                                    return op.habilidades?.some(h => tiposPermitidos.includes(h.maquina));
                                                 }).map(op => (
                                                     <option key={op.id} value={op.id}>{op.nombre} {op.apellido}</option>
                                                 ))}
