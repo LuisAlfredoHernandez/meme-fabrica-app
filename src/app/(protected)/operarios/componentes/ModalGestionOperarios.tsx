@@ -31,7 +31,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
             correo: "",
             estado: "inactivo",
             rol: "operario",
-            password: "",
             habilidades: []
         }
     });
@@ -65,11 +64,8 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
         try {
             if (isExisting && data.id) {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { id, rol, password, ...updateData } = data;
+                const { id, rol, ...updateData } = data;
                 const payload: any = { ...updateData };
-                if (password && password.trim() !== "") {
-                    payload.password = password;
-                }
                 await updateOperario(data.id, payload as Operario);
                 addToastOnly("Operario Actualizado", `Datos de ${data.nombre} actualizados con éxito.`, "success");
             } else {
@@ -262,23 +258,6 @@ export function ModalGestionOperario({ onClose, operarios }: { onClose: () => vo
                             )}
                         </div>
 
-                        {!isExisting && (
-                            <div className="space-y-1 pt-2 border-t border-white/5">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
-                                    Contraseña
-                                </label>
-                                <input
-                                    type="password"
-                                    placeholder="Contraseña del operario"
-                                    required
-                                    {...register("password")}
-                                    className="w-full bg-transparent text-sm font-medium text-white focus:outline-none border-b border-transparent focus:border-orange-500/30 pb-1"
-                                />
-                                {errors.password && (
-                                    <p className="text-[10px] text-red-400 mt-1">{errors.password.message}</p>
-                                )}
-                            </div>
-                        )}
 
                         {/* Selector de estados del formulario */}
                         <StatusSelector />

@@ -11,7 +11,7 @@ export function ProyeccionProduccion({ proyecciones }: ProyeccionProduccionProps
         <div className="rounded-2xl overflow-hidden" style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}>
             <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: AppColors.border }}>
                 <BarChart3 className="w-5 h-5" style={{ color: AppColors.orange }} />
-                <h3 className="font-bold text-white text-sm">Proyección de Producción Diaria (RF13)</h3>
+                <h3 className="font-bold text-white text-sm">Proyección de Producción Diaria</h3>
             </div>
             <div className="p-5">
                 {proyecciones.length === 0 ? (

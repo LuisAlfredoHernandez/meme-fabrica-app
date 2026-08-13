@@ -5,7 +5,7 @@ import { Usuario, LoginResponse } from '@/types';
 
 export async function loginAction(email: string, pass: string) {
     try {
-        const { token, refreshToken, user } = await authService.login(email, pass);
+        const { token, refreshToken, user, requiresPasswordChange } = await authService.login(email, pass);
 
         if (user) {
             const cookieStore = await cookies();
@@ -36,7 +36,7 @@ export async function loginAction(email: string, pass: string) {
 
             cookieStore.set("user_role", user.rol, { httpOnly: true });
 
-            return { success: true, user };
+            return { success: true, user, requiresPasswordChange };
         }
     } catch (error) {
         return { success: false, error: error };
@@ -113,7 +113,7 @@ export async function refreshTokenAction() {
     }
 }
 
-export async function registerUserAction(data: Omit<Usuario, "id"> & { pass: string }) {
+export async function registerUserAction(data: Omit<Usuario, "id">) {
     try {
         const newUser = await authService.registerUser(data);
         return { success: true, user: newUser };
@@ -135,6 +135,37 @@ export async function updatePasswordAction(userId: string, newPass: string) {
         return {
             success: success,
             message: success ? "Contraseña actualizada" : "No se pudo actualizar"
+        };
+    } catch (e) {
+        return {
+            success: false,
+            error: e instanceof Error ? e.message : "Error de servidor"
+        };
+    }
+}
+
+export async function changePasswordAction(currentPassword: string, newPassword: string) {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get("access_token")?.value;
+
+        if (!token) {
+            return { success: false, error: "No autenticado" };
+        }
+
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${API_URL}/change-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+        });
+
+        return {
+            success: response.ok,
+            message: response.ok ? "Contraseña actualizada" : "No se pudo actualizar"
         };
     } catch (e) {
         return {

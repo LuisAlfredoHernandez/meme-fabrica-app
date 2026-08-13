@@ -59,7 +59,6 @@ export function FormularioReporteAvance({
         }
     };
 
-    // --- LÓGICA DE FLUJO CONTINUO (WIP LIMITS) ---
     const getLimits = () => {
         if (!selectedAsigId) return { maxPiezas: 0, prevTarea: null };
         const asig = misAsignaciones.find(a => a.id === selectedAsigId);
@@ -67,20 +66,17 @@ export function FormularioReporteAvance({
 
         const pipeline = todasLasAsignaciones
             .filter(a => a.orden_id === asig.orden_id)
-            .sort((a, b) => new Date(a.fecha_asignacion).getTime() - new Date(b.fecha_asignacion).getTime());
+            .sort((a, b) => (a.secuencia || 0) - (b.secuencia || 0));
 
-        const idx = pipeline.findIndex(a => a.id === selectedAsigId);
+        const idx = pipeline.findIndex(a => a.id === asig.id);
+        const maxPermitted = (asig.piezas_habilitadas || 0) - (asig.piezas_completadas || 0);
         
-        if (idx === 0) {
-            return { maxPiezas: asig.piezas_requeridas - asig.piezas_completadas, prevTarea: null };
-        }
-        
+        let tareaAnterior = null;
         if (idx > 0) {
-            const prevAsig = pipeline[idx - 1];
-            const maxPermitted = prevAsig.piezas_completadas - asig.piezas_completadas;
-            return { maxPiezas: maxPermitted > 0 ? maxPermitted : 0, prevTarea: prevAsig.tarea };
+            tareaAnterior = pipeline[idx - 1].tarea;
         }
-        return { maxPiezas: 0, prevTarea: null };
+        
+        return { maxPiezas: maxPermitted > 0 ? maxPermitted : 0, prevTarea: tareaAnterior };
     };
 
     const { maxPiezas, prevTarea } = getLimits();
@@ -207,8 +203,8 @@ export function FormularioReporteAvance({
                             <p className="text-xs font-bold">Límite de Producción (Flujo Continuo)</p>
                             <p className="text-xs opacity-80 mt-1">
                                 {prevTarea 
-                                    ? (maxPiezas === 0 ? `Debes esperar a que el operario anterior (${prevTarea}) reporte piezas.` : `Puedes trabajar en máximo ${maxPiezas} piezas provenientes de ${prevTarea}.`)
-                                    : `Tienes ${maxPiezas} piezas por completar en esta orden.`
+                                    ? (maxPiezas === 0 ? `Esperando piezas de la etapa anterior... (0 piezas disponibles para trabajar)` : `Puedes trabajar en máximo ${maxPiezas} piezas provenientes de ${prevTarea}.`)
+                                    : (maxPiezas === 0 ? `Esperando que se habiliten piezas para iniciar...` : `Tienes ${maxPiezas} piezas disponibles para completar en esta orden.`)
                                 }
                             </p>
                         </div>

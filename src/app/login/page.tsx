@@ -14,7 +14,17 @@ export default function LoginPage() {
     const [verPass, setVerPass] = useState(false);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState("");
+    
+    // Modal de Cambio Obligatorio
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [modalError, setModalError] = useState("");
+    const [modalCargando, setModalCargando] = useState(false);
+    const [verNewPass, setVerNewPass] = useState(false);
+
     const login = useAuthStore(state => state.login);
+    const forceChangePassword = useAuthStore(state => state.forceChangePassword);
     const router = useRouter();
 
 
@@ -24,9 +34,13 @@ export default function LoginPage() {
         if (!usuario.trim()) { setError("Ingresa tu nombre de usuario."); return; }
         if (password.length < 2) { setError("La contraseña debe tener al menos 4 caracteres."); return; }
         setCargando(true);
-        const success = await login(usuario, password);
+        const result = await login(usuario, password);
         setCargando(false);
-        if (success) {
+        if (result.success) {
+            if (result.requiresPasswordChange) {
+                setShowChangePasswordModal(true);
+                return;
+            }
             const currentUser = useAuthStore.getState().user;
             if (currentUser?.rol === "operario") {
                 router.push("/mi-estacion");
@@ -35,6 +49,29 @@ export default function LoginPage() {
             }
         } else {
             setError("Credenciales inválidas. Verifica tu usuario y contraseña.");
+        }
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setModalError("");
+        if (newPassword.length < 8) { setModalError("La contraseña debe tener al menos 8 caracteres."); return; }
+        if (newPassword !== confirmPassword) { setModalError("Las contraseñas no coinciden."); return; }
+        
+        setModalCargando(true);
+        const success = await forceChangePassword(password, newPassword);
+        setModalCargando(false);
+
+        if (success) {
+            setShowChangePasswordModal(false);
+            const currentUser = useAuthStore.getState().user;
+            if (currentUser?.rol === "operario") {
+                router.push("/mi-estacion");
+            } else {
+                router.push("/dashboard");
+            }
+        } else {
+            setModalError("Ocurrió un error al intentar cambiar la contraseña.");
         }
     };
 
@@ -128,6 +165,59 @@ export default function LoginPage() {
                     Meme Fábricas © 2026 · Santo Domingo, R.D.
                 </p>
             </div>
+            
+            {/* Modal de Cambio Obligatorio de Contraseña */}
+            {showChangePasswordModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#13161e] border border-[#1e2130] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl shadow-orange-500/20">
+                        <div className="p-6 border-b border-[#1e2130] bg-[#0d1018]/50 text-center">
+                            <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-3">
+                                <Lock className="w-6 h-6 text-orange-500" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white">Actualiza tu contraseña</h2>
+                            <p className="text-xs text-slate-400 mt-1">Por tu seguridad, debes establecer una nueva contraseña antes de ingresar al sistema.</p>
+                        </div>
+                        
+                        <form onSubmit={handleChangePassword} className="p-6 space-y-4">
+                            {modalError && (
+                                <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm bg-red-500/15 border border-red-500/40 text-red-500">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    {modalError}
+                                </div>
+                            )}
+                            
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-300">Nueva Contraseña</label>
+                                <div className="relative">
+                                    <input type={verNewPass ? "text" : "password"} value={newPassword}
+                                        onChange={e => { setNewPassword(e.target.value); setModalError(""); }}
+                                        placeholder="••••••••"
+                                        className="w-full h-11 pl-4 pr-12 rounded-xl text-white text-sm placeholder-slate-600 bg-[#0d1018] border border-[#1e2130] focus:border-[#f97316] outline-none transition-all shadow-inner" />
+                                    <button type="button" onClick={() => setVerNewPass(v => !v)}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-slate-300">
+                                        {verNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-300">Confirmar Contraseña</label>
+                                <div className="relative">
+                                    <input type={verNewPass ? "text" : "password"} value={confirmPassword}
+                                        onChange={e => { setConfirmPassword(e.target.value); setModalError(""); }}
+                                        placeholder="••••••••"
+                                        className="w-full h-11 pl-4 pr-12 rounded-xl text-white text-sm placeholder-slate-600 bg-[#0d1018] border border-[#1e2130] focus:border-[#f97316] outline-none transition-all shadow-inner" />
+                                </div>
+                            </div>
+                            
+                            <button type="submit" disabled={modalCargando}
+                                className={`w-full h-12 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all mt-6 shadow-lg ${modalCargando ? 'bg-slate-500 cursor-not-allowed shadow-none' : 'bg-orange-500 shadow-orange-500/40 hover:bg-orange-400'}`}>
+                                {modalCargando ? <><Loader2 className="w-5 h-5 animate-spin" /> Actualizando...</> : "Guardar e Ingresar"}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -52,7 +52,7 @@ export default function InsumosPage() {
             )}
 
             {/* Header pantalla*/}
-            <Header title="Inventario" subtitle="RF6 — Gestión Unificada de Inventario" buttonLabel="Movimiento de stock" onButtonClick={abrirGestion} />
+            <Header title="Inventario" subtitle="Gestión Unificada de Inventario" buttonLabel="Movimiento de stock" onButtonClick={abrirGestion} />
 
             <div className="space-y-6">
                 {/* KPIs Rápidos */}

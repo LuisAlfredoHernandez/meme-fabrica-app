@@ -40,8 +40,12 @@ export function FilaOrden({
     onStatusChange
 }: FilaOrdenProps) {
     const totalCant = orden.lineas.reduce((acc, l) => acc + l.cantidad, 0);
-    const totalComp = orden.lineas.reduce((acc, l) => acc + (l.cantidadCompletada ?? 0), 0);
-    const pct = totalCant > 0 ? Math.round((totalComp / totalCant) * 100) : 0;
+    // Progreso basado en tareas: Total de piezas requeridas sumadas vs total de piezas completadas en todas las etapas
+    const totalTareasReq = (orden.asignaciones || []).reduce((acc, a) => acc + a.piezas_requeridas, 0);
+    const totalTareasComp = (orden.asignaciones || []).reduce((acc, a) => acc + (a.piezas_completadas || 0), 0);
+    
+    // Si no hay tareas, asume 0%. Si hay, calcula el progreso global del pipeline
+    const pct = totalTareasReq > 0 ? Math.round((totalTareasComp / totalTareasReq) * 100) : 0;
     const descripcionPrenda = orden.lineas.length > 1
         ? `${orden.lineas[0].descripcion} (+${orden.lineas.length - 1})`
         : orden.lineas[0]?.descripcion || "Sin descripción";
@@ -74,7 +78,7 @@ export function FilaOrden({
                             style={{ width: `${pct}%`, background: pct >= 100 ? AppColors.emerald : AppColors.orange }} />
                     </div>
                     <span className="text-xs font-mono" style={{ color: pct >= 100 ? AppColors.emerald : "#94a3b8" }}>
-                        {totalComp}/{totalCant}
+                        {pct}%
                     </span>
                 </div>
             </td>

@@ -21,7 +21,7 @@ export function PanelGestionModelo({ status, onSuccess }: PanelProps) {
                 <Database className="w-5 h-5" style={{ color: AppColors.violet }} />
                 <h3 className="font-bold text-white text-sm">Gestión y Calibración del Modelo</h3>
                 <span className="ml-auto text-xs px-2 py-0.5 rounded-full font-bold"
-                    style={{ background: `${AppColors.violet}20`, color: AppColors.violet }}>RF19–RF22</span>
+                    style={{ background: `${AppColors.violet}20`, color: AppColors.violet }}>Gestión</span>
             </div>
 
             <div className="p-5 space-y-5">

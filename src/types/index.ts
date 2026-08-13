@@ -51,6 +51,26 @@ export type TipoProducto =
 export const MAQUINAS_LIST = ["merrow", "cover", "plana", "corte", "plancha_dtf", "otro"] as const;
 export type TipoMaquina = typeof MAQUINAS_LIST[number];
 
+export const TAREAS_COMUNES = [
+    "Cortes correspondientes",
+    "Confección general",
+    "Sobrehilado (overlook)",
+    "Estampado",
+    "Acabado / Costura fina",
+    "Planchado",
+    "Empaque y etiqueta"
+];
+
+export const TAREAS_POR_MAQUINA: Record<string, string[]> = {
+    "corte": ["Cortes correspondientes"],
+    "merrow": ["Sobrehilado (overlook)", "Confección general"],
+    "plana": ["Confección general", "Acabado / Costura fina"],
+    "cover": ["Confección general", "Acabado / Costura fina"],
+    "plancha_dtf": ["Estampado", "Planchado"],
+    "peso": ["Empaque y etiqueta"],
+    "otro": ["Empaque y etiqueta", "Otras tareas"]
+};
+
 export const MAQUINAS_STATUS_LIST = ["operativa", "bajo_revision", "mantenimiento", "fuera_servicio"] as const;
 export type MaquinaStatus = typeof MAQUINAS_STATUS_LIST[number]; // Esto genera el tipo automáticamente
 
@@ -162,7 +182,9 @@ export interface AsignacionOrden {
   orden_id: string;
   operario_id: string;
   tarea: string;
+  secuencia: number;
   piezas_requeridas: number;
+  piezas_habilitadas: number;
   piezas_completadas: number;
   estado: "pendiente" | "en_proceso" | "completada";
   fecha_asignacion: string;
@@ -297,4 +319,5 @@ export interface LoginResponse {
   access_token: string;
   token_type: string;
   refresh_token?: string;
+  requires_password_change?: boolean;
 }

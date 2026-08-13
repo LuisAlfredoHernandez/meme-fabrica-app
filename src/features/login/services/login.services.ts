@@ -40,7 +40,7 @@ const MOCK_CREDENTIALS: Usuario[] = [
 const API_LATENCY = 500;
 
 export const authService = {
-    login: async (email: string, pass: string): Promise<{ token: string; refreshToken?: string; user: Usuario | Operario }> => {
+    login: async (email: string, pass: string): Promise<{ token: string; refreshToken?: string; user: Usuario | Operario; requiresPasswordChange?: boolean }> => {
         console.log(`Intentando login para: ${email}...`);
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -73,12 +73,13 @@ export const authService = {
             // Obtener el usuario actual con el token recibido
             const user = await authService.getCurrentUser(data.access_token);
 
-            return { token: data.access_token, refreshToken: data.refresh_token, user };
+            return { token: data.access_token, refreshToken: data.refresh_token, user, requiresPasswordChange: data.requires_password_change };
         } catch (error: any) {
             console.error("Error en login:", error);
             throw new Error(error.message || "Error al conectar con el servidor.");
         }
     },
+
     getCurrentUser: async (token: string): Promise<Usuario | Operario> => {
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -158,7 +159,7 @@ export const authService = {
     /**
      * Crea una nueva cuenta de acceso.
      */
-    registerUser: (data: Omit<Usuario, "id"> & { pass: string }): Promise<Usuario> => {
+    registerUser: (data: Omit<Usuario, "id">): Promise<Usuario> => {
         console.log("Registrando nuevo acceso al sistema...", data.correo);
 
         return new Promise((resolve) => {

@@ -110,7 +110,7 @@ export default function RegistroPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-lg font-black text-white">Registrar Producción</h1>
-                        <p className="text-xs mt-0.5" style={{ color: AppColors.slate }}>RF4 · RNF-04 — Máximo 3 interacciones</p>
+                        <p className="text-xs mt-0.5" style={{ color: AppColors.slate }}>Máximo 3 interacciones</p>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
                         style={{ background: "#0d1018", border: `1px solid ${AppColors.border}` }}>

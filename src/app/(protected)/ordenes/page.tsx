@@ -53,7 +53,7 @@ export default function OrdenesPage() {
             {modal && <ModalGestionOrdenes onClose={() => setModal(false)} />}
 
             {/* Header de página */}
-            <Header title="Órdenes de Producción" subtitle="RF1 · RF7 — Gestión y cola de prioridades" buttonLabel="Gestionar Ordenes" onButtonClick={() => setModal(true)} />
+            <Header title="Órdenes de Producción" subtitle="Gestión y cola de prioridades" buttonLabel="Gestionar Ordenes" onButtonClick={() => setModal(true)} />
 
             <div className="space-y-5">
                 {/* Stats rápidas */}
