@@ -93,7 +93,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
                 <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: AppColors.border }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500 font-black">
-                            {operario.nombre[0]}{operario.apellido[0]}
+                            {operario?.nombre?.[0] || ""}{operario?.apellido?.[0] || ""}
                         </div>
                         <div>
                             <h2 className="font-bold text-white text-base">Despachar a Máquina</h2>
@@ -171,7 +171,7 @@ export function ModalAsignacionTarea({ operario, onClose, onConfirm }: Props) {
 
                                     return maquinaValidaParaTarea &&
                                         m.estado === 'operativa' &&
-                                        operario.habilidades.some(h => h.maquina === m.tipo);
+                                        (operario?.habilidades || []).some(h => h.maquina === m.tipo);
                                 }).map(maq => {
                                     // Comprobar si la máquina está en uso por OTRO operario
                                     const operarioEnUso = operarios.find(op => op.maquina_actual_id === maq.id && op.id !== operario.id && op.estado === 'activo');
