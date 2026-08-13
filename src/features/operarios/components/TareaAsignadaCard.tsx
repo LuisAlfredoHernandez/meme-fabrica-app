@@ -130,15 +130,18 @@ export function TareaAsignadaCard({
                             ) : (
                                 <div className="relative">
                                     {/* Tutorial Ping Effect when task is entirely new (no session) */}
-                                    {!session && (
+                                    {!session && !isBlocked && (
                                         <span className="absolute -inset-1.5 rounded-xl border border-emerald-500/40 animate-[ping_2s_ease-in-out_infinite] z-0"></span>
                                     )}
                                     <button 
                                         onClick={() => startTask(asig.id)}
+                                        disabled={isBlocked}
                                         className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold uppercase transition-colors text-[10px] ${
-                                            !session 
-                                                ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:bg-emerald-400 hover:scale-105 transform duration-300' 
-                                                : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                                            isBlocked
+                                                ? 'bg-indigo-500/10 text-indigo-400 opacity-50 cursor-not-allowed border border-indigo-500/20'
+                                                : (!session 
+                                                    ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] hover:bg-emerald-400 hover:scale-105 transform duration-300' 
+                                                    : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20')
                                         }`}
                                     >
                                         <Play className="w-3 h-3" /> {session ? 'Continuar' : 'Empezar'}

@@ -255,14 +255,13 @@ export default function MiEstacionPage() {
                                 .filter(a => a.orden_id === asig.orden_id)
                                 .sort((a, b) => (a.secuencia || 0) - (b.secuencia || 0));
                             
-                            const maxPermitidas = (asig.piezas_habilitadas || 0) - (asig.piezas_completadas || 0);
+                            const idx = pipeline.findIndex(a => a.id === asig.id);
+                            
+                            const maxPermitidas = Math.max(0, (asig.piezas_habilitadas || 0) - (asig.piezas_completadas || 0));
+                            
                             let tareaAnterior = null;
-
-                            if ((asig.secuencia || 1) > 1) {
-                                const idx = pipeline.findIndex(a => a.id === asig.id);
-                                if (idx > 0) {
-                                    tareaAnterior = pipeline[idx - 1].tarea;
-                                }
+                            if (idx > 0) {
+                                tareaAnterior = pipeline[idx - 1].tarea;
                             }
 
                             return (

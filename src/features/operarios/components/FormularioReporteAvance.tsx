@@ -68,14 +68,12 @@ export function FormularioReporteAvance({
             .filter(a => a.orden_id === asig.orden_id)
             .sort((a, b) => (a.secuencia || 0) - (b.secuencia || 0));
 
+        const idx = pipeline.findIndex(a => a.id === asig.id);
         const maxPermitted = (asig.piezas_habilitadas || 0) - (asig.piezas_completadas || 0);
+        
         let tareaAnterior = null;
-
-        if ((asig.secuencia || 1) > 1) {
-            const idx = pipeline.findIndex(a => a.id === asig.id);
-            if (idx > 0) {
-                tareaAnterior = pipeline[idx - 1].tarea;
-            }
+        if (idx > 0) {
+            tareaAnterior = pipeline[idx - 1].tarea;
         }
         
         return { maxPiezas: maxPermitted > 0 ? maxPermitted : 0, prevTarea: tareaAnterior };
