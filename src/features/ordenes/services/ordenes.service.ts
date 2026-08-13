@@ -54,7 +54,11 @@ export const mapApiToFrontend = (api: any): Orden => {
       id: asig.id,
       operario_id: asig.operario_id,
       tarea: asig.tarea,
+      secuencia: asig.secuencia,
       piezas_requeridas: asig.piezas_requeridas,
+      piezas_habilitadas: asig.piezas_habilitadas,
+      piezas_completadas: asig.piezas_completadas || 0,
+      estado: asig.estado || "pendiente",
       notas: asig.notas || "",
     })),
   };
