@@ -19,6 +19,7 @@ import { useValidacionStore, useValidacionActions } from "@/features/validacion/
 import { ToastContainer } from "@/components/ToastContainer";
 import { useToasts, useSelectedNotification, useNotificationActions } from "@/shared/store/useNotificationStore";
 import { NotificationDetailModal } from "@/components/layout/NotificationDetailModal";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 
 export default function ProtectedLayout({
     children,
@@ -470,6 +471,9 @@ export default function ProtectedLayout({
 
                         {/* Footer de Usuario */}
                         <div className="pt-4 border-t border-[#1e2130] space-y-4">
+                            {/* Campana de Notificaciones en móvil */}
+                            <NotificationBell isSidebarExpanded={true} />
+
                             <div className="flex items-center gap-3 p-2 rounded-xl bg-[#0d1018]/50 border border-[#1e2130]">
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black border"
                                     style={{ 
