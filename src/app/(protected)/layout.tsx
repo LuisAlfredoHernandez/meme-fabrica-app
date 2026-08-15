@@ -69,7 +69,9 @@ export default function ProtectedLayout({
     useEffect(() => {
         if (!isAuthenticated || !user || user.rol !== "operario") return;
 
-        const myAssignments = asignaciones.filter((a) => a.operario_id === user.id);
+        const myAssignments = asignaciones.filter(
+            (a) => a.operario_id === user.id && a.estado !== "completada"
+        );
         const mappedAssignments = myAssignments.map((a) => ({
             id: a.id,
             ordenNumero: a.orden?.numero || "ORD-N/A",

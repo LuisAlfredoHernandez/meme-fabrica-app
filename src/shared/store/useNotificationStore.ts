@@ -29,6 +29,7 @@ export interface ToastItem {
 
 interface NotificationState {
     currentUserId: string | null;
+    usersData?: Record<string, { notifications: NotificationItem[], processedSyncIds: string[] }>;
     notifications: NotificationItem[];
     processedSyncIds: string[];
     toasts: ToastItem[];
@@ -60,6 +61,7 @@ export const useNotificationStore = create<NotificationState>()(
     persist(
         (set) => ({
             currentUserId: null,
+            usersData: {},
             notifications: [],
             processedSyncIds: [],
             toasts: [],
@@ -68,10 +70,22 @@ export const useNotificationStore = create<NotificationState>()(
                 syncUser: (userId) => {
                     set((state) => {
                         if (state.currentUserId !== userId) {
+                            const newUsersData = { ...(state.usersData || {}) };
+                            if (state.currentUserId) {
+                                newUsersData[state.currentUserId] = {
+                                    notifications: state.notifications,
+                                    processedSyncIds: state.processedSyncIds
+                                };
+                            }
+                            const nextUserData = newUsersData[userId] || {
+                                notifications: [],
+                                processedSyncIds: []
+                            };
                             return {
                                 currentUserId: userId,
-                                notifications: [],
-                                processedSyncIds: [],
+                                usersData: newUsersData,
+                                notifications: nextUserData.notifications,
+                                processedSyncIds: nextUserData.processedSyncIds,
                             };
                         }
                         return state;
@@ -178,10 +192,12 @@ export const useNotificationStore = create<NotificationState>()(
                             seenIds.add(n.id);
 
                             if (n.titulo === "Revisión Pendiente" && n.tipo === "warning") {
-                                if (!pendingIds.has(n.id)) {
-                                    updated = true;
-                                    return false;
-                                }
+                                // No eliminamos automáticamente las notificaciones de revisión pendiente
+                                // para evitar que desaparezcan si la conexión parpadea o al recargar la página.
+                                // if (!pendingIds.has(n.id)) {
+                                //     updated = true;
+                                //     return false;
+                                // }
                             }
                             return true;
                         });
@@ -192,7 +208,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         return {
                             notifications: cleanedNotifications.slice(0, 50),
-                            processedSyncIds: Array.from(newProcessed).slice(-200)
+                            processedSyncIds: Array.from(newProcessed).slice(-5000)
                         };
                     });
                 },
@@ -236,10 +252,12 @@ export const useNotificationStore = create<NotificationState>()(
                             seenIds.add(n.id);
 
                             if (n.id.startsWith("asig_created_")) {
-                                if (!activeIds.has(n.id)) {
-                                    updated = true;
-                                    return false;
-                                }
+                                // No eliminamos automáticamente las tareas si no vienen en la consulta actual
+                                // para evitar que desaparezcan al recargar la página (cuando asignaciones = [])
+                                // if (!activeIds.has(n.id)) {
+                                //     updated = true;
+                                //     return false;
+                                // }
                             }
                             return true;
                         });
@@ -250,7 +268,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         return {
                             notifications: cleanedNotifications.slice(0, 50),
-                            processedSyncIds: Array.from(newProcessed).slice(-200)
+                            processedSyncIds: Array.from(newProcessed).slice(-5000)
                         };
                     });
                 },
@@ -259,10 +277,20 @@ export const useNotificationStore = create<NotificationState>()(
         {
             name: "meme-fabrica-notifications",
             // Persistir notificaciones y el historial de IDs procesados
-            partialize: (state) => ({ 
-                notifications: state.notifications,
-                processedSyncIds: state.processedSyncIds
-            } as any),
+            partialize: (state) => {
+                const currentData = state.currentUserId ? {
+                    [state.currentUserId]: {
+                        notifications: state.notifications,
+                        processedSyncIds: state.processedSyncIds
+                    }
+                } : {};
+                return { 
+                    notifications: state.notifications,
+                    processedSyncIds: state.processedSyncIds,
+                    currentUserId: state.currentUserId,
+                    usersData: { ...(state.usersData || {}), ...currentData }
+                } as any;
+            },
         }
     )
 );
