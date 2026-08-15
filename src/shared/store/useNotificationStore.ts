@@ -178,10 +178,12 @@ export const useNotificationStore = create<NotificationState>()(
                             seenIds.add(n.id);
 
                             if (n.titulo === "Revisión Pendiente" && n.tipo === "warning") {
-                                if (!pendingIds.has(n.id)) {
-                                    updated = true;
-                                    return false;
-                                }
+                                // No eliminamos automáticamente las notificaciones de revisión pendiente
+                                // para evitar que desaparezcan si la conexión parpadea o al recargar la página.
+                                // if (!pendingIds.has(n.id)) {
+                                //     updated = true;
+                                //     return false;
+                                // }
                             }
                             return true;
                         });
@@ -192,7 +194,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         return {
                             notifications: cleanedNotifications.slice(0, 50),
-                            processedSyncIds: Array.from(newProcessed).slice(-200)
+                            processedSyncIds: Array.from(newProcessed).slice(-5000)
                         };
                     });
                 },
@@ -236,10 +238,12 @@ export const useNotificationStore = create<NotificationState>()(
                             seenIds.add(n.id);
 
                             if (n.id.startsWith("asig_created_")) {
-                                if (!activeIds.has(n.id)) {
-                                    updated = true;
-                                    return false;
-                                }
+                                // No eliminamos automáticamente las tareas si no vienen en la consulta actual
+                                // para evitar que desaparezcan al recargar la página (cuando asignaciones = [])
+                                // if (!activeIds.has(n.id)) {
+                                //     updated = true;
+                                //     return false;
+                                // }
                             }
                             return true;
                         });
@@ -250,7 +254,7 @@ export const useNotificationStore = create<NotificationState>()(
 
                         return {
                             notifications: cleanedNotifications.slice(0, 50),
-                            processedSyncIds: Array.from(newProcessed).slice(-200)
+                            processedSyncIds: Array.from(newProcessed).slice(-5000)
                         };
                     });
                 },
@@ -261,7 +265,8 @@ export const useNotificationStore = create<NotificationState>()(
             // Persistir notificaciones y el historial de IDs procesados
             partialize: (state) => ({ 
                 notifications: state.notifications,
-                processedSyncIds: state.processedSyncIds
+                processedSyncIds: state.processedSyncIds,
+                currentUserId: state.currentUserId
             } as any),
         }
     )
