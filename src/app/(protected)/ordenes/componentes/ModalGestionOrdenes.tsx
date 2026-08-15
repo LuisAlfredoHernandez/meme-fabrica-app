@@ -306,7 +306,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
 
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Nombre de Tarea</label>
-                                                <select {...register(`asignaciones.${index}.tarea`)} disabled={readOnly} className="w-full text-sm bg-black/20 rounded-md px-2 py-1.5 border border-white/5 text-white focus:outline-none focus:border-indigo-500 transition-colors capitalize">
+                                                <select {...register(`asignaciones.${index}.tarea`)} value={vAsignaciones?.[index]?.tarea || ""} disabled={readOnly} className="w-full text-sm bg-black/20 rounded-md px-2 py-1.5 border border-white/5 text-white disabled:text-white disabled:opacity-100 focus:outline-none focus:border-indigo-500 transition-colors capitalize">
                                                     <option value="">Seleccionar tarea...</option>
                                                     {TAREAS_COMUNES.map(t => (
                                                         <option key={t} value={t}>{t}</option>
@@ -317,9 +317,10 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
 
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Operario Asignado</label>
-                                                <select {...register(`asignaciones.${index}.operario_id`)} disabled={readOnly} className="w-full text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                                                <select {...register(`asignaciones.${index}.operario_id`)} value={vAsignaciones?.[index]?.operario_id || ""} disabled={readOnly} className="w-full text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-white disabled:text-white disabled:opacity-100 focus:outline-none focus:border-indigo-500 transition-colors">
                                                     <option value="">Seleccionar operario...</option>
                                                     {operarios.filter(op => {
+                                                        if (readOnly) return true;
                                                         if (op.estado !== 'activo') return false;
                                                         const selectedTarea = vAsignaciones?.[index]?.tarea;
                                                         if (!selectedTarea) return true;
@@ -338,7 +339,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
 
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-bold text-indigo-400/80 uppercase">Piezas a Completar</label>
-                                                <input type="number" min="1" {...register(`asignaciones.${index}.piezas_requeridas`, { valueAsNumber: true })} disabled={readOnly} className="w-full text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                                                <input type="number" min="1" {...register(`asignaciones.${index}.piezas_requeridas`, { valueAsNumber: true })} disabled={readOnly} className="w-full text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-white disabled:text-white disabled:opacity-100 focus:outline-none focus:border-indigo-500 transition-colors" />
                                                 {errors.asignaciones?.[index]?.piezas_requeridas && <p className="text-[9px] text-red-400">{errors.asignaciones[index]?.piezas_requeridas?.message}</p>}
                                             </div>
                                         </div>
