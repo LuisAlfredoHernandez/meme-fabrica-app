@@ -29,6 +29,7 @@ export interface ToastItem {
 
 interface NotificationState {
     currentUserId: string | null;
+    usersData?: Record<string, { notifications: NotificationItem[], processedSyncIds: string[] }>;
     notifications: NotificationItem[];
     processedSyncIds: string[];
     toasts: ToastItem[];
@@ -60,6 +61,7 @@ export const useNotificationStore = create<NotificationState>()(
     persist(
         (set) => ({
             currentUserId: null,
+            usersData: {},
             notifications: [],
             processedSyncIds: [],
             toasts: [],
@@ -68,10 +70,22 @@ export const useNotificationStore = create<NotificationState>()(
                 syncUser: (userId) => {
                     set((state) => {
                         if (state.currentUserId !== userId) {
+                            const newUsersData = { ...(state.usersData || {}) };
+                            if (state.currentUserId) {
+                                newUsersData[state.currentUserId] = {
+                                    notifications: state.notifications,
+                                    processedSyncIds: state.processedSyncIds
+                                };
+                            }
+                            const nextUserData = newUsersData[userId] || {
+                                notifications: [],
+                                processedSyncIds: []
+                            };
                             return {
                                 currentUserId: userId,
-                                notifications: [],
-                                processedSyncIds: [],
+                                usersData: newUsersData,
+                                notifications: nextUserData.notifications,
+                                processedSyncIds: nextUserData.processedSyncIds,
                             };
                         }
                         return state;
@@ -263,11 +277,20 @@ export const useNotificationStore = create<NotificationState>()(
         {
             name: "meme-fabrica-notifications",
             // Persistir notificaciones y el historial de IDs procesados
-            partialize: (state) => ({ 
-                notifications: state.notifications,
-                processedSyncIds: state.processedSyncIds,
-                currentUserId: state.currentUserId
-            } as any),
+            partialize: (state) => {
+                const currentData = state.currentUserId ? {
+                    [state.currentUserId]: {
+                        notifications: state.notifications,
+                        processedSyncIds: state.processedSyncIds
+                    }
+                } : {};
+                return { 
+                    notifications: state.notifications,
+                    processedSyncIds: state.processedSyncIds,
+                    currentUserId: state.currentUserId,
+                    usersData: { ...(state.usersData || {}), ...currentData }
+                } as any;
+            },
         }
     )
 );
