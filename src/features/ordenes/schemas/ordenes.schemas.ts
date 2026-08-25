@@ -34,6 +34,7 @@ export const asignacionCreateSchema = z.object({
 export const ordenSchema = z.object({
     id: z.string().optional(),
     numero: z.string().optional(),
+    orden_venta_id: z.string().optional(),
     cliente: z.string().min(2, "Nombre de cliente inválido"),
     tipo: z.enum(TipoOP_LIST),
     estado: z.enum(ESTADO_ORDEN_LIST).optional(),
