@@ -13,3 +13,12 @@ export const insumoSchema = z.object({
 });
 
 export type InsumoFormData = z.infer<typeof insumoSchema>;
+
+export const ajusteInsumoSchema = z.object({
+    cantidad_ajuste: z.number().refine(val => val !== 0, {
+        message: "La cantidad no puede ser 0"
+    }),
+    justificacion: z.string().min(3, "Debe proveer una justificación clara para este ajuste"),
+});
+
+export type AjusteInsumoFormData = z.infer<typeof ajusteInsumoSchema>;

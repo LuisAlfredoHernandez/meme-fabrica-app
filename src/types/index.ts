@@ -133,6 +133,18 @@ export interface ReporteAveria {
   maquina_tipo?: string;
 }
 
+export type TipoMovimiento = "ENTRADA" | "SALIDA" | "AJUSTE";
+
+export interface MovimientoInventario {
+  id: string;
+  insumo_id: string;
+  tipo_movimiento: TipoMovimiento;
+  cantidad: number;
+  fecha: string;
+  referencia?: string;
+  justificacion?: string;
+}
+
 export interface Insumo {
   id: string;
   nombre: string;
@@ -143,6 +155,7 @@ export interface Insumo {
   minimo: number;
   proveedor?: string;
   vinculadoA?: string[];
+  movimientos?: MovimientoInventario[];
 }
 
 // ─── Orden de Producción ─────────────────────────────────────

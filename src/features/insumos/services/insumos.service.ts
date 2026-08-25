@@ -115,4 +115,27 @@ export const insumosService = {
       throw new Error(error.message || "Error al conectar con el servidor.");
     }
   },
+
+  /**
+   * Ajusta el stock de un insumo mediante una merma o adición justificada.
+   * @param id - El ID del insumo a ajustar.
+   * @param data - La cantidad de ajuste y la justificación.
+   * @returns Una promesa que resuelve con el insumo actualizado.
+   */
+  ajusteStock: async (id: string, data: { cantidad_ajuste: number; justificacion: string }, token?: string): Promise<Insumo> => {
+    try {
+      const response = await apiClient.post(`/insumos/${id}/ajuste`, data, { token });
+
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => ({}));
+        throw new Error(errorJson.detail || `No se pudo ajustar el stock del insumo con ID: ${id}`);
+      }
+
+      const insumoActualizado: Insumo = await response.json();
+      return insumoActualizado;
+    } catch (error: any) {
+      console.error("Error en insumosService.ajusteStock:", error);
+      throw new Error(error.message || "Error al ajustar el stock.");
+    }
+  },
 };

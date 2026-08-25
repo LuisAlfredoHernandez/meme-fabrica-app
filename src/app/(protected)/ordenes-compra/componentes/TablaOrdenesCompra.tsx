@@ -90,22 +90,24 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
                                         <td className="px-5 py-4">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 {orden.estado === "PENDIENTE" && (
-                                                    <button onClick={() => handleRecibir(orden.id)}
-                                                        className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                                                        title="Marcar Recibida">
-                                                        <PackageCheck className="w-4 h-4" />
-                                                    </button>
+                                                    <>
+                                                        <button onClick={() => handleRecibir(orden.id)}
+                                                            className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                                                            title="Marcar Recibida">
+                                                            <PackageCheck className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => setOrdenEditando(orden)}
+                                                            className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
+                                                            title="Editar">
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => setIdParaEliminar(orden.id)}
+                                                            className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                                                            title="Eliminar">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
                                                 )}
-                                                <button onClick={() => setOrdenEditando(orden)}
-                                                    className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
-                                                    title="Editar">
-                                                    <Edit3 className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => setIdParaEliminar(orden.id)}
-                                                    className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                                                    title="Eliminar">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -122,7 +124,7 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
                     ordenEditando={ordenEditando}
                 />
             )}
-            
+
             {idParaEliminar && (
                 <DeleteConfirmModal
                     onCancel={() => setIdParaEliminar(null)}

@@ -33,7 +33,7 @@ export interface NavItem {
 
 export const NAV: NavItem[] = [
     { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["administrador", "subjefe"] },
-    { href: "/ordenes-venta", icon: <ShoppingCart className="w-5 h-5" />, label: "Ventas", desc: "Órdenes de cliente", roles: ["administrador", "subjefe"], badge: "NUEVO", badgeColor: "#f97316" },
+    { href: "/ordenes-venta", icon: <ShoppingCart className="w-5 h-5" />, label: "Ventas", desc: "Órdenes de cliente", roles: ["administrador"], badge: "NUEVO", badgeColor: "#f97316" },
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Producción", desc: "Órdenes en planta", roles: ["administrador", "subjefe"] },
     { href: "/facturas", icon: <Receipt className="w-5 h-5" />, label: "Facturas", desc: "Cobranza y cierre", roles: ["administrador"] },
     { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["administrador", "subjefe"] },
@@ -42,7 +42,7 @@ export const NAV: NavItem[] = [
     { href: "/validacion", icon: <ClipboardCheck className="w-5 h-5" />, label: "Validación", desc: "Certificar producción", roles: ["subjefe", "administrador"] },
     { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["administrador", "subjefe"] },
     { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["administrador", "subjefe"] },
-    { href: "/ordenes-compra", icon: <Truck className="w-5 h-5" />, label: "Compras", desc: "Pedidos proveedor", roles: ["administrador", "subjefe"] },
+    { href: "/ordenes-compra", icon: <Truck className="w-5 h-5" />, label: "Compras", desc: "Pedidos proveedor", roles: ["administrador"] },
     { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["administrador"], badge: "IA", badgeColor: "#818cf8" },
 ];
 
