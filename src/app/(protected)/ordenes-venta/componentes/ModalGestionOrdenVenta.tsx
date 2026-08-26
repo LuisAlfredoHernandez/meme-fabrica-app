@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
-export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: () => void; ordenEditando?: OrdenVenta; }) {
+export function ModalGestionOrdenVenta({ ordenEditando, onClose, readOnly = false }: { onClose: () => void; ordenEditando?: OrdenVenta; readOnly?: boolean }) {
     const isEdit = !!ordenEditando;
     const { createOrdenVenta, updateOrdenVenta } = useOrdenesVentaStore();
     const { addToastOnly } = useNotificationActions();
@@ -69,10 +69,10 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                 <div className="flex items-center justify-between p-5 border-b border-[#1e2130]">
                     <div>
                         <h2 className="text-xl font-black text-white">
-                            {isEdit ? "Editar Orden de Venta" : "Nueva Orden de Venta"}
+                            {readOnly ? "Detalles de la Orden de Venta" : isEdit ? "Editar Orden de Venta" : "Nueva Orden de Venta"}
                         </h2>
                         <p className="text-sm text-[#94a3b8] mt-1">
-                            {isEdit ? "Modifique los datos de la orden." : "Ingrese los datos del cliente y las prendas requeridas."}
+                            {readOnly ? "Vista de solo lectura." : isEdit ? "Modifique los datos de la orden." : "Ingrese los datos del cliente y las prendas requeridas."}
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-xl hover:bg-[#1a1e2b] transition-colors text-slate-400 hover:text-white">
@@ -88,7 +88,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                 <label className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider">Cliente</label>
                                 <input
                                     {...register("cliente")}
-                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] outline-none transition-all"
+                                    disabled={readOnly}
+                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316] outline-none transition-all disabled:opacity-50"
                                     placeholder="Nombre del cliente"
                                 />
                                 {errors.cliente && <p className="text-red-400 text-xs font-bold mt-1">{errors.cliente.message}</p>}
@@ -99,7 +100,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                 <input
                                     type="date"
                                     {...register("fecha_entrega_estimada")}
-                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none transition-all"
+                                    disabled={readOnly}
+                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none transition-all disabled:opacity-50"
                                 />
                                 {errors.fecha_entrega_estimada && <p className="text-red-400 text-xs font-bold mt-1">{errors.fecha_entrega_estimada.message}</p>}
                             </div>
@@ -108,7 +110,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                 <label className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider">Prioridad</label>
                                 <select
                                     {...register("prioridad")}
-                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none transition-all"
+                                    disabled={readOnly}
+                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none transition-all disabled:opacity-50"
                                 >
                                     <option value="baja">Baja</option>
                                     <option value="normal">Normal</option>
@@ -122,7 +125,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                 <textarea
                                     {...register("notas")}
                                     rows={2}
-                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none transition-all resize-none"
+                                    disabled={readOnly}
+                                    className="w-full bg-[#1a1e2b] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none transition-all resize-none disabled:opacity-50"
                                     placeholder="Comentarios o especificaciones generales"
                                 />
                             </div>
@@ -132,14 +136,16 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-black text-white">Prendas / Productos</h3>
-                                <button
-                                    type="button"
-                                    onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", color: "", precio_unitario: 0 })}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#f97316]/10 text-[#f97316] hover:bg-[#f97316]/20 transition-colors text-xs font-bold"
-                                >
-                                    <Plus className="w-3.5 h-3.5" />
-                                    Agregar Prenda
-                                </button>
+                                {!readOnly && (
+                                    <button
+                                        type="button"
+                                        onClick={() => append({ descripcion: "", cantidad: 1, talla: "M", color: "", precio_unitario: 0 })}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#f97316]/10 text-[#f97316] hover:bg-[#f97316]/20 transition-colors text-xs font-bold"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" />
+                                        Agregar Prenda
+                                    </button>
+                                )}
                             </div>
 
                             <div className="space-y-3">
@@ -149,7 +155,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Descripción</label>
                                             <input
                                                 {...register(`lineas.${index}.descripcion`)}
-                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none"
+                                                disabled={readOnly}
+                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
                                                 placeholder="Ej: Licra deportiva"
                                             />
                                             {errors.lineas?.[index]?.descripcion && <p className="text-red-400 text-[10px]">{errors.lineas[index]?.descripcion?.message}</p>}
@@ -158,7 +165,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Talla</label>
                                             <input
                                                 {...register(`lineas.${index}.talla`)}
-                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none"
+                                                disabled={readOnly}
+                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
                                                 placeholder="S, M, L..."
                                             />
                                         </div>
@@ -166,7 +174,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Color</label>
                                             <input
                                                 {...register(`lineas.${index}.color`)}
-                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none"
+                                                disabled={readOnly}
+                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
                                                 placeholder="Rojo, Azul..."
                                             />
                                         </div>
@@ -176,7 +185,8 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                                 type="number"
                                                 min="1"
                                                 {...register(`lineas.${index}.cantidad`, { valueAsNumber: true })}
-                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none"
+                                                disabled={readOnly}
+                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
                                             />
                                         </div>
                                         <div className="md:col-span-1 space-y-1">
@@ -186,20 +196,23 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
                                                 min="0"
                                                 step="0.01"
                                                 {...register(`lineas.${index}.precio_unitario`, { valueAsNumber: true })}
-                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none"
+                                                disabled={readOnly}
+                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
                                             />
                                         </div>
                                         
-                                        <div className="md:col-span-1 flex items-end justify-center pb-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => remove(index)}
-                                                disabled={fields.length === 1}
-                                                className={`p-2 rounded-lg transition-colors ${fields.length === 1 ? 'opacity-50 cursor-not-allowed text-slate-600' : 'text-red-400 bg-red-500/10 hover:bg-red-500/20'}`}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                        {!readOnly && (
+                                            <div className="md:col-span-1 flex items-end justify-center pb-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => remove(index)}
+                                                    disabled={fields.length === 1}
+                                                    className={`p-2 rounded-lg transition-colors ${fields.length === 1 ? 'opacity-50 cursor-not-allowed text-slate-600' : 'text-red-400 bg-red-500/10 hover:bg-red-500/20'}`}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -210,16 +223,18 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose }: { onClose: ()
 
                 <div className="p-5 border-t border-[#1e2130] flex items-center justify-end gap-3 bg-[#13161e] rounded-b-2xl">
                     <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-bold text-[#94a3b8] hover:text-white transition-colors">
-                        Cancelar
+                        {readOnly ? "Cerrar" : "Cancelar"}
                     </button>
-                    <button
-                        type="submit"
-                        form="orden-venta-form"
-                        className="px-6 py-2.5 rounded-xl text-sm font-black text-white transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
-                        style={{ background: `linear-gradient(135deg, ${AppColors.orange}, #ea580c)` }}
-                    >
-                        {isEdit ? "Guardar Cambios" : "Crear Orden de Venta"}
-                    </button>
+                    {!readOnly && (
+                        <button
+                            type="submit"
+                            form="orden-venta-form"
+                            className="px-6 py-2.5 rounded-xl text-sm font-black text-white transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+                            style={{ background: `linear-gradient(135deg, ${AppColors.orange}, #ea580c)` }}
+                        >
+                            {isEdit ? "Guardar Cambios" : "Crear Orden de Venta"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

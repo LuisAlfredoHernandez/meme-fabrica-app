@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, ArrowUpDown, CheckCircle2, AlertTriangle, Trash2, Edit3, Receipt } from "lucide-react";
+import { Clock, ArrowUpDown, CheckCircle2, AlertTriangle, Trash2, Edit3, Receipt, Eye } from "lucide-react";
 import { OrdenVenta, EstadoOrdenVenta } from "@/types";
 import { AppColors } from "@/shared/constants";
 import { useState } from "react";
@@ -28,8 +28,24 @@ const PRIORIDAD_CFG: Record<string, { color: string }> = {
 export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
     const { deleteOrdenVenta, generarFactura } = useOrdenesVentaStore();
     const [ordenEditando, setOrdenEditando] = useState<OrdenVenta | null>(null);
+    const [modalReadOnly, setModalReadOnly] = useState(false);
     const [idParaEliminar, setIdParaEliminar] = useState<string | null>(null);
     const { addToastOnly } = useNotificationActions();
+
+    const handleVer = (orden: OrdenVenta) => {
+        setModalReadOnly(true);
+        setOrdenEditando(orden);
+    };
+
+    const handleEditar = (orden: OrdenVenta) => {
+        setModalReadOnly(false);
+        setOrdenEditando(orden);
+    };
+
+    const handleCloseModal = () => {
+        setOrdenEditando(null);
+        setModalReadOnly(false);
+    };
 
     const handleEliminar = async (id: string) => {
         try {
@@ -113,16 +129,27 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
                                                         <Receipt className="w-4 h-4" />
                                                     </button>
                                                 )}
-                                                <button onClick={() => setOrdenEditando(orden)}
-                                                    className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
-                                                    title="Editar">
-                                                    <Edit3 className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => setIdParaEliminar(orden.id)}
-                                                    className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                                                    title="Eliminar">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                {(orden.estado === "COMPLETADA" || orden.estado === "FACTURADA") && (
+                                                    <button onClick={() => handleVer(orden)}
+                                                        className="p-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                                                        title="Visualizar Detalles">
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {orden.estado !== "COMPLETADA" && orden.estado !== "FACTURADA" && (
+                                                    <button onClick={() => handleEditar(orden)}
+                                                        className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
+                                                        title="Editar">
+                                                        <Edit3 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {(orden.estado === "EN_ESPERA" || orden.estado === "CANCELADA") && (
+                                                    <button onClick={() => setIdParaEliminar(orden.id)}
+                                                        className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                                                        title="Eliminar">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -135,8 +162,9 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
 
             {ordenEditando && (
                 <ModalGestionOrdenVenta
-                    onClose={() => setOrdenEditando(null)}
+                    onClose={handleCloseModal}
                     ordenEditando={ordenEditando}
+                    readOnly={modalReadOnly}
                 />
             )}
             
