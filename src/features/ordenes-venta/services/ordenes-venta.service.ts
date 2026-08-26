@@ -23,7 +23,10 @@ export const ordenesVentaService = {
 
   update: async (id: string, data: Partial<OrdenVentaFormData>, token?: string): Promise<OrdenVenta> => {
     const res = await apiClient.patch(`/ordenes-venta/${id}`, data, { token });
-    if (!res.ok) throw new Error("Error updating");
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Error updating");
+    }
     return res.json();
   },
 

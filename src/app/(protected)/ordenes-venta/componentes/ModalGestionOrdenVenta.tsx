@@ -7,7 +7,7 @@ import { AppColors } from "@/shared/constants";
 import { OrdenVenta } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Plus, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 
@@ -15,8 +15,10 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose, readOnly = fals
     const isEdit = !!ordenEditando;
     const { createOrdenVenta, updateOrdenVenta } = useOrdenesVentaStore();
     const { addToastOnly } = useNotificationActions();
+    const [focusedColorIndex, setFocusedColorIndex] = useState<number | null>(null);
+    const COLORES_SUGERIDOS = ["Negro", "Blanco", "Azul Marino", "Gris", "Rojo", "Verde", "Amarillo", "Rosa", "Naranja", "Beige", "Celeste", "Vino"];
 
-    const { register, handleSubmit, control, reset, formState: { errors } } = useForm<OrdenVentaFormData>({
+    const { register, handleSubmit, control, reset, watch, setValue, formState: { errors } } = useForm<OrdenVentaFormData>({
         resolver: zodResolver(ordenVentaSchema),
         defaultValues: {
             numero: `OV-${new Date().getFullYear()}-`,
@@ -30,6 +32,7 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose, readOnly = fals
     });
 
     const { fields, append, remove } = useFieldArray({ control, name: "lineas" });
+    const vLineas = watch("lineas");
 
     useEffect(() => {
         if (ordenEditando) {
@@ -151,7 +154,7 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose, readOnly = fals
                             <div className="space-y-3">
                                 {fields.map((field, index) => (
                                     <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-xl bg-[#1a1e2b] border border-[#1e2130] relative group">
-                                        <div className="md:col-span-4 space-y-1">
+                                        <div className="md:col-span-3 space-y-1">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Descripción</label>
                                             <input
                                                 {...register(`lineas.${index}.descripcion`)}
@@ -163,21 +166,54 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose, readOnly = fals
                                         </div>
                                         <div className="md:col-span-2 space-y-1">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Talla</label>
-                                            <input
+                                            <select
                                                 {...register(`lineas.${index}.talla`)}
                                                 disabled={readOnly}
                                                 className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
-                                                placeholder="S, M, L..."
-                                            />
+                                            >
+                                                {["XS", "S", "M", "L", "XL", "MIXTA", "PREDETERMINADA"].map(t => <option key={t} value={t}>{t}</option>)}
+                                            </select>
                                         </div>
-                                        <div className="md:col-span-2 space-y-1">
+                                        <div className="md:col-span-2 space-y-1 relative">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Color</label>
                                             <input
+                                                type="text"
                                                 {...register(`lineas.${index}.color`)}
                                                 disabled={readOnly}
-                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
+                                                onFocus={() => setFocusedColorIndex(index)}
+                                                onBlur={() => setFocusedColorIndex(null)}
+                                                className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50 relative z-10"
                                                 placeholder="Rojo, Azul..."
+                                                autoComplete="off"
                                             />
+                                            {focusedColorIndex === index && !readOnly && (
+                                                <div className="absolute left-0 right-0 top-full mt-1 max-h-40 overflow-y-auto bg-[#13161e] border border-[#1e2130] rounded-xl z-50 shadow-2xl custom-scrollbar">
+                                                    {COLORES_SUGERIDOS
+                                                        .filter(c => {
+                                                            const val = vLineas?.[index]?.color || "";
+                                                            return c.toLowerCase().includes(val.toLowerCase());
+                                                        })
+                                                        .map(c => (
+                                                            <button
+                                                                key={c}
+                                                                type="button"
+                                                                onMouseDown={(e) => {
+                                                                    e.preventDefault();
+                                                                    setValue(`lineas.${index}.color`, c);
+                                                                    setFocusedColorIndex(null);
+                                                                }}
+                                                                className="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-orange-500/10 hover:text-white transition-colors cursor-pointer"
+                                                            >
+                                                                {c}
+                                                            </button>
+                                                        ))}
+                                                    {vLineas?.[index]?.color && !COLORES_SUGERIDOS.map(c => c.toLowerCase()).includes((vLineas[index]?.color || "").toLowerCase()) && (
+                                                        <div className="px-3 py-1.5 text-[9px] text-slate-500 border-t border-[#1e2130]">
+                                                            Usa el color escrito: "{vLineas[index]?.color}"
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="md:col-span-2 space-y-1">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Cantidad</label>
@@ -189,7 +225,7 @@ export function ModalGestionOrdenVenta({ ordenEditando, onClose, readOnly = fals
                                                 className="w-full bg-[#13161e] border border-[#1e2130] rounded-lg px-3 py-2 text-sm text-white focus:border-[#f97316] outline-none disabled:opacity-50"
                                             />
                                         </div>
-                                        <div className="md:col-span-1 space-y-1">
+                                        <div className="md:col-span-2 space-y-1">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase">Precio</label>
                                             <input
                                                 type="number"

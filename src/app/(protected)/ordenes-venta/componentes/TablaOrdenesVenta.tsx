@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, ArrowUpDown, CheckCircle2, AlertTriangle, Trash2, Edit3, Receipt, Eye } from "lucide-react";
+import { Clock, ArrowUpDown, CheckCircle2, AlertTriangle, Trash2, Edit3, Receipt, Eye, Search } from "lucide-react";
 import { OrdenVenta, EstadoOrdenVenta } from "@/types";
 import { AppColors } from "@/shared/constants";
 import { useState } from "react";
@@ -30,6 +30,7 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
     const [ordenEditando, setOrdenEditando] = useState<OrdenVenta | null>(null);
     const [modalReadOnly, setModalReadOnly] = useState(false);
     const [idParaEliminar, setIdParaEliminar] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
     const { addToastOnly } = useNotificationActions();
 
     const handleVer = (orden: OrdenVenta) => {
@@ -66,8 +67,26 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
         }
     };
 
+    const ordenesFiltradas = ordenes.filter(o => 
+        (o.numero || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+        o.cliente.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="bg-[#13161e] border border-[#1e2130] rounded-2xl overflow-hidden shadow-xl shadow-black/20">
+            <div className="p-4 border-b border-[#1e2130]">
+                <div className="relative max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                        type="text"
+                        placeholder="Buscar por cliente o número..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-[#1a1e2b] border border-[#1e2130] rounded-xl text-sm text-white focus:outline-none focus:border-orange-500/50 transition-colors"
+                    />
+                </div>
+            </div>
+
             <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-[#1a1e2b] text-[#94a3b8] font-bold border-b border-[#1e2130]">
@@ -82,14 +101,14 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#1e2130]">
-                        {ordenes.length === 0 ? (
+                        {ordenesFiltradas.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="px-5 py-12 text-center text-[#64748b]">
-                                    No hay órdenes de venta registradas.
+                                    No se encontraron órdenes de venta.
                                 </td>
                             </tr>
                         ) : (
-                            ordenes.map((orden) => {
+                            ordenesFiltradas.map((orden) => {
                                 const st = ESTADO_CFG[orden.estado] || ESTADO_CFG["EN_ESPERA"];
                                 const pr = PRIORIDAD_CFG[orden.prioridad] || PRIORIDAD_CFG["normal"];
                                 const totalPrendas = orden.lineas.reduce((acc, l) => acc + l.cantidad, 0);

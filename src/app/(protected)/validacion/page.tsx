@@ -5,6 +5,7 @@ import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { useValidacionStore, useValidacionActions } from "@/features/validacion/store/useValidacionStore";
 import { useMaquinasStore, useMaquinasActions } from "@/features/maquinas/store/useMaquinasStore";
 import { ClipboardCheck, ShieldCheck, AlertCircle, Wrench } from "lucide-react";
+import { Header } from "@/components/Header";
 import { StatCard } from "@/components/StatCard";
 import { CertificacionProduccion } from "@/features/validacion/components/CertificacionProduccion";
 import { GestionAverias } from "@/features/validacion/components/GestionAverias";
@@ -41,14 +42,11 @@ export default function ValidacionPage() {
     return (
         <div className="p-4 md:p-8 overflow-y-auto max-h-screen custom-scrollbar">
             {/* Header y Selector de Pestañas */}
-            <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <ShieldCheck className="w-8 h-8 text-[#818cf8]" />
-                        <h1 className="text-3xl font-black text-white tracking-tight">Validación & Control de Calidad</h1>
-                    </div>
-                    <p className="text-slate-400 font-medium mt-2">Certificación de producción y gestión de averías en maquinaria.</p>
-                </div>
+            <div className="mb-8 flex flex-col gap-4">
+                <Header 
+                    title="Validación & Control de Calidad"
+                    subtitle="Certificación de producción y gestión de averías en maquinaria."
+                />
 
                 {/* Tabs */}
                 <div className="flex items-center gap-2 bg-[#13161e] border border-[#1e2130] p-1.5 rounded-2xl">

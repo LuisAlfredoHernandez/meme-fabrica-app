@@ -257,15 +257,24 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
                                 <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Tipo de Orden</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {(["MTO", "MTS"] as const).map(t => (
-                                        <button key={t} type="button" onClick={() => setValue("tipo", t)}
-                                            className="py-3 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer"
-                                            style={{
-                                                borderColor: vTipo === t ? AppColors.orange : AppColors.border,
-                                                color: vTipo === t ? AppColors.orange : "#94a3b8",
-                                                background: vTipo === t ? `${AppColors.orange}15` : "transparent",
-                                            }}>
-                                            {t === "MTO" ? "MTO — Pedido" : "MTS — Stock"}
-                                        </button>
+                                        <div key={t} className="relative group w-full">
+                                            <button type="button" onClick={() => setValue("tipo", t)}
+                                                className="w-full py-3 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer"
+                                                style={{
+                                                    borderColor: vTipo === t ? AppColors.orange : AppColors.border,
+                                                    color: vTipo === t ? AppColors.orange : "#94a3b8",
+                                                    background: vTipo === t ? `${AppColors.orange}15` : "transparent",
+                                                }}>
+                                                {t === "MTO" ? "MTO — Pedido" : "MTS — Stock"}
+                                            </button>
+                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-2 bg-[#1a1e2b] border border-white/10 text-slate-300 text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
+                                                {t === "MTO" 
+                                                    ? "Make To Order: Se produce bajo pedido específico del cliente." 
+                                                    : "Make To Stock: Se produce para almacenar en el inventario."}
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-[5px] border-transparent border-t-white/10"></div>
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[2px] border-[5px] border-transparent border-t-[#1a1e2b]"></div>
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
