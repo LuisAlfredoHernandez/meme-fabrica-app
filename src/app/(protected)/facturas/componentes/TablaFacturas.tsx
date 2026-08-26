@@ -13,6 +13,8 @@ const ESTADO_CFG: Record<EstadoFactura, { label: string; color: string; bg: stri
     PROCESADA: { label: "Procesada", color: "#34d399", bg: "rgba(52,211,153,0.12)", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
 };
 
+import { AppColors } from "@/shared/constants";
+
 export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
     const { procesarFactura } = useFacturasStore();
     const { addToastOnly } = useNotificationActions();
@@ -36,8 +38,8 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
     );
 
     return (
-        <div className="bg-[#13161e] border border-[#1e2130] rounded-2xl overflow-hidden shadow-xl shadow-black/20 flex flex-col h-full">
-            <div className="p-4 border-b border-[#1e2130]">
+        <div className="rounded-2xl overflow-hidden flex flex-col h-full" style={{ border: `1px solid ${AppColors.border}`, background: AppColors.bg }}>
+            <div className="p-4 border-b" style={{ borderColor: AppColors.border }}>
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
@@ -45,14 +47,15 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
                         placeholder="Buscar por cliente o número..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-[#1a1e2b] border border-[#1e2130] rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="w-full pl-9 pr-4 py-2 rounded-xl text-sm text-white focus:outline-none transition-colors"
+                        style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}
                     />
                 </div>
             </div>
 
-            <div className="overflow-x-auto custom-scrollbar flex-1">
+            <div className="overflow-auto custom-scrollbar flex-1 max-h-[550px]">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-[#1a1e2b] text-[#94a3b8] font-bold border-b border-[#1e2130]">
+                    <thead className="sticky top-0 z-10 font-bold border-b" style={{ background: AppColors.surface, color: AppColors.slate, borderColor: AppColors.border }}>
                         <tr>
                             <th className="px-5 py-4 whitespace-nowrap">N° Factura</th>
                             <th className="px-5 py-4">Orden de Venta</th>
@@ -63,7 +66,7 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
                             <th className="px-5 py-4 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#1e2130]">
+                    <tbody>
                         {facturasFiltradas.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="px-5 py-12 text-center text-[#64748b]">
@@ -71,12 +74,13 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
                                 </td>
                             </tr>
                         ) : (
-                            facturasFiltradas.map((factura) => {
+                            facturasFiltradas.map((factura, index) => {
                                 const st = ESTADO_CFG[factura.estado] || ESTADO_CFG["PENDIENTE"];
                                 const ov = factura.orden_venta;
 
                                 return (
-                                    <tr key={factura.id} className="hover:bg-[#1a1e2b] transition-colors group">
+                                    <tr key={factura.id} className="border-t transition-colors hover:opacity-90 group"
+                                        style={{ borderColor: AppColors.border, background: index % 2 === 0 ? AppColors.bg : `${AppColors.surface}80` }}>
                                         <td className="px-5 py-4 font-black text-white whitespace-nowrap">
                                             {factura.numero}
                                         </td>

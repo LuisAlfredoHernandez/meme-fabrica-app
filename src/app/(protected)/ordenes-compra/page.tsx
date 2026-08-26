@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, RefreshCcw } from "lucide-react";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
+import { StatCard } from "@/components/StatCard";
 import { TablaOrdenesCompra } from "./componentes/TablaOrdenesCompra";
 import { ModalGestionOrdenCompra } from "./componentes/ModalGestionOrdenCompra";
 import { useOrdenesCompraStore } from "@/features/ordenes-compra/store/useOrdenesCompraStore";
@@ -17,8 +18,8 @@ export default function OrdenesCompraPage() {
     }, [fetchOrdenesCompra]);
 
     return (
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-[#080b10] to-[#13161e] p-6 lg:p-10 custom-scrollbar">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar" style={{ background: AppColors.bg }}>
+            <div className="space-y-5">
                 
                 {/* Cabecera */}
                 <Header 
@@ -28,8 +29,15 @@ export default function OrdenesCompraPage() {
                     onButtonClick={() => setModalOpen(true)}
                 />
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <StatCard label="Total Órdenes" valor={ordenesCompra.length} labelColor={AppColors.orange} />
+                    <StatCard label="En Espera" valor={ordenesCompra.filter(o => o.estado === "PENDIENTE").length} labelColor="#94a3b8" />
+                    <StatCard label="Aprobadas" valor={ordenesCompra.filter(o => o.estado === "APROBADA").length} labelColor="#fbbf24" />
+                    <StatCard label="Recibidas" valor={ordenesCompra.filter(o => o.estado === "RECIBIDA").length} labelColor={AppColors.emerald} />
+                </div>
+
                 {/* Contenido Principal */}
-                <div className="animate-fade-in-up">
+                <div>
                     <TablaOrdenesCompra ordenes={ordenesCompra} />
                 </div>
             </div>

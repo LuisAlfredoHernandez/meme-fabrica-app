@@ -15,6 +15,8 @@ const ESTADO_CFG: Record<EstadoOrdenCompra, { label: string; color: string; bg: 
     CANCELADA: { label: "Cancelada", color: "#f87171", bg: "rgba(248,113,113,0.12)", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
 };
 
+import { AppColors } from "@/shared/constants";
+
 export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
     const { deleteOrdenCompra, recibirOrdenCompra } = useOrdenesCompraStore();
     const [ordenEditando, setOrdenEditando] = useState<OrdenCompra | null>(null);
@@ -41,10 +43,10 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
     };
 
     return (
-        <div className="bg-[#13161e] border border-[#1e2130] rounded-2xl overflow-hidden shadow-xl shadow-black/20">
-            <div className="overflow-x-auto custom-scrollbar">
+        <div className="rounded-2xl overflow-hidden flex flex-col h-full" style={{ border: `1px solid ${AppColors.border}`, background: AppColors.bg }}>
+            <div className="overflow-auto custom-scrollbar flex-1 max-h-[550px]">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-[#1a1e2b] text-[#94a3b8] font-bold border-b border-[#1e2130]">
+                    <thead className="sticky top-0 z-10 font-bold border-b" style={{ background: AppColors.surface, color: AppColors.slate, borderColor: AppColors.border }}>
                         <tr>
                             <th className="px-5 py-4 whitespace-nowrap">N° Orden</th>
                             <th className="px-5 py-4">Proveedor</th>
@@ -54,7 +56,7 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
                             <th className="px-5 py-4 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#1e2130]">
+                    <tbody>
                         {ordenes.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="px-5 py-12 text-center text-[#64748b]">
@@ -62,12 +64,13 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
                                 </td>
                             </tr>
                         ) : (
-                            ordenes.map((orden) => {
+                            ordenes.map((orden, index) => {
                                 const st = ESTADO_CFG[orden.estado] || ESTADO_CFG["PENDIENTE"];
                                 const totalInsumos = orden.lineas.reduce((acc, l) => acc + l.cantidad, 0);
 
                                 return (
-                                    <tr key={orden.id} className="hover:bg-[#1a1e2b] transition-colors group">
+                                    <tr key={orden.id} className="border-t transition-colors hover:opacity-90 group"
+                                        style={{ borderColor: AppColors.border, background: index % 2 === 0 ? AppColors.bg : `${AppColors.surface}80` }}>
                                         <td className="px-5 py-4 font-black text-white whitespace-nowrap">
                                             {orden.numero}
                                         </td>

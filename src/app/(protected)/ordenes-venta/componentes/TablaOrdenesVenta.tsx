@@ -73,8 +73,8 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
     );
 
     return (
-        <div className="bg-[#13161e] border border-[#1e2130] rounded-2xl overflow-hidden shadow-xl shadow-black/20">
-            <div className="p-4 border-b border-[#1e2130]">
+        <div className="rounded-2xl overflow-hidden flex flex-col h-full" style={{ border: `1px solid ${AppColors.border}`, background: AppColors.bg }}>
+            <div className="p-4 border-b" style={{ borderColor: AppColors.border }}>
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
@@ -82,14 +82,15 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
                         placeholder="Buscar por cliente o número..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-[#1a1e2b] border border-[#1e2130] rounded-xl text-sm text-white focus:outline-none focus:border-orange-500/50 transition-colors"
+                        className="w-full pl-9 pr-4 py-2 rounded-xl text-sm text-white focus:outline-none transition-colors"
+                        style={{ background: AppColors.surface, border: `1px solid ${AppColors.border}` }}
                     />
                 </div>
             </div>
 
-            <div className="overflow-x-auto custom-scrollbar">
+            <div className="overflow-auto custom-scrollbar flex-1 max-h-[550px]">
                 <table className="w-full text-sm text-left">
-                    <thead className="bg-[#1a1e2b] text-[#94a3b8] font-bold border-b border-[#1e2130]">
+                    <thead className="sticky top-0 z-10 font-bold border-b" style={{ background: AppColors.surface, color: AppColors.slate, borderColor: AppColors.border }}>
                         <tr>
                             <th className="px-5 py-4 whitespace-nowrap">N° Orden</th>
                             <th className="px-5 py-4">Cliente</th>
@@ -100,7 +101,7 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
                             <th className="px-5 py-4 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#1e2130]">
+                    <tbody>
                         {ordenesFiltradas.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="px-5 py-12 text-center text-[#64748b]">
@@ -108,13 +109,14 @@ export function TablaOrdenesVenta({ ordenes }: { ordenes: OrdenVenta[] }) {
                                 </td>
                             </tr>
                         ) : (
-                            ordenesFiltradas.map((orden) => {
+                            ordenesFiltradas.map((orden, index) => {
                                 const st = ESTADO_CFG[orden.estado] || ESTADO_CFG["EN_ESPERA"];
                                 const pr = PRIORIDAD_CFG[orden.prioridad] || PRIORIDAD_CFG["normal"];
                                 const totalPrendas = orden.lineas.reduce((acc, l) => acc + l.cantidad, 0);
 
                                 return (
-                                    <tr key={orden.id} className="hover:bg-[#1a1e2b] transition-colors group">
+                                    <tr key={orden.id} className="border-t transition-colors hover:opacity-90 group"
+                                        style={{ borderColor: AppColors.border, background: index % 2 === 0 ? AppColors.bg : `${AppColors.surface}80` }}>
                                         <td className="px-5 py-4 font-black text-white whitespace-nowrap">
                                             {orden.numero}
                                         </td>
