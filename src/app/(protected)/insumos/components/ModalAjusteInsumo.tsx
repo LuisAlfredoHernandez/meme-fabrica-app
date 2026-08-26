@@ -62,15 +62,16 @@ export function ModalAjusteInsumo({ insumo, onClose }: ModalAjusteInsumoProps) {
               <strong>Stock Actual:</strong> {insumo.stock} {insumo.unidad}
             </p>
             <p className="text-xs text-orange-300 mt-1">
-              Ingrese un valor negativo para mermas/salidas, o positivo para ajustes de entrada manual.
+              Ingrese un valor negativo para reportar mermas, pérdidas o daños de inventario.
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block mb-1 text-sm font-medium text-slate-300">Cantidad (Ej. -5 o 10)</label>
+              <label className="block mb-1 text-sm font-medium text-slate-300">Cantidad (Ej. -5)</label>
               <input
                 type="number"
+                max="-1"
                 step="0.01"
                 {...register("cantidad_ajuste", { valueAsNumber: true })}
                 className="w-full h-10 px-3 bg-[#13161e] border border-[#1e2130] rounded-xl text-white focus:outline-none focus:border-orange-500/50"
