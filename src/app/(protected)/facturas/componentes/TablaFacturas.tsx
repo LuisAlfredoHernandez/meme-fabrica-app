@@ -6,6 +6,7 @@ import { useFacturasStore } from "@/features/facturas/store/useFacturasStore";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { formatLocalDate } from "@/utils/formatters";
 import { useState } from "react";
+import { ModalFacturaImprimible } from "./ModalFacturaImprimible";
 
 const ESTADO_CFG: Record<EstadoFactura, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
     PENDIENTE: { label: "Pendiente", color: "#fbbf24", bg: "rgba(251,191,36,0.12)", icon: <Clock className="w-3.5 h-3.5" /> },
@@ -16,6 +17,7 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
     const { procesarFactura } = useFacturasStore();
     const { addToastOnly } = useNotificationActions();
     const [searchTerm, setSearchTerm] = useState("");
+    const [facturaAImprimir, setFacturaAImprimir] = useState<FacturaDetalle | null>(null);
 
     const handleProcesar = async (id: string) => {
         if (!confirm("¿Desea marcar esta factura como PROCESADA? Confirma que el pago ha sido recibido o validado.")) return;
@@ -107,7 +109,7 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => window.print()}
+                                                    onClick={() => setFacturaAImprimir(factura)}
                                                     className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
                                                     title="Imprimir">
                                                     <Receipt className="w-4 h-4" />
@@ -121,6 +123,13 @@ export function TablaFacturas({ facturas }: { facturas: FacturaDetalle[] }) {
                     </tbody>
                 </table>
             </div>
+
+            {facturaAImprimir && (
+                <ModalFacturaImprimible 
+                    factura={facturaAImprimir} 
+                    onClose={() => setFacturaAImprimir(null)} 
+                />
+            )}
         </div>
     );
 }

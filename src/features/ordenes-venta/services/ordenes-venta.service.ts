@@ -34,7 +34,10 @@ export const ordenesVentaService = {
 
   generarFactura: async (id: string, token?: string): Promise<any> => {
     const res = await apiClient.post(`/ordenes-venta/${id}/generar-factura`, {}, { token });
-    if (!res.ok) throw new Error("Error generating invoice");
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.detail || "Error generating invoice");
+    }
     return res.json();
   }
 };
