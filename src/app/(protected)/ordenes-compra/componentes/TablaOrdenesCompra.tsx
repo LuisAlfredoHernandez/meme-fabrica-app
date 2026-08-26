@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, CheckCircle2, AlertTriangle, Trash2, Edit3, PackageCheck } from "lucide-react";
+import { Clock, CheckCircle2, AlertTriangle, Trash2, Edit3, PackageCheck, Eye } from "lucide-react";
 import { OrdenCompra, EstadoOrdenCompra } from "@/types";
 import { useState } from "react";
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
@@ -20,6 +20,7 @@ import { AppColors } from "@/shared/constants";
 export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
     const { deleteOrdenCompra, recibirOrdenCompra } = useOrdenesCompraStore();
     const [ordenEditando, setOrdenEditando] = useState<OrdenCompra | null>(null);
+    const [modalReadOnly, setModalReadOnly] = useState(false);
     const [idParaEliminar, setIdParaEliminar] = useState<string | null>(null);
     const { addToastOnly } = useNotificationActions();
 
@@ -92,14 +93,14 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {orden.estado === "PENDIENTE" && (
+                                                {orden.estado === "PENDIENTE" ? (
                                                     <>
                                                         <button onClick={() => handleRecibir(orden.id)}
                                                             className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
                                                             title="Marcar Recibida">
                                                             <PackageCheck className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={() => setOrdenEditando(orden)}
+                                                        <button onClick={() => { setModalReadOnly(false); setOrdenEditando(orden); }}
                                                             className="p-2 rounded-xl bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors"
                                                             title="Editar">
                                                             <Edit3 className="w-4 h-4" />
@@ -110,6 +111,12 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     </>
+                                                ) : (
+                                                    <button onClick={() => { setModalReadOnly(true); setOrdenEditando(orden); }}
+                                                        className="p-2 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                                                        title="Ver Detalles">
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
@@ -123,8 +130,9 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
 
             {ordenEditando && (
                 <ModalGestionOrdenCompra
-                    onClose={() => setOrdenEditando(null)}
+                    onClose={() => { setOrdenEditando(null); setModalReadOnly(false); }}
                     ordenEditando={ordenEditando}
+                    readOnly={modalReadOnly}
                 />
             )}
 
