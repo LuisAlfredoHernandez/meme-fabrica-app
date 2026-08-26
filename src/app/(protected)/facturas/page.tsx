@@ -29,7 +29,7 @@ export default function FacturasPage() {
                     <StatCard label="Total Facturas" valor={facturas.length} labelColor={AppColors.orange} />
                     <StatCard label="Pendientes" valor={facturas.filter(f => f.estado === "PENDIENTE").length} labelColor="#fbbf24" />
                     <StatCard label="Procesadas" valor={facturas.filter(f => f.estado === "PROCESADA").length} labelColor={AppColors.emerald} />
-                    <StatCard label="Recaudado" valor={`$${facturas.filter(f => f.estado === "PROCESADA").reduce((sum, f) => sum + f.total, 0).toFixed(2)}`} labelColor={AppColors.orange} />
+                    <StatCard label="Recaudado" valor={`$${facturas.filter(f => f.estado === "PROCESADA").reduce((sum, f) => sum + f.total, 0).toFixed(2)}`} labelColor={AppColors.sky} />
                 </div>
 
                 {/* Contenido Principal */}

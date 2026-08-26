@@ -20,9 +20,9 @@ export default function OrdenesCompraPage() {
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar" style={{ background: AppColors.bg }}>
             <div className="space-y-5">
-                
+
                 {/* Cabecera */}
-                <Header 
+                <Header
                     title="Órdenes de Compra"
                     subtitle="Gestiona pedidos a proveedores y abastecimiento de insumos."
                     buttonLabel="Nueva Orden"
@@ -31,9 +31,9 @@ export default function OrdenesCompraPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <StatCard label="Total Órdenes" valor={ordenesCompra.length} labelColor={AppColors.orange} />
-                    <StatCard label="En Espera" valor={ordenesCompra.filter(o => o.estado === "PENDIENTE").length} labelColor="#94a3b8" />
-                    <StatCard label="Aprobadas" valor={ordenesCompra.filter(o => o.estado === "APROBADA").length} labelColor="#fbbf24" />
+                    <StatCard label="Pendientes" valor={ordenesCompra.filter(o => o.estado === "PENDIENTE").length} labelColor="#fbbf24" />
                     <StatCard label="Recibidas" valor={ordenesCompra.filter(o => o.estado === "RECIBIDA").length} labelColor={AppColors.emerald} />
+                    <StatCard label="Canceladas" valor={ordenesCompra.filter(o => o.estado === "CANCELADA").length} labelColor={AppColors.red} />
                 </div>
 
                 {/* Contenido Principal */}
