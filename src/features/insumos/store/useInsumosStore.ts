@@ -4,7 +4,8 @@ import {
   fetchInsumosAction,
   createInsumoAction,
   updateInsumoAction,
-  deleteInsumoAction
+  deleteInsumoAction,
+  ajusteInsumoAction
 } from "@/features/insumos/actions/insumos.actions";
 import type { Insumo } from "@/types";
 
@@ -17,6 +18,7 @@ interface InsumosState {
     createInsumo: (insumo: Omit<Insumo, "id">) => Promise<boolean>;
     updateInsumo: (id: string, data: Partial<Insumo>) => Promise<boolean>;
     deleteInsumo: (id: string) => Promise<boolean>;
+    ajusteInsumo: (id: string, data: { cantidad_ajuste: number; justificacion: string }) => Promise<boolean>;
     reset: () => void;
   };
 }
@@ -98,6 +100,26 @@ export const useInsumosStore = create<InsumosState>()(
           } catch (e) {
             const errorMessage = e instanceof Error ? e.message : "Error al eliminar";
             set({ isLoading: false, error: errorMessage }, false, "insumos/delete_error");
+            throw e;
+          }
+        },
+
+        ajusteInsumo: async (id, data) => {
+          set({ isLoading: true, error: null }, false, "insumos/ajuste_start");
+          try {
+            const updated = await ajusteInsumoAction(id, data);
+            set(
+              (state) => ({
+                insumos: state.insumos.map((i) => (i.id === id ? updated : i)),
+                isLoading: false,
+              }),
+              false,
+              "insumos/ajuste_success"
+            );
+            return true;
+          } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : "Error al ajustar stock";
+            set({ isLoading: false, error: errorMessage }, false, "insumos/ajuste_error");
             throw e;
           }
         },

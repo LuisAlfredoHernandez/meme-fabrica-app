@@ -345,6 +345,8 @@ export default function ProtectedLayout({
         if (mounted && user) {
             if (user.rol === "operario" && pathname !== "/mi-estacion" && pathname !== "/mi-historial") {
                 router.push("/mi-estacion");
+            } else if (user.rol !== "administrador" && (pathname === "/ordenes-venta" || pathname === "/ordenes-compra" || pathname === "/facturas")) {
+                router.push("/dashboard");
             } else if ((user.rol === "administrador" || user.rol === "subjefe") && pathname === "/") {
                 router.push("/dashboard");
             }

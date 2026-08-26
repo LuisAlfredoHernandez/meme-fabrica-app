@@ -4,8 +4,10 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
-import { AlertTriangle, Search, Package, TrendingDown, Plus, Minus, Trash2 } from "lucide-react";
-import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; // Asegúrate de que el nombre coincida
+import { AlertTriangle, Search, Package, TrendingDown, ClipboardList, Settings2, Trash2 } from "lucide-react";
+import { ModalGestionInsumo } from "./components/ModalGestionInsumo"; 
+import { ModalAjusteInsumo } from "./components/ModalAjusteInsumo";
+import { ModalKardexInsumo } from "./components/ModalKardexInsumo";
 import { normalizeText } from "@/utils/formatters";
 import { AppColors } from "@/shared/constants";
 import { Header } from "@/components/Header";
@@ -20,9 +22,13 @@ export default function InsumosPage() {
     const [filtro, setFiltro] = useState<"todos" | "bajo" | "agotado">("todos");
 
     // Control del Modal Único
-    const [modalConfig, setModalConfig] = useState<{ open: boolean; id?: string; mode?: "entrada" | "salida" | "eliminar" }>({
+    const [modalConfig, setModalConfig] = useState<{ open: boolean; id?: string; mode?: "entrada" | "eliminar" }>({
         open: false
     });
+    
+    // Control de nuevos modales
+    const [ajusteConfig, setAjusteConfig] = useState<{ open: boolean; id?: string }>({ open: false });
+    const [kardexConfig, setKardexConfig] = useState<{ open: boolean; id?: string }>({ open: false });
 
     useEffect(() => {
         fetchInsumos();
@@ -37,9 +43,12 @@ export default function InsumosPage() {
     });
 
     // Función para abrir el modal con una configuración específica
-    const abrirGestion = (id?: string, mode: "entrada" | "salida" | "eliminar" = "entrada") => {
+    const abrirGestion = (id?: string, mode: "entrada" | "eliminar" = "entrada") => {
         setModalConfig({ open: true, id, mode });
     };
+
+    const abrirAjuste = (id: string) => setAjusteConfig({ open: true, id });
+    const abrirKardex = (id: string) => setKardexConfig({ open: true, id });
 
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-8 text-white max-h-screen custom-scrollbar">
@@ -48,6 +57,20 @@ export default function InsumosPage() {
                     initialInsumo={insumos.find(i => i.id === modalConfig.id)} 
                     initialMode={modalConfig.mode}
                     onClose={() => setModalConfig({ open: false })}
+                />
+            )}
+            
+            {ajusteConfig.open && ajusteConfig.id && (
+                <ModalAjusteInsumo
+                    insumo={insumos.find(i => i.id === ajusteConfig.id)!}
+                    onClose={() => setAjusteConfig({ open: false })}
+                />
+            )}
+
+            {kardexConfig.open && kardexConfig.id && (
+                <ModalKardexInsumo
+                    insumo={insumos.find(i => i.id === kardexConfig.id)!}
+                    onClose={() => setKardexConfig({ open: false })}
                 />
             )}
 
@@ -142,18 +165,18 @@ export default function InsumosPage() {
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-1">
                                             <button
-                                                onClick={() => abrirGestion(ins.id, "entrada")}
+                                                onClick={() => abrirKardex(ins.id)}
                                                 className="p-2 rounded-lg text-emerald-500 hover:text-white hover:bg-emerald-500/10 transition-all cursor-pointer"
-                                                title="Entrada de Stock"
+                                                title="Ver Kardex"
                                             >
-                                                <Plus className="w-4 h-4" />
+                                                <ClipboardList className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => abrirGestion(ins.id, "salida")}
+                                                onClick={() => abrirAjuste(ins.id)}
                                                 className="p-2 rounded-lg text-orange-500 hover:text-white hover:bg-orange-500/10 transition-all cursor-pointer"
-                                                title="Retirar Stock"
+                                                title="Ajuste de Stock (Mermas)"
                                             >
-                                                <Minus className="w-4 h-4" />
+                                                <Settings2 className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => abrirGestion(ins.id, "eliminar")}

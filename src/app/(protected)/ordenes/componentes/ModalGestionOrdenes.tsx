@@ -1,4 +1,5 @@
 "use client";
+"use no memo";
 
 import { OrdenFormData, ordenSchema } from "@/features/ordenes/schemas/ordenes.schemas";
 import { useOrdenActions } from "@/features/ordenes/store/useOrdenesStore";
@@ -13,6 +14,7 @@ import { predictOrderItemsAction } from "@/features/ia-predictiva/actions/ia.act
 import { useNotificationActions } from "@/shared/store/useNotificationStore";
 import { useInsumosStore, useInsumosActions } from "@/features/insumos/store/useInsumosStore";
 import { useOperarioStore, useOperarioActions } from "@/features/operarios/store/useOperarioStore";
+import { useOrdenesVentaStore } from "@/features/ordenes-venta/store/useOrdenesVentaStore";
 import { CardLineaOrden } from "./CardLineaOrden";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
 
@@ -38,6 +40,7 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
     const { fetchInsumos } = useInsumosActions();
     const { operarios } = useOperarioStore();
     const { fetchOperarios } = useOperarioActions();
+    const { ordenesVenta, fetchOrdenesVenta } = useOrdenesVentaStore();
     const isEdit = !!orden;
     const [listaPrendas, setListaPrendas] = useState<string[]>([]);
     const [asignacionParaEliminar, setAsignacionParaEliminar] = useState<number | null>(null);
@@ -110,7 +113,8 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
         cargarPrendas();
         fetchInsumos();
         fetchOperarios();
-    }, [fetchInsumos, fetchOperarios]);
+        fetchOrdenesVenta();
+    }, [fetchInsumos, fetchOperarios, fetchOrdenesVenta]);
 
     const vTipo = watch("tipo");
     const vCliente = watch("cliente");
@@ -123,6 +127,25 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
             reset(orden); // Esto limpia el formulario y carga los datos de la orden a editar
         }
     }, [orden, reset]);
+
+    const handleOvChange = (ovId: string) => {
+        setValue("orden_venta_id", ovId);
+        const selectedOV = ordenesVenta.find(o => o.id === ovId);
+        if (selectedOV) {
+            setValue("cliente", selectedOV.cliente);
+            if (selectedOV.fecha_entrega_estimada) {
+                setValue("fechaEntregaEstimada", selectedOV.fecha_entrega_estimada.split("T")[0]);
+            }
+            setValue("lineas", selectedOV.lineas.map(l => ({
+                descripcion: l.descripcion,
+                cantidad: l.cantidad,
+                talla: l.talla as any,
+                color: l.color || "",
+                insumos: []
+            })));
+            addToastOnly("Datos Importados", "Se han heredado las prendas y cliente de la Orden de Venta.", "info");
+        }
+    };
 
     const onActualSubmit = async (data: OrdenFormData) => {
         try {
@@ -205,21 +228,53 @@ export function ModalGestionOrdenes({ orden, onClose, readOnly = false }: { onCl
 
                 <fieldset disabled={readOnly} className="contents">
                     <div className="p-6 md:p-8 space-y-8 overflow-y-auto flex-1 flex flex-col custom-scrollbar">
+
+                        {/* Selector de Orden de Venta (Solo Creación) */}
+                        {!isEdit && (
+                            <div className="bg-[#1a1e2b] p-4 rounded-xl border border-orange-500/30 shrink-0">
+                                <label className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2 block">
+                                    Vincular a Orden de Venta (Opcional)
+                                </label>
+                                <select
+                                    className="w-full bg-[#13161e] border border-[#1e2130] rounded-xl px-4 py-3 text-sm text-white focus:border-[#f97316] outline-none"
+                                    onChange={(e) => handleOvChange(e.target.value)}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Seleccione una orden de venta EN ESPERA</option>
+                                    {ordenesVenta.filter(ov => ov.estado === "EN_ESPERA").map(ov => (
+                                        <option key={ov.id} value={ov.id}>
+                                            {ov.numero} - {ov.cliente} ({ov.lineas.length} prendas)
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-[10px] text-slate-400 mt-2">Al seleccionar una orden de venta, los datos del cliente y las prendas se cargarán automáticamente.</p>
+                            </div>
+                        )}
+
                         {/* Sección Fija: Datos Generales */}
                         <div className="space-y-4 shrink-0">
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold uppercase text-slate-500 tracking-widest">Tipo de Orden</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {(["MTO", "MTS"] as const).map(t => (
-                                        <button key={t} type="button" onClick={() => setValue("tipo", t)}
-                                            className="py-3 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer"
-                                            style={{
-                                                borderColor: vTipo === t ? AppColors.orange : AppColors.border,
-                                                color: vTipo === t ? AppColors.orange : "#94a3b8",
-                                                background: vTipo === t ? `${AppColors.orange}15` : "transparent",
-                                            }}>
-                                            {t === "MTO" ? "MTO — Pedido" : "MTS — Stock"}
-                                        </button>
+                                        <div key={t} className="relative group w-full">
+                                            <button type="button" onClick={() => setValue("tipo", t)}
+                                                className="w-full py-3 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer"
+                                                style={{
+                                                    borderColor: vTipo === t ? AppColors.orange : AppColors.border,
+                                                    color: vTipo === t ? AppColors.orange : "#94a3b8",
+                                                    background: vTipo === t ? `${AppColors.orange}15` : "transparent",
+                                                }}>
+                                                {t === "MTO" ? "MTO — Pedido" : "MTS — Stock"}
+                                            </button>
+                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-2 bg-[#1a1e2b] border border-white/10 text-slate-300 text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
+                                                {t === "MTO" 
+                                                    ? "Make To Order: Se produce bajo pedido específico del cliente." 
+                                                    : "Make To Stock: Se produce para almacenar en el inventario."}
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-[5px] border-transparent border-t-white/10"></div>
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[2px] border-[5px] border-transparent border-t-[#1a1e2b]"></div>
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             </div>

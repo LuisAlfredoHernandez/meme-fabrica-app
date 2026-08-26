@@ -133,6 +133,18 @@ export interface ReporteAveria {
   maquina_tipo?: string;
 }
 
+export type TipoMovimiento = "ENTRADA" | "SALIDA" | "AJUSTE";
+
+export interface MovimientoInventario {
+  id: string;
+  insumo_id: string;
+  tipo_movimiento: TipoMovimiento;
+  cantidad: number;
+  fecha: string;
+  referencia?: string;
+  justificacion?: string;
+}
+
 export interface Insumo {
   id: string;
   nombre: string;
@@ -143,6 +155,7 @@ export interface Insumo {
   minimo: number;
   proveedor?: string;
   vinculadoA?: string[];
+  movimientos?: MovimientoInventario[];
 }
 
 // ─── Orden de Producción ─────────────────────────────────────
@@ -158,7 +171,8 @@ export type EstadoOrden = typeof ESTADO_ORDEN_LIST[number];
 
 export interface Orden {
   id: string;
-  numero: string; // ej: "ORD-2026-0042"
+  numero: string; // ej: "OPMTO1"
+  orden_venta_id?: string;
   cliente: string;
   tipo: TipoOP;
   lineas: LineaOrden[];
@@ -321,3 +335,77 @@ export interface LoginResponse {
   refresh_token?: string;
   requires_password_change?: boolean;
 }
+
+// ─── Órdenes de Venta ────────────────────────────────────────
+
+export type EstadoOrdenVenta =
+  | "EN_ESPERA"
+  | "EN_PRODUCCION"
+  | "COMPLETADA"
+  | "FACTURADA"
+  | "CANCELADA";
+
+export interface LineaOrdenVenta {
+  id?: string;
+  prenda_id?: string;
+  descripcion: string;
+  talla: string;
+  color?: string;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+export interface OrdenVenta {
+  id: string;
+  numero: string;
+  cliente: string;
+  estado: EstadoOrdenVenta;
+  prioridad: Prioridad;
+  fecha_entrega_estimada: string;
+  notas?: string;
+  fecha_creacion: string;
+  lineas: LineaOrdenVenta[];
+}
+
+// ─── Órdenes de Compra ───────────────────────────────────────
+
+export type EstadoOrdenCompra = "PENDIENTE" | "RECIBIDA" | "CANCELADA";
+
+export interface LineaOrdenCompra {
+  id?: string;
+  insumo_id: string;
+  insumo_nombre?: string;
+  cantidad: number;
+  precio_unitario: number;
+}
+
+export interface OrdenCompra {
+  id: string;
+  numero: string;
+  proveedor: string;
+  estado: EstadoOrdenCompra;
+  notas?: string;
+  fecha_creacion: string;
+  lineas: LineaOrdenCompra[];
+}
+
+// ─── Facturación ─────────────────────────────────────────────
+
+export type EstadoFactura = "PENDIENTE" | "PROCESADA";
+
+export interface Factura {
+  id: string;
+  numero: string;
+  orden_venta_id: string;
+  estado: EstadoFactura;
+  subtotal: number;
+  impuesto: number;
+  total: number;
+  notas?: string;
+  fecha_emision: string;
+  fecha_procesamiento?: string;
+}
+
+export interface FacturaDetalle extends Factura {
+  orden_venta: OrdenVenta;
+}

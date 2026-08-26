@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 interface HeaderProps {
     title: string;
     subtitle?: string;
-    buttonLabel: string;
+    buttonLabel?: string;
     onButtonClick?: () => void;
 }
 

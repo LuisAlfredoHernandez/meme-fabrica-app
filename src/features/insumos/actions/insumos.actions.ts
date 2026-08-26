@@ -36,3 +36,8 @@ export async function getInsumoByIdAction(id: string): Promise<Insumo | undefine
   const token = await getToken();
   return insumosService.getById(id, token);
 }
+
+export async function ajusteInsumoAction(id: string, data: { cantidad_ajuste: number; justificacion: string }): Promise<Insumo> {
+  const token = await getToken();
+  return insumosService.ajusteStock(id, data, token);
+}
