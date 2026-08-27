@@ -9,7 +9,7 @@ import {
     LayoutDashboard, ClipboardList, Users,
     Package, Brain, Settings, LogOut, Shield,
     Factory, ScanLine, ClipboardCheck, History,
-    ShoppingCart, Truck, Receipt
+    ShoppingCart, Truck, Receipt, DollarSign, Warehouse, CalendarDays
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -36,6 +36,7 @@ export const NAV: NavItem[] = [
     { href: "/ordenes-venta", icon: <ShoppingCart className="w-5 h-5" />, label: "Ventas", desc: "Órdenes de cliente", roles: ["administrador"], badge: "NUEVO", badgeColor: "#f97316" },
     { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Producción", desc: "Órdenes en planta", roles: ["administrador", "subjefe"] },
     { href: "/facturas", icon: <Receipt className="w-5 h-5" />, label: "Facturas", desc: "Cobranza y cierre", roles: ["administrador"] },
+    { href: "/costos", icon: <DollarSign className="w-5 h-5" />, label: "Costos", desc: "Análisis financiero", roles: ["administrador"], badge: "WIP", badgeColor: "#64748b" },
     { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["administrador", "subjefe"] },
     { href: "/mi-estacion", icon: <ScanLine className="w-5 h-5" />, label: "Mi Estación", desc: "Captura diaria", roles: ["operario"] },
     { href: "/mi-historial", icon: <History className="w-5 h-5" />, label: "Mi Historial", desc: "Reportes y stats", roles: ["operario"] },
@@ -43,6 +44,8 @@ export const NAV: NavItem[] = [
     { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["administrador", "subjefe"] },
     { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["administrador", "subjefe"] },
     { href: "/ordenes-compra", icon: <Truck className="w-5 h-5" />, label: "Compras", desc: "Pedidos proveedor", roles: ["administrador"] },
+    { href: "/almacen", icon: <Warehouse className="w-5 h-5" />, label: "Almacén", desc: "Gestión de inventario", roles: ["administrador"], badge: "WIP", badgeColor: "#64748b" },
+    { href: "/planificacion", icon: <CalendarDays className="w-5 h-5" />, label: "Planificación Avanzada", desc: "Programación tareas", roles: ["administrador"], badge: "WIP", badgeColor: "#64748b" },
     { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["administrador"], badge: "IA", badgeColor: "#818cf8" },
 ];
 
