@@ -28,6 +28,7 @@ export function TablaOrdenesCompra({ ordenes }: { ordenes: OrdenCompra[] }) {
         try {
             await deleteOrdenCompra(id);
             addToastOnly("Orden Eliminada", "La orden de compra fue eliminada.", "success");
+            setIdParaEliminar(null);
         } catch (error: any) {
             addToastOnly("Error", error.message || "No se pudo eliminar la orden.", "error");
         }
