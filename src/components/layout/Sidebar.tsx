@@ -9,7 +9,8 @@ import {
     LayoutDashboard, ClipboardList, Users,
     Package, Brain, Settings, LogOut, Shield,
     Factory, ScanLine, ClipboardCheck, History,
-    ShoppingCart, Truck, Receipt, DollarSign, Warehouse, CalendarDays
+    ShoppingCart, Truck, Receipt, DollarSign, Warehouse, CalendarDays,
+    Wrench, ShieldCheck, CircleDollarSign
 } from "lucide-react";
 import { useAuthStore } from "@/features/login/store/useAuthStore";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -22,6 +23,7 @@ const C = {
 export type Rol = "administrador" | "subjefe" | "operario";
 
 export interface NavItem {
+    category: string;
     href: string;
     icon: React.ReactNode;
     label: string;
@@ -31,22 +33,41 @@ export interface NavItem {
     badgeColor?: string;
 }
 
+const CATEGORY_ORDER = [
+    "GENERAL",
+    "COMERCIAL",
+    "PRODUCCIÓN",
+    "RECURSOS PRODUCTIVOS",
+    "CADENA DE SUMINISTRO",
+    "FINANZAS",
+    "INTELIGENCIA",
+    "MI TRABAJO"
+];
+
 export const NAV: NavItem[] = [
-    { href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["administrador", "subjefe"] },
-    { href: "/ordenes-venta", icon: <ShoppingCart className="w-5 h-5" />, label: "Ventas", desc: "Órdenes de cliente", roles: ["administrador"], badge: "NUEVO", badgeColor: "#f97316" },
-    { href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Producción", desc: "Órdenes en planta", roles: ["administrador", "subjefe"] },
-    { href: "/facturas", icon: <Receipt className="w-5 h-5" />, label: "Facturas", desc: "Cobranza y cierre", roles: ["administrador"] },
-    { href: "/costos", icon: <DollarSign className="w-5 h-5" />, label: "Costos", desc: "Análisis financiero", roles: ["administrador"], badge: "WIP", badgeColor: "#64748b" },
-    { href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Maquinas", desc: "Maquinas de produccion", roles: ["administrador", "subjefe"] },
-    { href: "/mi-estacion", icon: <ScanLine className="w-5 h-5" />, label: "Mi Estación", desc: "Captura diaria", roles: ["operario"] },
-    { href: "/mi-historial", icon: <History className="w-5 h-5" />, label: "Mi Historial", desc: "Reportes y stats", roles: ["operario"] },
-    { href: "/validacion", icon: <ClipboardCheck className="w-5 h-5" />, label: "Validación", desc: "Certificar producción", roles: ["subjefe", "administrador"] },
-    { href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["administrador", "subjefe"] },
-    { href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["administrador", "subjefe"] },
-    { href: "/ordenes-compra", icon: <Truck className="w-5 h-5" />, label: "Compras", desc: "Pedidos proveedor", roles: ["administrador"] },
-    { href: "/almacen", icon: <Warehouse className="w-5 h-5" />, label: "Almacén", desc: "Gestión de inventario", roles: ["administrador"], badge: "WIP", badgeColor: "#64748b" },
-    { href: "/planificacion", icon: <CalendarDays className="w-5 h-5" />, label: "Planificación Avanzada", desc: "Programación tareas", roles: ["administrador"], badge: "WIP", badgeColor: "#64748b" },
-    { href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["administrador"], badge: "IA", badgeColor: "#818cf8" },
+    { category: "GENERAL", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", desc: "KPIs y métricas", roles: ["administrador", "subjefe"] },
+    
+    { category: "COMERCIAL", href: "/ordenes-venta", icon: <ShoppingCart className="w-5 h-5" />, label: "Ventas", desc: "Órdenes de cliente", roles: ["administrador"], badge: "NUEVO", badgeColor: "#10b981" },
+    { category: "COMERCIAL", href: "/facturas", icon: <Receipt className="w-5 h-5" />, label: "Facturas", desc: "Cobranza y cierre", roles: ["administrador"] },
+    
+    { category: "PRODUCCIÓN", href: "/ordenes", icon: <ClipboardList className="w-5 h-5" />, label: "Producción", desc: "Órdenes en planta", roles: ["administrador", "subjefe"] },
+    { category: "PRODUCCIÓN", href: "/planificacion", icon: <CalendarDays className="w-5 h-5" />, label: "Planificación avanzada", desc: "Programación tareas", roles: ["administrador"], badge: "WIP", badgeColor: "#f59e0b" },
+    { category: "PRODUCCIÓN", href: "/validacion", icon: <ShieldCheck className="w-5 h-5" />, label: "Calidad / validación", desc: "Certificar producción", roles: ["subjefe", "administrador"] },
+    
+    { category: "RECURSOS PRODUCTIVOS", href: "/maquinas", icon: <Factory className="w-5 h-5" />, label: "Máquinas", desc: "Producción y estado", roles: ["administrador", "subjefe"] },
+    { category: "RECURSOS PRODUCTIVOS", href: "/mantenimiento", icon: <Wrench className="w-5 h-5" />, label: "Mantenimiento", desc: "Sugerido", roles: ["administrador", "subjefe"] },
+    { category: "RECURSOS PRODUCTIVOS", href: "/operarios", icon: <Users className="w-5 h-5" />, label: "Operarios", desc: "RRHH y asignación", roles: ["administrador", "subjefe"] },
+    
+    { category: "CADENA DE SUMINISTRO", href: "/insumos", icon: <Package className="w-5 h-5" />, label: "Insumos", desc: "Materiales y stock", roles: ["administrador", "subjefe"] },
+    { category: "CADENA DE SUMINISTRO", href: "/ordenes-compra", icon: <Truck className="w-5 h-5" />, label: "Compras", desc: "Pedidos proveedor", roles: ["administrador"] },
+    { category: "CADENA DE SUMINISTRO", href: "/almacen", icon: <Warehouse className="w-5 h-5" />, label: "Almacén", desc: "Gestión de inventario", roles: ["administrador"], badge: "WIP", badgeColor: "#f59e0b" },
+    
+    { category: "FINANZAS", href: "/costos", icon: <CircleDollarSign className="w-5 h-5" />, label: "Costos", desc: "Análisis financiero", roles: ["administrador"], badge: "WIP", badgeColor: "#f59e0b" },
+    
+    { category: "INTELIGENCIA", href: "/ia", icon: <Brain className="w-5 h-5" />, label: "IA Predictiva", desc: "Modelos y predicciones", roles: ["administrador"], badge: "IA", badgeColor: "#60a5fa" },
+    
+    { category: "MI TRABAJO", href: "/mi-estacion", icon: <ScanLine className="w-5 h-5" />, label: "Mi Estación", desc: "Captura diaria", roles: ["operario"] },
+    { category: "MI TRABAJO", href: "/mi-historial", icon: <History className="w-5 h-5" />, label: "Mi Historial", desc: "Reportes y stats", roles: ["operario"] },
 ];
 
 const ROL_LABEL: Record<Rol, string> = {
@@ -96,42 +117,59 @@ export function Sidebar({ rol = "subjefe", usuario = "Jefe Taller" }: { rol?: Ro
             </div>
 
             {/* Nav items */}
-            <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                {itemsVisibles.map(item => {
-                    const active = pathname === item.href;
+            <nav className="flex-1 px-3 py-6 space-y-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                {CATEGORY_ORDER.map(category => {
+                    const categoryItems = itemsVisibles.filter(item => item.category === category);
+                    if (categoryItems.length === 0) return null;
+
                     return (
-                        <Link key={item.href} href={item.href}
-                            // Añadimos hover:bg-[#818cf815] para el feedback sutil solicitado
-                            className="flex items-center gap-4 px-3 py-3 rounded-2xl transition-all duration-300 group relative hover:bg-[#818cf815]"
-                            style={{
-                                background: active ? `${C.orange}15` : "transparent",
-                                color: active ? C.orange : "#64748b",
-                            }}
-                            title={isHovered ? undefined : item.label}>
-
-                            <span className={`shrink-0 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:text-[#818cf8]'}`}>
-                                {item.icon}
-                            </span>
-
-                            <div className={`flex-1 min-w-0 transition-all duration-300 ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 pointer-events-none'}`}>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-sm font-bold truncate whitespace-nowrap transition-colors duration-300 ${active ? 'text-orange-500' : 'group-hover:text-white'}`}>
-                                        {item.label}
-                                    </span>
-                                    {item.badge && (
-                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md"
-                                            style={{ background: `${item.badgeColor}20`, color: item.badgeColor }}>
-                                            {item.badge}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-[10px] truncate whitespace-nowrap font-medium" style={{ color: C.slate }}>{item.desc}</p>
+                        <div key={category} className="flex flex-col space-y-1.5">
+                            {/* Category Header */}
+                            <div className={`px-3 transition-all duration-300 overflow-hidden flex items-center ${isHovered ? 'h-5 opacity-100 mb-1' : 'h-0 opacity-0 mb-0'}`}>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest" style={{ color: C.slate }}>
+                                    {category}
+                                </h3>
                             </div>
+                            
+                            {/* Items */}
+                            {categoryItems.map(item => {
+                                const active = pathname === item.href;
+                                return (
+                                    <Link key={item.href} href={item.href}
+                                        // Añadimos hover:bg-[#818cf815] para el feedback sutil solicitado
+                                        className="flex items-center gap-4 px-3 py-3 rounded-2xl transition-all duration-300 group relative hover:bg-[#818cf815]"
+                                        style={{
+                                            background: active ? `${C.orange}15` : "transparent",
+                                            color: active ? C.orange : "#64748b",
+                                        }}
+                                        title={isHovered ? undefined : item.label}>
 
-                            {active && (
-                                <div className="absolute right-0 w-1 h-5 rounded-l-full" style={{ background: C.orange }} />
-                            )}
-                        </Link>
+                                        <span className={`shrink-0 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 group-hover:text-[#818cf8]'}`}>
+                                            {item.icon}
+                                        </span>
+
+                                        <div className={`flex-1 min-w-0 transition-all duration-300 ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8 pointer-events-none'}`}>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-sm font-bold truncate whitespace-nowrap transition-colors duration-300 ${active ? 'text-orange-500' : 'group-hover:text-white'}`}>
+                                                    {item.label}
+                                                </span>
+                                                {item.badge && (
+                                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md"
+                                                        style={{ background: `${item.badgeColor}20`, color: item.badgeColor }}>
+                                                        {item.badge}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[10px] truncate whitespace-nowrap font-medium" style={{ color: C.slate }}>{item.desc}</p>
+                                        </div>
+
+                                        {active && (
+                                            <div className="absolute right-0 w-1 h-5 rounded-l-full" style={{ background: C.orange }} />
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
                     );
                 })}
             </nav>
